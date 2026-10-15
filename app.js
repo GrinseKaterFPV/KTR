@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.11.1';
+  const APP_VERSION = '0.11.2';
 
   // ---------- i18n ----------
   const I18N = {
@@ -120,6 +120,7 @@
       set_end: 'Satz beendet. Gesamtzeit ',
       sets_title: 'Sätze (Vergleich)',
       export_all: 'Alle exportieren',
+      export_filtered: 'Gefilterte exportieren',
       export_set: 'Satz exportieren',
       clear_sets: 'Alle löschen',
       no_sets: 'Noch keine Sätze gespeichert.',
@@ -260,6 +261,7 @@
       set_end: 'Set finished. Total time ',
       sets_title: 'Sets (compare)',
       export_all: 'Export all',
+      export_filtered: 'Export filtered',
       export_set: 'Export set',
       clear_sets: 'Clear all',
       no_sets: 'No sets saved yet.',
@@ -346,7 +348,6 @@
     autoLaps: 0,
     awaitingStart: false,
     sets: [],
-    setCounter: 0,
     stintSaved: false,
     setFilter: '',
     accent: '#ff7a1a',
@@ -541,7 +542,6 @@
     state.sections = (s.sections && typeof s.sections === 'object') ? s.sections : {};
     state.accent = s.accent || '#ff7a1a';
     state.sets = loadSets();
-    state.setCounter = state.sets.reduce((m, x) => Math.max(m, x.n || 0), 0);
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
@@ -1552,15 +1552,24 @@
   }
 
   // Store the current laps as a completed set for later comparison.
+  // Set numbers are per pilot: every pilot can have their own "Set 1", "Set 2", …
+  function nextSetNumber(pilot) {
+    const p = pilot || '';
+    let max = 0;
+    state.sets.forEach(s => {
+      if ((s.pilot || '') === p) max = Math.max(max, s.n || 0);
+    });
+    return max + 1;
+  }
   function saveStint() {
     if (!state.laps.length) return null;
     if (state.stintSaved) return null;
     const laps = state.laps.map(l => ({ idx: l.idx, duration: l.duration, total: l.total, pilot: l.pilot || '' }));
-    state.setCounter = (state.setCounter || state.sets.length) + 1;
+    const pilot = state.currentPilot || '';
     const set = {
-      n: state.setCounter,
+      n: nextSetNumber(pilot),
       at: Date.now(),
-      pilot: state.currentPilot || '',
+      pilot,
       laps,
       totalMs: laps[laps.length - 1].total,
       bestMs: Math.min(...laps.map(l => l.duration)),
@@ -1686,6 +1695,13 @@
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
+  function fileSafe(s) {
+    const cleaned = String(s == null ? '' : s)
+      .replace(/[^\p{L}\p{N}_-]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40);
+    return cleaned || 'pilot';
+  }
   function pilotLabel(p) { return p ? p : t('no_pilot'); }
   function pilotValues() {
     const names = [];
@@ -1715,6 +1731,7 @@
       els.setPilotFilter.appendChild(o);
     });
     els.setPilotFilter.value = cur;
+    if (els.btnExportAll) els.btnExportAll.textContent = state.setFilter ? t('export_filtered') : t('export_all');
   }
   function renderPilotCompare() {
     if (!els.pilotCompare) return;
@@ -1793,7 +1810,7 @@
       exp.title = t('export_set');
       exp.addEventListener('click', ev => {
         ev.stopPropagation();
-        downloadCsv('fpv-set-' + set.n + '.csv', setCsvRows(set));
+        downloadCsv('fpv-set-' + fileSafe(pilotLabel(set.pilot)) + '-' + set.n + '.csv', setCsvRows(set));
       });
       const del = document.createElement('button');
       del.className = 'set-del';
@@ -1865,6 +1882,7 @@
     if (!sets.length) return;
 
     const shown = sets.slice(-8);
+    const multiPilot = new Set(shown.map(s => s.pilot || '')).size > 1;
     const maxLaps = Math.max(1, ...shown.map(s => s.laps.length));
     let minMs = Infinity, maxMs = -Infinity;
     shown.forEach(s => s.laps.forEach(l => {
@@ -1877,7 +1895,7 @@
       minMs -= pad; maxMs += pad;
     }
     const span = maxMs - minMs;
-    const padTop = 16, padBottom = 20, padLeft = 52, padRight = 60;
+    const padTop = 16, padBottom = 20, padLeft = 52, padRight = multiPilot ? 96 : 60;
     const plotW = Math.max(30, cssW - padLeft - padRight);
     const plotH = Math.max(30, cssH - padTop - padBottom);
     const X = i => padLeft + (maxLaps <= 1 ? plotW / 2 : ((i - 1) / (maxLaps - 1)) * plotW);
@@ -1945,7 +1963,8 @@
       ctx.font = 'bold 10px sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(t('set_word') + ' ' + s.n, X(last.idx) + 6, Y(last.duration));
+      const label = (multiPilot && s.pilot ? s.pilot + ' ' : '') + t('set_word') + ' ' + s.n;
+      ctx.fillText(label, X(last.idx) + 6, Y(last.duration));
     });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
@@ -1956,17 +1975,18 @@
       if (!state.sets.length) return;
       if (!confirm(t('confirm_clear_sets'))) return;
       state.sets = [];
-      state.setCounter = 0;
       saveSets();
       renderSets();
     });
   }
   if (els.btnExportAll) {
     els.btnExportAll.addEventListener('click', () => {
-      if (!state.sets.length) return;
+      const sets = filteredSets();
+      if (!sets.length) return;
       const rows = [['set', 'pilot', 'index', 'lap_ms', 'total_ms']];
-      state.sets.forEach(s => s.laps.forEach(l => rows.push([s.n, l.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)])));
-      downloadCsv('fpv-sets.csv', rows);
+      sets.forEach(s => s.laps.forEach(l => rows.push([s.n, s.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)])));
+      const suffix = state.setFilter ? '-' + fileSafe(pilotLabel(state.setFilter)) : '';
+      downloadCsv('fpv-sets' + suffix + '.csv', rows);
     });
   }
 

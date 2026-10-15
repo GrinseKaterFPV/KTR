@@ -22,7 +22,9 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
-- Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, **einzeln als CSV exportieren (⬇)**, einzeln löschen oder gesammelt als CSV exportieren
+- Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, **einzeln als CSV exportieren (⬇, Dateiname mit Pilot, z. B. `fpv-set-Max-1.csv`)**, einzeln löschen oder gesammelt als CSV exportieren
+- Satz-Nummern gelten **pro Pilot**: jeder Pilot hat sein eigenes „Satz 1, 2, 3 …“, so lassen sich die Sätze desselben Piloten direkt vergleichen
+- Bei aktivem Pilotenfilter exportiert der Button **„Gefilterte exportieren"** nur diesen Piloten (Dateiname `fpv-sets-<Pilot>.csv`)
 - Piloten-Auswahl im Vergleich: Sätze nach Pilot filtern (Dropdown) und **Piloten-Vergleichstabelle** (Sätze, Runden, beste Zeit, Ø, Gesamt) bei mehreren Piloten
 - Vergleichs-Graph: Rundenzeiten aller Sätze als Linien-Diagramm (beste Runde als grüne Referenzlinie), automatisch Querformat-tauglich
 - Akzentfarbe frei wählbar (Einstellungen → „Aussehen“): Presets oder eigene Farbe per Farbwähler
