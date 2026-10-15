@@ -33,7 +33,7 @@
       </div>
       <div class="home-grid">
         <button class="home-tile is-primary" id="tileTimer" type="button">
-          <span class="home-tile-icon">⏱</span>
+          <img class="home-tile-icon home-tile-img" src="icon-timer.svg" alt="" width="30" height="30" />
           <span class="home-tile-label" data-i18n="m_timer">Timer</span>
           <span class="home-tile-desc" data-i18n="m_timer_desc">Runden, Sätze &amp; Vergleich</span>
         </button>
@@ -43,12 +43,12 @@
           <span class="home-tile-desc" data-i18n="m_kwad_desc">Freestyle-Tricks, Strafbuchstaben</span>
         </button>
         <button class="home-tile" id="tilePilots" type="button">
-          <span class="home-tile-icon">🏁</span>
+          <img class="home-tile-icon home-tile-img" src="icon-pilots.svg" alt="" width="30" height="30" />
           <span class="home-tile-label" data-i18n="m_pilots">Piloten</span>
           <span class="home-tile-desc" data-i18n="m_pilots_desc">Profile, Farben &amp; Vergleich</span>
         </button>
         <button class="home-tile" id="tileSettings" type="button">
-          <span class="home-tile-icon">⚙</span>
+          <img class="home-tile-icon home-tile-img" src="icon-settings.svg" alt="" width="30" height="30" />
           <span class="home-tile-label" data-i18n="settings">Einstellungen</span>
           <span class="home-tile-desc" data-i18n="m_settings_desc">Sprache, Farben, Sensorik</span>
         </button>
@@ -58,6 +58,7 @@
   </div>
 
   <div class="home-screen kwad-screen" id="kwadScreen" hidden>
+    <button id="btnKwadHome" class="gear-btn screen-back" type="button" data-i18n-title="home" data-i18n-aria="home" title="Startseite" aria-label="Startseite">←</button>
     <div class="home-inner">
       <div class="kwad-hero">
         <img class="home-logo" src="icon-kwad.svg" alt="Game of K.W.A.D" width="72" height="72" />
@@ -94,9 +95,10 @@
   </div>
 
   <div class="home-screen pilots-screen" id="pilotsScreen" hidden>
+    <button id="btnPilotsHome" class="gear-btn screen-back" type="button" data-i18n-title="home" data-i18n-aria="home" title="Startseite" aria-label="Startseite">←</button>
     <div class="home-inner">
       <div class="kwad-hero">
-        <img class="home-logo" src="icon-ktr.svg" alt="Piloten" width="72" height="72" />
+        <img class="home-logo" src="icon-pilots.svg" alt="Piloten" width="72" height="72" />
         <div class="kwad-brand" data-i18n="m_pilots">Piloten</div>
         <p class="home-note" data-i18n="pilots_hint">Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.</p>
       </div>
