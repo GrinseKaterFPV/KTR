@@ -38,9 +38,14 @@
           <span class="home-tile-desc" data-i18n="m_timer_desc">Runden, Sätze &amp; Vergleich</span>
         </button>
         <button class="home-tile" id="tileKwad" type="button">
-          <span class="home-tile-icon">🛹</span>
+          <img class="home-tile-icon home-tile-img" src="icon-kwad.svg" alt="" width="30" height="30" />
           <span class="home-tile-label" data-i18n="m_kwad">Game of K.W.A.D</span>
           <span class="home-tile-desc" data-i18n="m_kwad_desc">Freestyle-Tricks, Strafbuchstaben</span>
+        </button>
+        <button class="home-tile" id="tilePilots" type="button">
+          <span class="home-tile-icon">🏁</span>
+          <span class="home-tile-label" data-i18n="m_pilots">Piloten</span>
+          <span class="home-tile-desc" data-i18n="m_pilots_desc">Profile, Farben &amp; Vergleich</span>
         </button>
         <button class="home-tile" id="tileSettings" type="button">
           <span class="home-tile-icon">⚙</span>
@@ -55,7 +60,7 @@
   <div class="home-screen kwad-screen" id="kwadScreen" hidden>
     <div class="home-inner">
       <div class="kwad-hero">
-        <img class="home-logo" src="icon-ktr.svg" alt="KTR" width="72" height="72" />
+        <img class="home-logo" src="icon-kwad.svg" alt="Game of K.W.A.D" width="72" height="72" />
         <div class="kwad-brand" data-i18n="m_kwad">Game of K.W.A.D</div>
         <p class="home-note" data-i18n="kwad_hint">Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.</p>
       </div>
@@ -88,9 +93,34 @@
     </div>
   </div>
 
+  <div class="home-screen pilots-screen" id="pilotsScreen" hidden>
+    <div class="home-inner">
+      <div class="kwad-hero">
+        <img class="home-logo" src="icon-ktr.svg" alt="Piloten" width="72" height="72" />
+        <div class="kwad-brand" data-i18n="m_pilots">Piloten</div>
+        <p class="home-note" data-i18n="pilots_hint">Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.</p>
+      </div>
+
+      <div class="card kwad-card">
+        <div class="pilot-row">
+          <input id="pilotScreenName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
+          <input id="pilotScreenColor" class="pilot-color" type="color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" />
+          <button id="btnPilotScreenAdd" data-i18n="save_pilot">Pilot speichern</button>
+        </div>
+        <div class="pilots" id="pilotsScreenList"></div>
+        <div class="hint" data-i18n="pilots_active_hint">Tippe einen Piloten an, um ihn als aktiven Piloten zu wählen.</div>
+      </div>
+
+      <div class="card kwad-card">
+        <div class="pilot-compare" id="pilotsScreenCompare"></div>
+        <button id="btnPilotExport" class="btn" type="button" data-i18n="export_pilots">Piloten exportieren (CSV)</button>
+      </div>
+    </div>
+  </div>
+
   <main class="layout">
     <details class="video-card card-collapsible" data-sec="camera" open>
-      <summary class="card-summary"><h2 data-i18n="sec_camera">Kamera</h2></summary>
+      <summary class="card-summary"><h2 data-i18n="sec_camera">Kamera</h2><button id="btnCameraSettings" class="gear-btn" type="button" data-i18n-title="settings_camera" data-i18n-aria="settings_camera" title="Kamera-Einstellungen" aria-label="Kamera-Einstellungen">⚙</button></summary>
       <div class="card-body">
       <div class="video-wrap" id="videoWrap">
         <video id="video" playsinline muted autoplay></video>
@@ -147,7 +177,7 @@
       </div>
 
       <div class="quick-panel">
-        <label class="check-row"><input type="checkbox" id="armedToggle" /> <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span></label>
+        <label class="check-row auto-quick"><input type="checkbox" id="armedToggle" /> <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span></label>
         <label class="check-row auto-quick"><input type="checkbox" id="autoStartQuick" /> <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span></label>
         <div class="quick-fields">
           <div class="quick-field">
@@ -275,14 +305,14 @@
       </div>
     </div>
 
-    <div class="settings-overlay" id="timerSettingsOverlay" hidden>
-      <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings_timer" aria-label="Timer-Einstellungen">
+    <div class="settings-overlay" id="cameraSettingsOverlay" hidden>
+      <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings_camera" aria-label="Kamera-Einstellungen">
         <div class="settings-modal-head">
-          <h2 class="settings-title" data-i18n="settings_timer">Timer-Einstellungen</h2>
-          <button id="btnTimerSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+          <h2 class="settings-title" data-i18n="settings_camera">Kamera-Einstellungen</h2>
+          <button id="btnCameraSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
         </div>
         <details class="settings-group">
-          <summary><h3 data-i18n="g_detection">Erkennung</h3></summary>
+          <summary><h3 data-i18n="g_detection">Kamera</h3></summary>
           <div class="settings-grid">
             <label><span data-i18n="diff_thresh">Diff-Schwelle</span> <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
             <label><span data-i18n="enter_px">Enter (px)</span> <input type="range" id="enterThresh" min="20" max="5000" value="120" /><span id="enterThreshVal">120</span></label>
@@ -308,17 +338,20 @@
           </div>
           <p class="hint" data-i18n="hint_detection">Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.</p>
         </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_autostart">Auto-Start &amp; Rennen</h3></summary>
-          <div class="settings-grid">
-            <label class="check-row"><input type="checkbox" id="autoStart" /> <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span></label>
-            <label><span data-i18n="laps_short">Runden/Satz</span> <input type="number" id="autoLaps" min="0" max="30" step="1" value="0" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)" /></label>
-            <label><span data-i18n="cd_row">Countdown</span> <input type="number" id="countdownInput" min="0" max="15" step="1" value="5" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)" /></label>
-          </div>
-        </details>
+      </div>
+    </div>
+
+    <div class="settings-overlay" id="timerSettingsOverlay" hidden>
+      <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings_timer" aria-label="Timer-Einstellungen">
+        <div class="settings-modal-head">
+          <h2 class="settings-title" data-i18n="settings_timer">Timer-Einstellungen</h2>
+          <button id="btnTimerSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+        </div>
         <details class="settings-group">
           <summary><h3 data-i18n="g_audio">Rennen &amp; Audio</h3></summary>
           <div class="settings-grid">
+            <label><span data-i18n="laps_short">Runden/Satz</span> <input type="number" id="autoLaps" min="0" max="30" step="1" value="0" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)" /></label>
+            <label><span data-i18n="cd_row">Countdown</span> <input type="number" id="countdownInput" min="0" max="15" step="1" value="5" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)" /></label>
             <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
             <label><span data-i18n="voice">Sprachstimme</span>
               <select id="voiceSelect"></select>
