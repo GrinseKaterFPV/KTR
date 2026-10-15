@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.14.0';
+  const APP_VERSION = '0.15.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -525,7 +525,9 @@
     pilotsScreenList: document.getElementById('pilotsScreenList'),
     pilotsScreenCompare: document.getElementById('pilotsScreenCompare'),
     btnPilotExport: document.getElementById('btnPilotExport'),
+    btnPilotsHome: document.getElementById('btnPilotsHome'),
     kwadScreen: document.getElementById('kwadScreen'),
+    btnKwadHome: document.getElementById('btnKwadHome'),
     kwadTrick: document.getElementById('kwadTrick'),
     kwadTurn: document.getElementById('kwadTurn'),
     kwadTurnCard: document.getElementById('kwadTurnCard'),
@@ -1155,6 +1157,8 @@
     closeSettings();
   }
   if (els.btnHome) els.btnHome.addEventListener('click', openHome);
+  if (els.btnKwadHome) els.btnKwadHome.addEventListener('click', openHome);
+  if (els.btnPilotsHome) els.btnPilotsHome.addEventListener('click', openHome);
   if (els.tileTimer) els.tileTimer.addEventListener('click', closeHome);
 
   // ---------- audio feedback ----------
