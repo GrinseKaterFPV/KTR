@@ -146,6 +146,9 @@ check('H4: the used tile is stored under "lastHomeTile"',
   /localStorage\.setItem\('lastHomeTile'/.test(app));
 check('H5: the highlight is restored on load with a timer fallback',
   /localStorage\.getItem\('lastHomeTile'\)/.test(app) && /let id = 'tileTimer'/.test(app));
+check('H6: the topbar gear marks the Einstellungen entry too',
+  /openSettings\('app'\); rememberHomeTile\('tileSettings'\)/.test(app)
+  && /function rememberHomeTile\(id\)/.test(app));
 
 // --- 9) cat-head timer icon (original app logo) -------------------------------
 const iconTimer = fs.readFileSync(path.join(root, 'icon-timer.svg'), 'utf8');
