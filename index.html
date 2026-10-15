@@ -55,8 +55,18 @@
     <details class="timer-card card-collapsible" data-sec="timer" open>
       <summary class="card-summary"><h2 data-i18n="sec_timer">Timer</h2><span class="summary-value" id="timerSummary">00:00.000</span></summary>
       <div class="card-body">
-      <div class="timer-label" data-i18n="race_time">Rennen-Zeit</div>
-      <div class="timer-time" id="raceTime">00:00.000</div>
+      <div class="timer-header">
+        <div class="timer-main">
+          <div class="timer-label" data-i18n="race_time">Rennen-Zeit</div>
+          <div class="timer-time" id="raceTime">00:00.000</div>
+        </div>
+        <div class="controls-vertical">
+          <button id="btnRaceStart" class="btn btn-start" data-i18n="start">Start</button>
+          <button id="btnRaceStop" class="btn btn-stop" data-i18n="stop">Stop</button>
+          <button id="btnLapManual" class="btn" data-i18n="manual_lap">Manuelle Runde</button>
+          <button id="btnReset" class="btn btn-danger" data-i18n="reset">Reset</button>
+        </div>
+      </div>
       <div class="timer-row">
         <div>
           <div class="small-label" data-i18n="current_lap">Aktuelle Runde</div>
@@ -71,6 +81,7 @@
           <div class="best-lap" id="bestLap">--</div>
         </div>
       </div>
+
       <div class="controls">
         <button id="btnRaceStart" class="btn btn-start" data-i18n="start">Start</button>
         <button id="btnRaceStop" class="btn btn-stop" data-i18n="stop">Stop</button>
@@ -118,7 +129,7 @@
       <div class="pilot-panel">
         <div class="pilot-row">
           <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
-          <input type="color" id="pilotColor" class="pilot-color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" />
+          <input id="pilotColor" class="pilot-color" type="color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" hidden />
           <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
         </div>
         <div class="pilots" id="pilots"></div>

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.11.4';
+  const APP_VERSION = '0.11.5';
 
   // ---------- i18n ----------
   const I18N = {
@@ -25,7 +25,7 @@
       stop: 'Stop',
       manual_lap: 'Manuelle Runde',
       reset: 'Reset',
-      armed: 'Erkennung aktiv (Auto-Runden)',
+      armed: 'Auto Lap detection',
       pilot_name: 'Pilotenname',
       save_pilot: 'Pilot speichern',
       pilot_color: 'Pilotfarbe',
@@ -130,7 +130,7 @@
       delete_word: 'Löschen',
       avg_word: 'Ø',
       hint_auto: 'Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).',
-      auto_start_quick: 'Auto-Start (Timer startet beim 1. Durchflug)',
+      auto_start_quick: 'Auto-Start on 1st pass',
       laps_pop_title: 'Runden pro Satz',
       laps_short: 'Runden/Satz',
       laps_less: 'Weniger',
@@ -169,7 +169,7 @@
       stop: 'Stop',
       manual_lap: 'Manual lap',
       reset: 'Reset',
-      armed: 'Detection active (auto laps)',
+      armed: 'Auto lap detection',
       pilot_name: 'Pilot name',
       save_pilot: 'Save pilot',
       pilot_color: 'Pilot colour',
@@ -274,7 +274,7 @@
       delete_word: 'Delete',
       avg_word: 'avg',
       hint_auto: 'Auto-start: The first gate crossing starts the timer (it is not counted as a lap). After the configured number of laps the timer stops automatically, the set is saved, and the next crossing starts the next set. This lets you fly several sets and compare them at the end. 0 = unlimited (manual stop).',
-      auto_start_quick: 'Auto-start (timer starts on 1st crossing)',
+      auto_start_quick: 'Auto-start on 1st pass',
       laps_pop_title: 'Laps per set',
       laps_short: 'Laps/set',
       laps_less: 'Less',
@@ -566,6 +566,7 @@
     applyProcRes();
     applyAccent(state.accent, false);
     initSections();
+    if (els.pilotColor) els.pilotColor.hidden = true;
     renderPilots();
   }
 
@@ -2080,10 +2081,23 @@
     for (const c of PILOT_PALETTE) if (!used.includes(c)) return c;
     return PILOT_PALETTE[state.pilots.length % PILOT_PALETTE.length];
   }
+  function ensurePilotColorInput() {
+    if (!els.pilotColor) return;
+    const name = els.pilotName ? els.pilotName.value.trim() : '';
+    if (name && state.pilots.includes(name)) {
+      const col = state.pilotColors[name] || pilotColor(name);
+      els.pilotColor.value = col;
+      state.pilotColors[name] = col;
+      els.pilotColor.hidden = false;
+    } else if (name) {
+      els.pilotColor.value = nextPilotColor();
+      els.pilotColor.hidden = false;
+    } else {
+      els.pilotColor.hidden = true;
+    }
+  }
   function renderPilots() {
-    if (els.pilotColor) els.pilotColor.value = state.currentPilot && state.pilotColors[state.currentPilot]
-      ? state.pilotColors[state.currentPilot]
-      : nextPilotColor();
+    ensurePilotColorInput();
     els.pilots.innerHTML = '';
     state.pilots.forEach(name => {
       const chip = document.createElement('div');
@@ -2094,10 +2108,15 @@
       chip.style.borderColor = col;
       chip.style.color = active ? '#0b0f14' : col;
       if (active) chip.style.background = col;
-      chip.addEventListener('click', () => { state.currentPilot = name; renderPilots(); saveSettings(); });
+      chip.addEventListener('click', () => { state.currentPilot = name; if (els.pilotName) els.pilotName.value = name; ensurePilotColorInput(); renderPilots(); saveSettings(); });
       els.pilots.appendChild(chip);
     });
     renderSets();
+  }
+  if (els.pilotName) {
+    els.pilotName.addEventListener('input', () => {
+      ensurePilotColorInput();
+    });
   }
   els.btnAddPilot.addEventListener('click', () => {
     const name = els.pilotName.value.trim();
@@ -2106,6 +2125,7 @@
     if (els.pilotColor) state.pilotColors[name] = els.pilotColor.value;
     state.currentPilot = name;
     els.pilotName.value = '';
+    if (els.pilotColor) els.pilotColor.hidden = true;
     renderPilots();
     saveSettings();
   });

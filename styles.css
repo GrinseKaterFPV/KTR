@@ -111,7 +111,11 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .timer-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
 .small-label { font-size: 11px; color: var(--muted); }
 .current-lap, .last-lap, .best-lap { font-family: monospace; font-size: 18px; font-weight: 700; margin-top: 2px; }
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.timer-header { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: stretch; margin-bottom: 6px; }
+.timer-main { display: flex; flex-direction: column; justify-content: center; }
+.controls-vertical { display: flex; flex-direction: column; gap: 6px; }
+.controls { display: none; }
+.controls-vertical .btn { width: 100%; padding: 8px 6px; font-size: 13px; }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
 .pilot-row { display: flex; gap: 8px; }
 .pilot-row input { flex: 1; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
@@ -263,8 +267,9 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
   .timer-time { font-size: 34px; margin: 2px 0 6px; }
   .timer-row { gap: 6px; margin-bottom: 8px; }
   .current-lap, .last-lap, .best-lap { font-size: 15px; }
-  .controls { gap: 6px; margin-bottom: 4px; }
-  .controls button { padding: 8px 10px; font-size: 13px; }
+  .timer-header { gap: 8px; }
+  .controls-vertical .btn { padding: 6px 6px; font-size: 12px; }
+  .controls { display: none; }
   .quick-panel { gap: 5px; margin-top: 8px; padding-top: 8px; }
   .quick-field { padding: 5px 5px 5px 8px; }
   .quick-field-label { font-size: 11px; }
