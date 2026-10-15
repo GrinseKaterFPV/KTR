@@ -23,6 +23,7 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
+- Autofokus-/Belichtungs-Schutz: Fokus/Belichtung werden möglichst fixiert, der Hintergrund passt sich langsam an Drift an und globale Bildänderungen werden ignoriert
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
 - Einklappbare Einstellungen (Zahnrad-Symbol oben rechts), Untergruppen standardmäßig zugeklappt

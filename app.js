@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.3';
+  const APP_VERSION = '0.6.4';
 
   // ---------- State ----------
   const state = {
@@ -46,6 +46,7 @@
     pendingLap: null,
     wrongFlashUntil: 0,
     directionToastUntil: 0,
+    driftComp: true,
     rafId: null,
     frameCount: 0,
   };
@@ -95,6 +96,7 @@
     btnTestVoice: document.getElementById('btnTestVoice'),
     btnDirection: document.getElementById('btnDirection'),
     directionSelect: document.getElementById('directionSelect'),
+    driftComp: document.getElementById('driftComp'),
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
@@ -138,6 +140,7 @@
       announceMode: state.announceMode,
       announceRate: state.announceRate,
       direction: state.direction,
+      driftComp: state.driftComp,
     }));
   }
   function fmt(ms) {
@@ -178,6 +181,8 @@
     if (els.announceRate) { els.announceRate.value = state.announceRate; els.announceRateVal.textContent = (+state.announceRate).toFixed(2); }
     state.direction = s.direction ?? 'aus';
     updateDirectionButton();
+    state.driftComp = s.driftComp ?? true;
+    if (els.driftComp) els.driftComp.checked = state.driftComp;
     applyProcRes();
     renderPilots();
   }
@@ -302,6 +307,9 @@
   if (els.directionSelect) {
     els.directionSelect.addEventListener('change', e => setDirection(e.target.value, true));
   }
+  if (els.driftComp) {
+    els.driftComp.addEventListener('change', e => { state.driftComp = e.target.checked; saveSettings(); });
+  }
 
   // ---------- settings panel ----------
   function openSettings() {
@@ -406,6 +414,19 @@
       };
       state.stream = await navigator.mediaDevices.getUserMedia(constraints);
       els.video.srcObject = state.stream;
+      // Try to stop the camera from constantly hunting focus / exposure, which
+      // otherwise shows up as "motion" everywhere in the frame. Best effort:
+      // unsupported modes are simply ignored by the browser.
+      try {
+        const track = state.stream.getVideoTracks()[0];
+        if (track && track.applyConstraints) {
+          (async () => {
+            for (const adv of [{ focusMode: 'manual' }, { focusMode: 'none' }, { exposureMode: 'manual' }, { whiteBalanceMode: 'manual' }]) {
+              try { await track.applyConstraints({ advanced: [adv] }); } catch (e) { /* not supported */ }
+            }
+          })().catch(() => {});
+        }
+      } catch (e) { /* ignore */ }
       await els.video.play();
       await enumerateCameras();
       if (deviceId) els.camSelect.value = deviceId;
@@ -627,8 +648,25 @@
       ? { minX, minY, maxX, maxY, cx: sumX / changed, cy: sumY / changed, changed }
       : null;
 
+    // How much of the ROI changed? Autofocus / exposure shifts change almost the
+    // entire frame at once, while a drone is a compact blob.
+    const roiArea = roi ? Math.max(1, Math.floor(roi.w) * Math.floor(roi.h)) : 0;
+    const globalChange = !!roi && changed > roiArea * 0.7;
+
+    // Slowly adapt the background to the current frame while no gate crossing is
+    // active. This absorbs focus/exposure drift so it does not show up as motion.
+    if (state.driftComp && state.background && state.machine === 0) {
+      const bg = state.background;
+      const a = 0.02;
+      for (let i = 0; i < bg.length; i++) bg[i] += (gray[i] - bg[i]) * a;
+    }
+
     // state machine
-    if (state.armed && state.raceActive && roi) {
+    if (globalChange) {
+      // Whole ROI changed at once -> almost certainly focus/light, not a drone.
+      state.machine = 0;
+      state.pendingLap = null;
+    } else if (state.armed && state.raceActive && roi) {
       if (state.machine === 0 && changed >= state.enterThreshold) {
         state.machine = 1;
         state.pendingLap = {
@@ -658,7 +696,9 @@
     const pct = Math.min(100, (changed / Math.max(1, state.enterThreshold * 3)) * 100);
     els.meterFill.style.width = pct + '%';
     els.metricValue.textContent = changed + ' px';
-    els.metricState.textContent = 'Status: ' + (state.machine === 1 ? 'belegt' : 'frei') + (state.armed ? ' · armed' : '');
+    els.metricState.textContent = globalChange
+      ? 'Status: globale Änderung (AF/Licht) ignoriert'
+      : ('Status: ' + (state.machine === 1 ? 'belegt' : 'frei') + (state.armed ? ' · armed' : ''));
 
     drawOverlay();
     updateTimers();
