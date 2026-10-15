@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.3] - 2025-10-15
+### Added
+- Game of K.W.A.D: Undo button (removes last penalty letter, anti-cheat: only last, cleared on new trick/success)
+- Game of K.W.A.D: Sound effects – penalty (fail), new trick (ready), game over (loser)
+
+### Fixed
+- KWAD undo button disabled when no action to undo
+
 ## [0.16.2] - 2025-10-15
 ### Added
 - Game of K.W.A.D: Trick name is now centered
