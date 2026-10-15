@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const APP_VERSION = '0.2.0';
+
   // ---------- State ----------
   const state = {
     stream: null,
@@ -570,7 +572,7 @@
     els.overlay.width = Math.round(r.width) || 320;
     els.overlay.height = Math.round(r.height) || 240;
     saveSettings();
-    setStatus('Bereit – Kamera starten');
+    setStatus('Bereit (v' + APP_VERSION + ') – Kamera starten');
   }
 
   window.addEventListener('resize', () => { drawOverlay(); });
