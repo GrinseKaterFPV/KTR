@@ -122,9 +122,6 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 }
 .pilot-chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-.laps-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.sets-head-actions { display: flex; gap: 8px; }
-.sets-head-actions button { padding: 6px 10px; font-size: 12px; }
 .sets-list { display: flex; flex-direction: column; gap: 8px; }
 .sets-filter { margin-bottom: 10px; }
 .sets-filter label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
