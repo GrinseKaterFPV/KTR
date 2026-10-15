@@ -1,6 +1,6 @@
 {
-  "name": "FPV Racing Timer",
-  "short_name": "FPV Timer",
+  "name": "KTR Racing Timer",
+  "short_name": "KTR Timer",
   "description": "Rundenzeiten per Bilderkennung (Bewegungszone am Start/Ziel).",
   "start_url": "./index.html",
   "display": "standalone",

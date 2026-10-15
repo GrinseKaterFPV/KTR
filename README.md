@@ -1,6 +1,6 @@
-# FPV Racing Timer (Web/PWA MVP)
+# KTR Racing Timer (Web/PWA)
 
-MVP-Rundentimer für Android-Geräte. Die Runden werden anhand von Bewegung (Frame-Differenz)
+Rundentimer für Android-Geräte. Die Runden werden anhand von Bewegung (Frame-Differenz)
 in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 
 ## Starten (lokal)
@@ -23,7 +23,10 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
 - Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, **einzeln als CSV exportieren (⬇)**, einzeln löschen oder gesammelt als CSV exportieren
+- Piloten-Auswahl im Vergleich: Sätze nach Pilot filtern (Dropdown) und **Piloten-Vergleichstabelle** (Sätze, Runden, beste Zeit, Ø, Gesamt) bei mehreren Piloten
 - Vergleichs-Graph: Rundenzeiten aller Sätze als Linien-Diagramm (beste Runde als grüne Referenzlinie), automatisch Querformat-tauglich
+- Akzentfarbe frei wählbar (Einstellungen → „Aussehen“): Presets oder eigene Farbe per Farbwähler
+- Einklappbare Hauptbereiche: Kamera, Timer, Rundenlog und Sätze lassen sich am Titel antippen ein-/ausklappen (Zustand wird gespeichert; Timer zeigt im eingeklappten Kopf die laufende Zeit)
 - Auto-Start auch direkt in der Timer-Karte (Schnellschalter; das Badge daneben antippen → Stepper/Presets für die Rundenzahl pro Satz)
 - Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound

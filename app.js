@@ -1,12 +1,12 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.10.2';
+  const APP_VERSION = '0.11.0';
 
   // ---------- i18n ----------
   const I18N = {
     de: {
-      title: 'FPV Racing Timer',
+      title: 'KTR Racing Timer',
       settings: 'Einstellungen',
       close: 'Schließen',
       camera: 'Kamera',
@@ -133,9 +133,20 @@
       laps_more: 'Mehr',
       chart_title: 'Rundenverlauf',
       chart_last8: 'Rundenverlauf (letzte 8 Sätze)',
+      sec_camera: 'Kamera',
+      sec_timer: 'Timer',
+      g_look: 'Aussehen',
+      accent_color: 'Akzentfarbe',
+      accent_custom: 'Eigene Farbe',
+      filter_pilot: 'Pilot',
+      all_pilots: 'Alle Piloten',
+      no_pilot: 'Ohne Pilot',
+      no_sets_for_pilot: 'Keine Sätze für diesen Piloten.',
+      pilot_compare_title: 'Piloten-Vergleich',
+      th_sets: 'Sätze',
     },
     en: {
-      title: 'FPV Racing Timer',
+      title: 'KTR Racing Timer',
       settings: 'Settings',
       close: 'Close',
       camera: 'Camera',
@@ -262,6 +273,17 @@
       laps_more: 'More',
       chart_title: 'Lap progress',
       chart_last8: 'Lap progress (last 8 sets)',
+      sec_camera: 'Camera',
+      sec_timer: 'Timer',
+      g_look: 'Appearance',
+      accent_color: 'Accent colour',
+      accent_custom: 'Custom colour',
+      filter_pilot: 'Pilot',
+      all_pilots: 'All pilots',
+      no_pilot: 'No pilot',
+      no_sets_for_pilot: 'No sets for this pilot.',
+      pilot_compare_title: 'Pilot comparison',
+      th_sets: 'Sets',
     },
   };
 
@@ -326,6 +348,9 @@
     sets: [],
     setCounter: 0,
     stintSaved: false,
+    setFilter: '',
+    accent: '#ff7a1a',
+    sections: {},
     lang: 'de',
     voiceURI: '',
     rafId: null,
@@ -393,6 +418,11 @@
     setsChart: document.getElementById('setsChart'),
     btnExportAll: document.getElementById('btnExportAll'),
     btnClearSets: document.getElementById('btnClearSets'),
+    setPilotFilter: document.getElementById('setPilotFilter'),
+    pilotCompare: document.getElementById('pilotCompare'),
+    timerSummary: document.getElementById('timerSummary'),
+    accentSwatches: document.getElementById('accentSwatches'),
+    accentCustom: document.getElementById('accentCustom'),
     langSelect: document.getElementById('langSelect'),
     voiceSelect: document.getElementById('voiceSelect'),
     btnSettings: document.getElementById('btnSettings'),
@@ -443,6 +473,9 @@
       camDeviceId: state.camDeviceId,
       autoStart: state.autoStart,
       autoLaps: state.autoLaps,
+      setFilter: state.setFilter,
+      accent: state.accent,
+      sections: state.sections,
       lang: state.lang,
       voiceURI: state.voiceURI,
     }));
@@ -504,12 +537,17 @@
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     state.autoLaps = s.autoLaps ?? 0;
     renderAutoLaps();
+    state.setFilter = s.setFilter || '';
+    state.sections = (s.sections && typeof s.sections === 'object') ? s.sections : {};
+    state.accent = s.accent || '#ff7a1a';
     state.sets = loadSets();
     state.setCounter = state.sets.reduce((m, x) => Math.max(m, x.n || 0), 0);
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
     applyProcRes();
+    applyAccent(state.accent, false);
+    initSections();
     renderPilots();
   }
 
@@ -785,6 +823,52 @@
     els.voiceSelect.addEventListener('change', e => {
       state.voiceURI = e.target.value || '';
       saveSettings();
+    });
+  }
+
+  // ---------- appearance (accent colour) ----------
+  function hexLighten(hex, amt) {
+    const h = String(hex).replace('#', '');
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    const mix = c => Math.round(c + (255 - c) * amt);
+    return '#' + [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+  function applyAccent(hex, persist) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(String(hex || ''))) return;
+    state.accent = String(hex).toLowerCase();
+    document.documentElement.style.setProperty('--accent', state.accent);
+    document.documentElement.style.setProperty('--accent2', hexLighten(state.accent, 0.35));
+    if (els.accentCustom) els.accentCustom.value = state.accent;
+    if (els.accentSwatches) {
+      els.accentSwatches.querySelectorAll('button[data-color]').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-color').toLowerCase() === state.accent);
+      });
+    }
+    if (persist) saveSettings();
+  }
+  if (els.accentSwatches) {
+    els.accentSwatches.querySelectorAll('button[data-color]').forEach(btn => {
+      btn.addEventListener('click', () => applyAccent(btn.getAttribute('data-color'), true));
+    });
+  }
+  if (els.accentCustom) {
+    els.accentCustom.addEventListener('input', e => applyAccent(e.target.value, true));
+  }
+
+  // ---------- collapsible main sections ----------
+  function initSections() {
+    document.querySelectorAll('details.card-collapsible').forEach(d => {
+      const key = d.getAttribute('data-sec');
+      if (key && state.sections[key] === false) d.open = false;
+      d.addEventListener('toggle', () => {
+        if (!key) return;
+        state.sections[key] = d.open;
+        saveSettings();
+        if (d.open && key === 'sets') renderChart();
+        if (d.open && key === 'camera') drawOverlay();
+      });
     });
   }
 
@@ -1538,20 +1622,22 @@
 
   function updateTimers() {
     const now = performance.now();
+    let mainTime, lapTime;
     if (state.countdownActive) {
-      els.raceTime.textContent = fmt(Math.max(0, state.countdownEnd - now));
-      els.currentLap.textContent = '00:00.000';
-      return;
-    }
-    if (state.raceActive) {
-      els.raceTime.textContent = fmt(now - state.raceStart);
-      els.currentLap.textContent = fmt(now - state.currentLapStart);
+      mainTime = fmt(Math.max(0, state.countdownEnd - now));
+      lapTime = '00:00.000';
+    } else if (state.raceActive) {
+      mainTime = fmt(now - state.raceStart);
+      lapTime = fmt(now - state.currentLapStart);
       if (state.laps.length) els.lastLap.textContent = fmt(state.laps[state.laps.length-1].duration);
-      return;
+    } else {
+      // stopped / frozen
+      mainTime = fmt(state.raceElapsed);
+      lapTime = fmt(state.frozenLap);
     }
-    // stopped / frozen
-    els.raceTime.textContent = fmt(state.raceElapsed);
-    els.currentLap.textContent = fmt(state.frozenLap);
+    els.raceTime.textContent = mainTime;
+    els.currentLap.textContent = lapTime;
+    if (els.timerSummary) els.timerSummary.textContent = mainTime;
   }
 
   function renderLaps() {
@@ -1561,7 +1647,7 @@
       const tr = document.createElement('tr');
       if (i === state.laps.length - 1) tr.style.background = 'rgba(255,122,26,0.12)';
       const lapDelta = i > 0 ? l.duration : l.duration;
-      tr.innerHTML = `<td>${l.idx}</td><td>${l.pilot || '-'}</td><td>${fmt(l.duration)}</td><td>${fmt(l.total)}</td><td>${i>0 ? fmt(l.total - (state.laps[i-1]?.total || 0)) : '-'}</td>`;
+      tr.innerHTML = `<td>${l.idx}</td><td>${esc(l.pilot || '-')}</td><td>${fmt(l.duration)}</td><td>${fmt(l.total)}</td><td>${i>0 ? fmt(l.total - (state.laps[i-1]?.total || 0)) : '-'}</td>`;
       els.lapTable.appendChild(tr);
     });
     // fix between column: distance between lap totals
@@ -1594,19 +1680,93 @@
     set.laps.forEach(l => rows.push([set.n, l.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)]));
     return rows;
   }
+  // ---------- sets: filtering & pilot comparison ----------
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function pilotLabel(p) { return p ? p : t('no_pilot'); }
+  function pilotValues() {
+    const names = [];
+    const add = p => { const v = p || ''; if (!names.includes(v)) names.push(v); };
+    state.sets.forEach(s => add(s.pilot));
+    (state.pilots || []).forEach(add);
+    names.sort((a, b) => pilotLabel(a).localeCompare(pilotLabel(b)));
+    return names;
+  }
+  function filteredSets() {
+    return state.setFilter ? state.sets.filter(s => (s.pilot || '') === state.setFilter) : state.sets;
+  }
+  function renderSetFilter() {
+    if (!els.setPilotFilter) return;
+    const names = pilotValues();
+    if (state.setFilter && !names.includes(state.setFilter)) { state.setFilter = ''; saveSettings(); }
+    const cur = state.setFilter || '';
+    els.setPilotFilter.innerHTML = '';
+    const all = document.createElement('option');
+    all.value = '';
+    all.textContent = t('all_pilots');
+    els.setPilotFilter.appendChild(all);
+    names.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p;
+      o.textContent = pilotLabel(p);
+      els.setPilotFilter.appendChild(o);
+    });
+    els.setPilotFilter.value = cur;
+  }
+  function renderPilotCompare() {
+    if (!els.pilotCompare) return;
+    const groups = new Map();
+    state.sets.forEach(s => {
+      const p = s.pilot || '';
+      if (!groups.has(p)) groups.set(p, []);
+      groups.get(p).push(s);
+    });
+    if (groups.size < 2) { els.pilotCompare.innerHTML = ''; return; }
+    const rows = [...groups.entries()].map(([p, sets]) => {
+      const laps = [];
+      sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
+      return {
+        p,
+        count: sets.length,
+        laps: laps.length,
+        best: Math.min(...sets.map(s => s.bestMs)),
+        avg: laps.length ? laps.reduce((a, d) => a + d, 0) / laps.length : 0,
+        total: laps.reduce((a, d) => a + d, 0),
+      };
+    });
+    const bestOverall = Math.min(...rows.map(r => r.best));
+    rows.sort((a, b) => a.best - b.best);
+    const head =
+      `<tr><th>${t('th_pilot')}</th><th>${t('th_sets')}</th><th>${t('set_laps_word')}</th>` +
+      `<th>${t('set_best_word')}</th><th>${t('avg_word')}</th><th>${t('th_total')}</th></tr>`;
+    const body = rows.map(r =>
+      `<tr><td>${esc(pilotLabel(r.p))}</td>` +
+      `<td class="num">${r.count}</td><td class="num">${r.laps}</td>` +
+      `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
+      `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
+    ).join('');
+    els.pilotCompare.innerHTML =
+      `<h4>${t('pilot_compare_title')}</h4>` +
+      `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  }
+
   function renderSets() {
     if (!els.setsList) return;
+    renderSetFilter();
+    renderPilotCompare();
+    const sets = filteredSets();
     els.setsList.innerHTML = '';
-    if (!state.sets.length) {
+    if (!sets.length) {
       const p = document.createElement('div');
       p.className = 'set-empty';
-      p.textContent = t('no_sets');
+      p.textContent = state.sets.length ? t('no_sets_for_pilot') : t('no_sets');
       els.setsList.appendChild(p);
-      renderChart();
+      renderChart(sets);
       return;
     }
     // newest first
-    state.sets.slice().reverse().forEach(set => {
+    sets.slice().reverse().forEach(set => {
       const item = document.createElement('div');
       item.className = 'set-item';
       const head = document.createElement('div');
@@ -1615,6 +1775,7 @@
       head.innerHTML =
         `<span class="set-name">${t('set_word')} ${set.n}</span>` +
         `<span class="set-meta">` +
+          `<span>${esc(pilotLabel(set.pilot))}</span>` +
           `<span>${timeLabel(set.at)}</span>` +
           `<span><b>${set.laps.length}</b> ${t('set_laps_word')}</span>` +
           `<span>${t('set_best_word')} <b>${fmt(set.bestMs)}</b></span>` +
@@ -1669,7 +1830,14 @@
       item.appendChild(lapsBox);
       els.setsList.appendChild(item);
     });
-    renderChart();
+    renderChart(sets);
+  }
+  if (els.setPilotFilter) {
+    els.setPilotFilter.addEventListener('change', e => {
+      state.setFilter = e.target.value || '';
+      saveSettings();
+      renderSets();
+    });
   }
 
   // ---------- comparison chart: lap times of all sets ----------
@@ -1677,10 +1845,10 @@
   function fmtSec(ms) {
     return (ms / 1000).toFixed(2).replace('.', t('decimal_sep'));
   }
-  function renderChart() {
+  function renderChart(list) {
     const cv = els.setsChart;
     if (!cv) return;
-    const sets = state.sets;
+    const sets = Array.isArray(list) ? list : state.sets;
     if (els.chartBlock) els.chartBlock.style.display = sets.length ? '' : 'none';
     const titleEl = els.chartBlock ? els.chartBlock.querySelector('.chart-title') : null;
     if (titleEl) titleEl.textContent = sets.length > 8 ? t('chart_last8') : t('chart_title');
@@ -1978,6 +2146,10 @@
   // ---------- init ----------
   function init() {
     initSettings();
+    // Buttons inside a <summary> must not toggle the collapsible section.
+    document.querySelectorAll('.card-summary button, .card-summary select').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+    });
     // initial overlay sizing
     const r = els.overlay.getBoundingClientRect();
     els.overlay.width = Math.round(r.width) || 320;

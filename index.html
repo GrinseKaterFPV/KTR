@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0f14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>FPV Racing Timer</title>
+  <title>KTR Racing Timer</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="stylesheet" href="styles.css" />
@@ -14,7 +14,7 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="logo">FPV</span>
+      <span class="logo">KTR</span>
       <span class="title">Racing Timer</span>
       <span class="version" id="versionBadge">v?</span>
     </div>
@@ -25,7 +25,9 @@
   </header>
 
   <main class="layout">
-    <section class="video-card">
+    <details class="video-card card-collapsible" data-sec="camera" open>
+      <summary class="card-summary"><h2 data-i18n="sec_camera">Kamera</h2></summary>
+      <div class="card-body">
       <div class="video-wrap" id="videoWrap">
         <video id="video" playsinline muted autoplay></video>
         <canvas id="overlay"></canvas>
@@ -47,9 +49,12 @@
           <span data-i18n="show_motion">Bewegung hervorheben (gelbe Pixel = erkannt, grüner Rahmen = Bereich)</span>
         </label>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="timer-card">
+    <details class="timer-card card-collapsible" data-sec="timer" open>
+      <summary class="card-summary"><h2 data-i18n="sec_timer">Timer</h2><span class="summary-value" id="timerSummary">00:00.000</span></summary>
+      <div class="card-body">
       <div class="timer-label" data-i18n="race_time">Rennen-Zeit</div>
       <div class="timer-time" id="raceTime">00:00.000</div>
       <div class="timer-row">
@@ -100,33 +105,44 @@
         <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
       </div>
       <div class="pilots" id="pilots"></div>
-    </section>
-
-    <section class="laps-card">
-      <div class="laps-head">
-        <h2 data-i18n="lap_log">Rundenlog</h2>
-        <button id="btnExport" data-i18n="export_csv">CSV exportieren</button>
       </div>
+    </details>
+
+    <details class="laps-card card-collapsible" data-sec="laps" open>
+      <summary class="card-summary">
+        <h2 data-i18n="lap_log">Rundenlog</h2>
+        <span class="summary-actions"><button id="btnExport" data-i18n="export_csv">CSV exportieren</button></span>
+      </summary>
+      <div class="card-body">
       <table id="lapTable">
         <thead><tr><th data-i18n="th_index">#</th><th data-i18n="th_pilot">Pilot</th><th data-i18n="th_lap">Rundenzeit</th><th data-i18n="th_total">Gesamt</th><th data-i18n="th_between">Zwischen</th></tr></thead>
         <tbody></tbody>
       </table>
-    </section>
+      </div>
+    </details>
 
-    <section class="sets-card">
-      <div class="laps-head">
+    <details class="sets-card card-collapsible" data-sec="sets" open>
+      <summary class="card-summary">
         <h2 data-i18n="sets_title">Sätze (Vergleich)</h2>
-        <div class="sets-head-actions">
+        <span class="summary-actions">
           <button id="btnExportAll" data-i18n="export_all">Alle exportieren</button>
           <button id="btnClearSets" class="btn-danger" data-i18n="clear_sets">Alle löschen</button>
-        </div>
+        </span>
+      </summary>
+      <div class="card-body">
+      <div class="sets-filter">
+        <label><span data-i18n="filter_pilot">Pilot</span>
+          <select id="setPilotFilter"></select>
+        </label>
       </div>
       <div class="chart-block" id="chartBlock">
         <div class="chart-title" data-i18n="chart_title">Rundenverlauf</div>
         <canvas id="setsChart" class="sets-chart"></canvas>
       </div>
+      <div class="pilot-compare" id="pilotCompare"></div>
       <div id="setsList" class="sets-list"></div>
-    </section>
+      </div>
+    </details>
 
     <div class="settings-overlay" id="settingsOverlay" hidden>
       <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings" aria-label="Einstellungen">
@@ -197,6 +213,23 @@
             <label><span data-i18n="voice">Sprachstimme</span>
               <select id="voiceSelect"></select>
             </label>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_look">Aussehen</h3></summary>
+          <div class="settings-grid">
+            <label><span data-i18n="accent_color">Akzentfarbe</span></label>
+            <div class="swatches" id="accentSwatches">
+              <button type="button" data-color="#ff7a1a" style="--sw:#ff7a1a" aria-label="#ff7a1a"></button>
+              <button type="button" data-color="#20c4c4" style="--sw:#20c4c4" aria-label="#20c4c4"></button>
+              <button type="button" data-color="#4ade80" style="--sw:#4ade80" aria-label="#4ade80"></button>
+              <button type="button" data-color="#60a5fa" style="--sw:#60a5fa" aria-label="#60a5fa"></button>
+              <button type="button" data-color="#a78bfa" style="--sw:#a78bfa" aria-label="#a78bfa"></button>
+              <button type="button" data-color="#ff4d8d" style="--sw:#ff4d8d" aria-label="#ff4d8d"></button>
+              <button type="button" data-color="#ffd23c" style="--sw:#ffd23c" aria-label="#ffd23c"></button>
+              <button type="button" data-color="#4dd6a0" style="--sw:#4dd6a0" aria-label="#4dd6a0"></button>
+            </div>
+            <label><span data-i18n="accent_custom">Eigene Farbe</span> <input type="color" id="accentCustom" value="#ff7a1a" /></label>
           </div>
         </details>
         <details class="settings-group">
