@@ -10,48 +10,22 @@
     </linearGradient>
   </defs>
 
-  <!-- rounded background (same as the KTR app icon) -->
+  <!-- rounded background (same style as the KTR app icon) -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
 
-  <!-- FPV freestyle quad: four arms out to the motors -->
-  <g stroke="url(#acc)" stroke-width="20" stroke-linecap="round">
-    <line x1="238" y1="238" x2="152" y2="152"/>
-    <line x1="274" y1="238" x2="360" y2="152"/>
-    <line x1="238" y1="274" x2="152" y2="360"/>
-    <line x1="274" y1="274" x2="360" y2="360"/>
+  <!-- 2x2 grid of cells: K W / A D -->
+  <g fill="url(#acc)" fill-opacity="0.15" stroke="url(#acc)" stroke-opacity="0.85" stroke-width="4">
+    <rect x="96" y="96" width="150" height="150" rx="30"/>
+    <rect x="266" y="96" width="150" height="150" rx="30"/>
+    <rect x="96" y="266" width="150" height="150" rx="30"/>
+    <rect x="266" y="266" width="150" height="150" rx="30"/>
   </g>
 
-  <!-- spinnging propellers (two crossed blades each), translucent accent like the grid -->
-  <g fill="url(#acc)" fill-opacity="0.16" stroke="url(#acc)" stroke-opacity="0.85" stroke-width="4">
-    <g transform="translate(152 152) rotate(45)">
-      <ellipse rx="62" ry="13"/>
-      <ellipse rx="62" ry="13" transform="rotate(90)"/>
-    </g>
-    <g transform="translate(360 152) rotate(-45)">
-      <ellipse rx="62" ry="13"/>
-      <ellipse rx="62" ry="13" transform="rotate(90)"/>
-    </g>
-    <g transform="translate(152 360) rotate(-45)">
-      <ellipse rx="62" ry="13"/>
-      <ellipse rx="62" ry="13" transform="rotate(90)"/>
-    </g>
-    <g transform="translate(360 360) rotate(45)">
-      <ellipse rx="62" ry="13"/>
-      <ellipse rx="62" ry="13" transform="rotate(90)"/>
-    </g>
+  <!-- the four letters, read left-to-right / top-to-bottom -->
+  <g fill="url(#acc)" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="120" text-anchor="middle">
+    <text x="171" y="212">K</text>
+    <text x="341" y="212">W</text>
+    <text x="171" y="382">A</text>
+    <text x="341" y="382">D</text>
   </g>
-
-  <!-- motor bells -->
-  <g fill="url(#acc)">
-    <circle cx="152" cy="152" r="15"/>
-    <circle cx="360" cy="152" r="15"/>
-    <circle cx="152" cy="360" r="15"/>
-    <circle cx="360" cy="360" r="15"/>
-  </g>
-
-  <!-- central body / canopy -->
-  <rect x="212" y="212" width="88" height="88" rx="24" fill="url(#acc)"/>
-  <!-- camera pod / lens -->
-  <circle cx="256" cy="256" r="20" fill="#0b0f14"/>
-  <circle cx="256" cy="256" r="9" fill="url(#acc)"/>
 </svg>
