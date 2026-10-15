@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.5.0';
+  const APP_VERSION = '0.5.1';
 
   // ---------- State ----------
   const state = {
@@ -88,6 +88,7 @@
     announceMode: document.getElementById('announceMode'),
     announceRate: document.getElementById('announceRate'),
     announceRateVal: document.getElementById('announceRateVal'),
+    btnTestVoice: document.getElementById('btnTestVoice'),
     versionBadge: document.getElementById('versionBadge'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
@@ -248,6 +249,12 @@
     const min = Math.floor(totalSec / 60);
     const sec = (totalSec - min * 60).toFixed(2).replace('.', ',');
     return min + (min === 1 ? ' Minute ' : ' Minuten ') + sec + ' Sekunden';
+  }
+  if (els.btnTestVoice) {
+    els.btnTestVoice.addEventListener('click', () => {
+      primeSpeech();
+      speak('Runde 1: 12,45 Sekunden');
+    });
   }
 
   // ---------- audio feedback ----------
