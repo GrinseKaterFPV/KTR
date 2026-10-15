@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.5';
+  const APP_VERSION = '0.6.6';
 
   // ---------- State ----------
   const state = {
@@ -754,6 +754,7 @@
     state.currentLapStart = triggerTime;
     state.machine = 0;
     state.pendingLap = null;
+    state.wrongFlashUntil = 0;
     renderLaps();
     updateBest();
     if (isBest) soundBest(); else soundLap();
