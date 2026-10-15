@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.7';
+  const APP_VERSION = '0.13.8';
 
   // ---------- i18n ----------
   const I18N = {
@@ -59,7 +59,7 @@
       cam_lock: 'Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt',
       hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
       g_autostart: 'Auto-Start & Rennen',
-      g_audio: 'Audio & Ansagen',
+      g_audio: 'Rennen & Audio',
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio-Feedback (Countdown, Runden)',
@@ -69,7 +69,7 @@
       ann_best: 'Nur beste Runde',
       speech_rate: 'Sprechtempo',
       test_voice: 'Stimme testen',
-      g_language: 'Sprache & Stimme',
+      g_language: 'Sprache',
       ui_language: 'App-Sprache',
       lang_de: 'Deutsch',
       lang_en: 'English',
@@ -212,7 +212,7 @@
       cam_lock: 'Lock camera (manual focus/exposure) – only enable if the image stays reliably bright',
       hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
       g_autostart: 'Auto-start & race',
-      g_audio: 'Audio & announcements',
+      g_audio: 'Race & audio',
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio feedback (countdown, laps)',
@@ -222,7 +222,7 @@
       ann_best: 'Best lap only',
       speech_rate: 'Speech rate',
       test_voice: 'Test voice',
-      g_language: 'Language & voice',
+      g_language: 'Language',
       ui_language: 'App language',
       lang_de: 'Deutsch',
       lang_en: 'English',

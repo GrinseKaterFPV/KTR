@@ -24,7 +24,7 @@ relativ (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `icon-ktr
 > Bereits installierte PWA-Kurzbefehle und Lesezeichen müssen einmal neu angelegt werden
 > (Chrome → Menü → „Zum Startbildschirm hinzufügen“). In der App hilft zusätzlich
 > *Einstellungen → App → „App aktualisieren (Cache leeren)“*, damit der neue
-> Service-Worker-Cache (`fpv-timer-v40`) greift.
+> Service-Worker-Cache greift.
 
 *Optional:* Für eine eigene Domain (`CNAME`) einfach eine Datei `CNAME` mit dem
 Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
@@ -62,7 +62,7 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
 - Autofokus-/Belichtungs-Schutz: Der Hintergrund passt sich dauerhaft an Drift an (selbstheilend) und globale Bildänderungen über das gesamte Bild werden ignoriert. Ein Watchdog verhindert, dass das Tor als "belegt" hängen bleibt und dadurch Runden übersieht. Optional (Standard aus) lässt sich die Kamera per „Kamera fixieren“ auf manuellen Fokus/Belichtung stellen
-- Zweisprachig (Deutsch/Englisch): Umschalten in den Einstellungen unter „Sprache & Stimme“; Aussprache von Ansagen passt sich an. Zusätzlich kann eine konkrete Sprachstimme gewählt werden
+- Zweisprachig (Deutsch/Englisch): App-Sprache in den App-Einstellungen, Sprachstimme in den Timer-Einstellungen („Rennen & Audio“); Aussprache von Ansagen passt sich an. Zusätzlich kann eine konkrete Sprachstimme gewählt werden
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
 - Einklappbare Einstellungen mit zwei getrennten Zahnrädern: oben rechts am Homescreen → App-Einstellungen, in der Timer-Karte → Timer-Einstellungen; Untergruppen standardmäßig zugeklappt
@@ -81,10 +81,11 @@ Beide Skripte extrahieren den echten Code aus `app.js` und prüfen ihn – sie t
 
 ## Einstellungen
 Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
-- **App-Einstellungen** (Zahnrad oben rechts am Homescreen bzw. Kachel „Einstellungen“): Sprache & Stimme, Audio & Ansagen (Audio-Feedback, Sprachansage aus/jede/beste, Sprechtempo, Stimme testen), Aussehen (Akzentfarbe), App (Update/Cache leeren)
+- **App-Einstellungen** (Zahnrad oben rechts am Homescreen bzw. Kachel „Einstellungen“): Sprache (App-Sprache), Aussehen (Akzentfarbe), App (Update/Cache leeren)
 - **Timer-Einstellungen** (Zahnrad in der Timer-Karte):
   - Erkennung: Diff-Schwelle (Pixel-Differenz 0–255 zum Hintergrund), Enter (px), Exit (px), Cooldown (Mindestabstand), Verarbeitungsauflösung (niedriger = schneller), erwartete Richtung, Driftausgleich, Kamera fixieren
   - Auto-Start & Rennen: Auto-Start an/aus, Runden pro Satz (0 = unbegrenzt), Countdown/Vorbereitungszeit (0–15 s)
+  - Rennen & Audio: Audio-Feedback (Countdown, Runden), Sprachstimme, Sprachansage (aus/jede/beste), Sprechtempo, Stimme testen
 - Die Schnellregler in der Timer-Karte bleiben erhalten (Auto-Start-Schalter, Badge „Runden/Satz“, Countdown-Badge) und sind mit den Feldern im Timer-Menü synchron
 - Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)

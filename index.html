@@ -204,7 +204,7 @@
           <button id="btnSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
         </div>
         <details class="settings-group">
-          <summary><h3 data-i18n="g_language">Sprache &amp; Stimme</h3></summary>
+          <summary><h3 data-i18n="g_language">Sprache</h3></summary>
           <div class="settings-grid">
             <label><span data-i18n="ui_language">App-Sprache</span>
               <select id="langSelect">
@@ -212,24 +212,6 @@
                 <option value="en" data-i18n="lang_en">English</option>
               </select>
             </label>
-            <label><span data-i18n="voice">Sprachstimme</span>
-              <select id="voiceSelect"></select>
-            </label>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_audio">Audio &amp; Ansagen</h3></summary>
-          <div class="settings-grid">
-            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
-            <label><span data-i18n="speech_announce">Sprachansage</span>
-              <select id="announceMode">
-                <option value="aus" data-i18n="ann_off">Aus</option>
-                <option value="jede" selected data-i18n="ann_every">Jede Runde</option>
-                <option value="best" data-i18n="ann_best">Nur beste Runde</option>
-              </select>
-            </label>
-            <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
-            <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
           </div>
         </details>
         <details class="settings-group">
@@ -297,6 +279,24 @@
             <label class="check-row"><input type="checkbox" id="autoStart" /> <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span></label>
             <label><span data-i18n="laps_short">Runden/Satz</span> <input type="number" id="autoLaps" min="0" max="30" step="1" value="0" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)" /></label>
             <label><span data-i18n="cd_row">Countdown</span> <input type="number" id="countdownInput" min="0" max="15" step="1" value="5" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)" /></label>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_audio">Rennen &amp; Audio</h3></summary>
+          <div class="settings-grid">
+            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
+            <label><span data-i18n="voice">Sprachstimme</span>
+              <select id="voiceSelect"></select>
+            </label>
+            <label><span data-i18n="speech_announce">Sprachansage</span>
+              <select id="announceMode">
+                <option value="aus" data-i18n="ann_off">Aus</option>
+                <option value="jede" selected data-i18n="ann_every">Jede Runde</option>
+                <option value="best" data-i18n="ann_best">Nur beste Runde</option>
+              </select>
+            </label>
+            <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
+            <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
           </div>
         </details>
       </div>
