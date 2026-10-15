@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.2';
+  const APP_VERSION = '0.13.3';
 
   // ---------- i18n ----------
   const I18N = {
@@ -700,17 +700,28 @@
 
   function applyProcRes() {
     const v = els.procRes.value;
+    const oldW = state.procW, oldH = state.procH;
     if (v === '480x360') { state.procW = 480; state.procH = 360; }
     else { state.procW = 320; state.procH = 240; }
     procCanvas.width = state.procW; procCanvas.height = state.procH;
-    // scale roi if present? keep ratios
+    // The ROI is stored in process-canvas pixels. Changing the processing
+    // resolution re-maps the camera image onto a different grid, so scale the
+    // ROI with it — otherwise a 320x240 frame would shrink/shift at 480x360.
+    if (state.roi && oldW && oldH && (oldW !== state.procW || oldH !== state.procH)) {
+      const rx = state.procW / oldW, ry = state.procH / oldH;
+      state.roi = {
+        x: Math.round(state.roi.x * rx),
+        y: Math.round(state.roi.y * ry),
+        w: Math.round(state.roi.w * rx),
+        h: Math.round(state.roi.h * ry),
+      };
+    }
     if (state.roi) {
-      // store roi in process coords; if resolution changed, approximate via ratio
-      // not enough info; reset roi to null on change? We'll just clamp.
-      state.roi.x = Math.min(state.roi.x, state.procW - 10);
-      state.roi.y = Math.min(state.roi.y, state.procH - 10);
+      state.roi.x = Math.max(0, Math.min(state.procW - 8, state.roi.x));
+      state.roi.y = Math.max(0, Math.min(state.procH - 8, state.roi.y));
       state.roi.w = Math.min(state.roi.w, state.procW - state.roi.x);
       state.roi.h = Math.min(state.roi.h, state.procH - state.roi.y);
+      if (state.roi.w < 8 || state.roi.h < 8) state.roi = null;
     }
   }
 
@@ -1308,11 +1319,26 @@
   els.camSelect.addEventListener('change', () => { if (state.stream) startCamera(els.camSelect.value); });
 
   // ---------- ROI drawing ----------
+  // Map the camera image ("contain" fit) onto the overlay canvas. This is the
+  // single source of truth for both drawing the preview and converting ROI
+  // screen coordinates into process-canvas coordinates — valid at any aspect
+  // ratio, resolution or orientation.
+  function computeView(w, h) {
+    const vw = els.video.videoWidth, vh = els.video.videoHeight;
+    const pw = state.procW, ph = state.procH;
+    if (!w || !h || !vw || !vh || !pw || !ph) return null;
+    const scale = Math.min(w / vw, h / vh);
+    const dw = vw * scale, dh = vh * scale;
+    return { dx: (w - dw) / 2, dy: (h - dh) / 2, dw, dh, sx: dw / pw, sy: dh / ph };
+  }
+  function currentView() {
+    return state.view || computeView(els.overlay.width, els.overlay.height);
+  }
   function toProc(pos) {
     const rect = els.overlay.getBoundingClientRect();
     const cx = (pos.x - rect.left) * (els.overlay.width / rect.width);
     const cy = (pos.y - rect.top) * (els.overlay.height / rect.height);
-    const v = state.view || { dx: 0, dy: 0, sx: els.overlay.width / state.procW, sy: els.overlay.height / state.procH };
+    const v = currentView() || { dx: 0, dy: 0, sx: els.overlay.width / state.procW, sy: els.overlay.height / state.procH };
     return { x: (cx - v.dx) / v.sx, y: (cy - v.dy) / v.sy };
   }
   function getPos(e) {
@@ -1330,6 +1356,9 @@
   els.overlay.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, { passive: false });
 
   function startDraw(pos) {
+    // Without a running camera there is no image to map the ROI onto; drawing
+    // now would produce a frame that lands somewhere else once video starts.
+    if (!state.stream || !els.video.videoWidth) { setStatus(t('start_camera_first')); return; }
     state.drawing = true;
     state.drawStart = toProc(pos);
     state.roi = null;
@@ -1429,12 +1458,10 @@
     // Draw the camera image ourselves with "contain" fit. This guarantees a
     // visible preview even if the <video> element fails to paint on some devices,
     // and it lets us map the ROI exactly onto the image.
-    const scale = Math.min(w / vw, h / vh);
-    const dw = vw * scale, dh = vh * scale;
-    const dx = (w - dw) / 2, dy = (h - dh) / 2;
-    if (w > 0 && h > 0) {
-      state.view = { dx, dy, dw, dh, sx: dw / state.procW, sy: dh / state.procH };
-      overlayCtx.drawImage(els.video, dx, dy, dw, dh);
+    const view = computeView(w, h);
+    if (view) {
+      state.view = view;
+      overlayCtx.drawImage(els.video, view.dx, view.dy, view.dw, view.dh);
     }
 
     const gray = new Float32Array(state.procW * state.procH);
@@ -2329,7 +2356,7 @@
   function drawOverlay() {
     const w = els.overlay.width, h = els.overlay.height;
     if (!w || !h) return;
-    const v = state.view || { dx: 0, dy: 0, sx: w / state.procW, sy: h / state.procH };
+    const v = currentView() || { dx: 0, dy: 0, sx: w / state.procW, sy: h / state.procH };
     const X = x => v.dx + x * v.sx;
     const Y = y => v.dy + y * v.sy;
     const r = state.roi;

@@ -23,6 +23,7 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 - **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – z. B. **Timer** – und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
 - **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die drei Kürzel K, T, R untereinander in einem 3×3-Raster; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
+- Erkennungs-Bereich (ROI) per Fingermalerei ins Bild ziehen; die Bildschirm-/Bildzuordnung funktioniert korrekt in Hoch- und Querformat und bei jedem Wechsel der Verarbeitungs-Auflösung (320×240 ↔ 480×360) – der Rahmen bleibt auf demselben Bildausschnitt liegen
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
 - Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, **einzeln als CSV exportieren (⬇, Dateiname mit Pilot, z. B. `fpv-set-Max-1.csv`)**, einzeln löschen oder gesammelt als CSV exportieren
