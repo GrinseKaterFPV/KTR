@@ -77,51 +77,52 @@
         <button id="btnLapManual" class="btn" data-i18n="manual_lap">Manuelle Runde</button>
         <button id="btnReset" class="btn btn-danger" data-i18n="reset">Reset</button>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="armedToggle" />
-        <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span>
-      </label>
-      <div class="auto-row">
-        <label class="toggle auto-quick">
-          <input type="checkbox" id="autoStartQuick" />
-          <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span>
-        </label>
-        <button type="button" class="quick-badge" id="autoLapsBadge" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)">∞</button>
-        <div class="laps-pop" id="lapsPop" hidden>
-          <div class="laps-pop-title" data-i18n="laps_pop_title">Runden pro Satz</div>
-          <button type="button" class="laps-step" id="lapsMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
-          <span class="laps-pop-val" id="lapsPopVal">∞</span>
-          <button type="button" class="laps-step" id="lapsPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
-          <div class="laps-presets">
-            <button type="button" data-laps="0">∞</button>
-            <button type="button" data-laps="3">3</button>
-            <button type="button" data-laps="5">5</button>
-            <button type="button" data-laps="10">10</button>
+      <div class="quick-panel">
+        <label class="check-row"><input type="checkbox" id="armedToggle" /> <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span></label>
+        <label class="check-row auto-quick"><input type="checkbox" id="autoStartQuick" /> <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span></label>
+        <div class="quick-fields">
+          <div class="quick-field">
+            <span class="quick-field-label" data-i18n="laps_short">Runden/Satz</span>
+            <button type="button" class="quick-badge" id="autoLapsBadge" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)">∞</button>
+            <div class="laps-pop" id="lapsPop" hidden>
+              <div class="laps-pop-title" data-i18n="laps_pop_title">Runden pro Satz</div>
+              <button type="button" class="laps-step" id="lapsMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
+              <span class="laps-pop-val" id="lapsPopVal">∞</span>
+              <button type="button" class="laps-step" id="lapsPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
+              <div class="laps-presets">
+                <button type="button" data-laps="0">∞</button>
+                <button type="button" data-laps="3">3</button>
+                <button type="button" data-laps="5">5</button>
+                <button type="button" data-laps="10">10</button>
+              </div>
+            </div>
+          </div>
+          <div class="quick-field">
+            <span class="quick-field-label" data-i18n="cd_row">Countdown</span>
+            <button type="button" class="quick-badge" id="countdownBadge" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)">5s</button>
+            <div class="laps-pop" id="countdownPop" hidden>
+              <div class="laps-pop-title" data-i18n="prep_time">Vorbereitungszeit (s)</div>
+              <button type="button" class="laps-step" id="cdMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
+              <span class="laps-pop-val" id="cdPopVal">5s</span>
+              <button type="button" class="laps-step" id="cdPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
+              <div class="laps-presets">
+                <button type="button" data-cd="0">0s</button>
+                <button type="button" data-cd="3">3s</button>
+                <button type="button" data-cd="5">5s</button>
+                <button type="button" data-cd="10">10s</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="auto-row">
-        <span class="row-label" data-i18n="cd_row">Countdown</span>
-        <button type="button" class="quick-badge" id="countdownBadge" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)">5s</button>
-        <div class="laps-pop" id="countdownPop" hidden>
-          <div class="laps-pop-title" data-i18n="prep_time">Vorbereitungszeit (s)</div>
-          <button type="button" class="laps-step" id="cdMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
-          <span class="laps-pop-val" id="cdPopVal">5s</span>
-          <button type="button" class="laps-step" id="cdPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
-          <div class="laps-presets">
-            <button type="button" data-cd="0">0s</button>
-            <button type="button" data-cd="3">3s</button>
-            <button type="button" data-cd="5">5s</button>
-            <button type="button" data-cd="10">10s</button>
-          </div>
+      <div class="pilot-panel">
+        <div class="pilot-row">
+          <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
+          <input type="color" id="pilotColor" class="pilot-color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" />
+          <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
         </div>
+        <div class="pilots" id="pilots"></div>
       </div>
-      <div class="pilot-row">
-        <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
-        <input type="color" id="pilotColor" class="pilot-color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" />
-        <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
-      </div>
-      <div class="pilots" id="pilots"></div>
       </div>
     </details>
 

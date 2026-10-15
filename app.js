@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.11.3';
+  const APP_VERSION = '0.11.4';
 
   // ---------- i18n ----------
   const I18N = {
@@ -132,6 +132,7 @@
       hint_auto: 'Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).',
       auto_start_quick: 'Auto-Start (Timer startet beim 1. Durchflug)',
       laps_pop_title: 'Runden pro Satz',
+      laps_short: 'Runden/Satz',
       laps_less: 'Weniger',
       laps_more: 'Mehr',
       chart_title: 'Rundenverlauf',
@@ -275,6 +276,7 @@
       hint_auto: 'Auto-start: The first gate crossing starts the timer (it is not counted as a lap). After the configured number of laps the timer stops automatically, the set is saved, and the next crossing starts the next set. This lets you fly several sets and compare them at the end. 0 = unlimited (manual stop).',
       auto_start_quick: 'Auto-start (timer starts on 1st crossing)',
       laps_pop_title: 'Laps per set',
+      laps_short: 'Laps/set',
       laps_less: 'Less',
       laps_more: 'More',
       chart_title: 'Lap progress',
