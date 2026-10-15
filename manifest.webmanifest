@@ -1,7 +1,7 @@
 {
-  "name": "KTR Racing Timer",
-  "short_name": "KTR Timer",
-  "description": "Rundenzeiten per Bilderkennung (Bewegungszone am Start/Ziel).",
+  "name": "KTR FPV APP",
+  "short_name": "KTR FPV APP",
+  "description": "FPV Racing Toolkit: Rundenzeiten per Bilderkennung, Piloten und Vergleich.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

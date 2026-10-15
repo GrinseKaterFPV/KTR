@@ -1,7 +1,8 @@
-# KTR Racing Timer (Web/PWA)
+# KTR FPV APP (Web/PWA)
 
-Rundentimer für Android-Geräte. Die Runden werden anhand von Bewegung (Frame-Differenz)
-in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
+FPV Racing Toolkit als Web/PWA: Rundentimer für Android-Geräte mit Hauptmenü,
+durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
+(Frame-Differenz) in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 
 ## Starten (lokal)
 1. In diesem Ordner einen kleinen Server starten (Kamera braucht sicheren Kontext):
@@ -19,6 +20,8 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
+- **Hauptmenü:** Beim Start öffnet sich das Hauptmenü (Hamburger ☰ oben links öffnet es jederzeit wieder). Der Timer ist eine von mehreren Funktionen (weitere Bereiche folgen schrittweise)
+- **Logo/Name „KTR FPV APP“:** das Icon zeigt die drei Kürzel K, T, R untereinander in einem 3×3-Raster
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz

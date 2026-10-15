@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0f14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>KTR Racing Timer</title>
+  <title>KTR FPV APP</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon-ktr.svg" />
   <link rel="stylesheet" href="styles.css" />
@@ -14,8 +14,9 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="logo">KTR</span>
-      <span class="title">Racing Timer</span>
+      <button id="btnMenu" class="gear-btn" type="button" data-i18n-title="menu_open" data-i18n-aria="menu_open" title="Hauptmenü öffnen" aria-label="Hauptmenü öffnen">☰</button>
+      <img class="logo-img" src="icon-ktr.svg" alt="" width="30" height="30" />
+      <span class="title">KTR FPV APP</span>
       <span class="version" id="versionBadge">v?</span>
     </div>
     <div class="topbar-right">
@@ -23,6 +24,42 @@
       <button id="btnSettings" class="gear-btn" type="button" data-i18n-title="settings" data-i18n-aria="settings" title="Einstellungen" aria-label="Einstellungen">⚙</button>
     </div>
   </header>
+
+  <div class="menu-overlay" id="mainMenu" hidden>
+    <div class="menu" role="dialog" aria-modal="true" data-i18n-aria="main_menu" aria-label="Hauptmenü">
+      <div class="menu-head">
+        <img class="menu-logo" src="icon-ktr.svg" alt="" width="56" height="56" />
+        <div class="menu-head-text">
+          <div class="menu-app">KTR FPV APP</div>
+          <div class="menu-app-sub" data-i18n="menu_sub">FPV Racing Toolkit</div>
+        </div>
+        <button id="btnMenuClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-tile is-primary" id="tileTimer" type="button">
+          <span class="tile-icon">⏱</span>
+          <span class="tile-label" data-i18n="m_timer">Timer</span>
+          <span class="tile-desc" data-i18n="m_timer_desc">Runden, Sätze &amp; Vergleich</span>
+        </button>
+        <button class="menu-tile" id="tileSettings" type="button">
+          <span class="tile-icon">⚙</span>
+          <span class="tile-label" data-i18n="settings">Einstellungen</span>
+          <span class="tile-desc" data-i18n="m_settings_desc">Sprache, Farben, Sensorik</span>
+        </button>
+        <button class="menu-tile" type="button" disabled>
+          <span class="tile-icon">📡</span>
+          <span class="tile-label" data-i18n="m_telemetry">Telemetrie</span>
+          <span class="tile-desc" data-i18n="m_soon">Bald verfügbar</span>
+        </button>
+        <button class="menu-tile" type="button" disabled>
+          <span class="tile-icon">🏁</span>
+          <span class="tile-label" data-i18n="m_pilots">Piloten</span>
+          <span class="tile-desc" data-i18n="m_soon">Bald verfügbar</span>
+        </button>
+      </div>
+      <p class="menu-note" data-i18n="m_note">Mehr Funktionen kommen schrittweise dazu.</p>
+    </div>
+  </div>
 
   <main class="layout">
     <details class="video-card card-collapsible" data-sec="camera" open>

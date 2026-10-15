@@ -1,14 +1,24 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.11.5';
+  const APP_VERSION = '0.12.0';
 
   // ---------- i18n ----------
   const I18N = {
     de: {
-      title: 'KTR Racing Timer',
+      title: 'KTR FPV APP',
       settings: 'Einstellungen',
       close: 'Schließen',
+      menu_open: 'Hauptmenü öffnen',
+      main_menu: 'Hauptmenü',
+      menu_sub: 'FPV Racing Toolkit',
+      m_timer: 'Timer',
+      m_timer_desc: 'Runden, Sätze & Vergleich',
+      m_settings_desc: 'Sprache, Farben, Sensorik',
+      m_telemetry: 'Telemetrie',
+      m_pilots: 'Piloten',
+      m_soon: 'Bald verfügbar',
+      m_note: 'Mehr Funktionen kommen schrittweise dazu.',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -150,9 +160,19 @@
       th_sets: 'Sätze',
     },
     en: {
-      title: 'KTR Racing Timer',
+      title: 'KTR FPV APP',
       settings: 'Settings',
       close: 'Close',
+      menu_open: 'Open main menu',
+      main_menu: 'Main menu',
+      menu_sub: 'FPV Racing Toolkit',
+      m_timer: 'Timer',
+      m_timer_desc: 'Laps, sets & comparison',
+      m_settings_desc: 'Language, colours, sensors',
+      m_telemetry: 'Telemetry',
+      m_pilots: 'Pilots',
+      m_soon: 'Coming soon',
+      m_note: 'More features will be added gradually.',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -410,15 +430,12 @@
     directionSelect: document.getElementById('directionSelect'),
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
-    autoStart: document.getElementById('autoStart'),
     autoStartQuick: document.getElementById('autoStartQuick'),
     autoLapsBadge: document.getElementById('autoLapsBadge'),
     lapsPop: document.getElementById('lapsPop'),
     lapsPopVal: document.getElementById('lapsPopVal'),
     lapsMinus: document.getElementById('lapsMinus'),
     lapsPlus: document.getElementById('lapsPlus'),
-    autoLaps: document.getElementById('autoLaps'),
-    autoLapsVal: document.getElementById('autoLapsVal'),
     countdownBadge: document.getElementById('countdownBadge'),
     countdownPop: document.getElementById('countdownPop'),
     cdPopVal: document.getElementById('cdPopVal'),
@@ -441,6 +458,11 @@
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
+    mainMenu: document.getElementById('mainMenu'),
+    btnMenu: document.getElementById('btnMenu'),
+    btnMenuClose: document.getElementById('btnMenuClose'),
+    tileTimer: document.getElementById('tileTimer'),
+    tileSettings: document.getElementById('tileSettings'),
     versionBadge: document.getElementById('versionBadge'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
@@ -948,8 +970,22 @@
     });
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && els.settingsOverlay && !els.settingsOverlay.hidden) closeSettings();
+    if (e.key !== 'Escape') return;
+    if (els.mainMenu && !els.mainMenu.hidden) { closeMenu(); return; }
+    if (els.settingsOverlay && !els.settingsOverlay.hidden) closeSettings();
   });
+
+  // ---------- main menu ----------
+  function openMenu() { if (els.mainMenu) els.mainMenu.hidden = false; }
+  function closeMenu() { if (els.mainMenu) els.mainMenu.hidden = true; }
+  if (els.btnMenu) els.btnMenu.addEventListener('click', openMenu);
+  if (els.btnMenuClose) els.btnMenuClose.addEventListener('click', closeMenu);
+  if (els.mainMenu) {
+    // clicking the dimmed/empty backdrop area closes the menu
+    els.mainMenu.addEventListener('click', e => { if (e.target === els.mainMenu) closeMenu(); });
+  }
+  if (els.tileTimer) els.tileTimer.addEventListener('click', closeMenu);
+  if (els.tileSettings) els.tileSettings.addEventListener('click', () => { closeMenu(); openSettings(); });
 
   // ---------- audio feedback ----------
   let audioCtx = null;
@@ -2298,6 +2334,8 @@
     if (els.versionBadge) els.versionBadge.textContent = 'v' + APP_VERSION;
     applyLanguage();
     saveSettings();
+    // Start in the main menu — the timer is one of several functions.
+    openMenu();
   }
 
   window.addEventListener('resize', () => { drawOverlay(); renderChart(); });
