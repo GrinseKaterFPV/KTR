@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.8.0';
+  const APP_VERSION = '0.8.1';
 
   // ---------- i18n ----------
   const I18N = {
@@ -269,6 +269,7 @@
     directionToastUntil: 0,
     driftComp: true,
     camLock: false,
+    camDeviceId: '',
     lang: 'de',
     voiceURI: '',
     rafId: null,
@@ -369,6 +370,7 @@
       direction: state.direction,
       driftComp: state.driftComp,
       camLock: state.camLock,
+      camDeviceId: state.camDeviceId,
       lang: state.lang,
       voiceURI: state.voiceURI,
     }));
@@ -415,6 +417,7 @@
     if (els.driftComp) els.driftComp.checked = state.driftComp;
     state.camLock = s.camLock ?? false;
     if (els.camLock) els.camLock.checked = state.camLock;
+    state.camDeviceId = s.camDeviceId || '';
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
@@ -696,6 +699,8 @@
   if (els.btnForceUpdate) els.btnForceUpdate.addEventListener('click', forceUpdate);
 
   // ---------- camera ----------
+  function isBackLabel(label) { return /(back|rear|environment|r[üu]ck)/i.test(label || ''); }
+  function isFrontLabel(label) { return /(front|user|face)/i.test(label || ''); }
   async function enumerateCameras() {
     try {
       const devs = await navigator.mediaDevices.enumerateDevices();
@@ -708,6 +713,27 @@
         els.camSelect.appendChild(opt);
       });
     } catch (e) { console.error(e); }
+  }
+
+  // Make the dropdown show the camera that is actually delivering the preview,
+  // and remember it for the next start.
+  function selectActiveCamera(activeId, facing, wanted) {
+    const opts = Array.from(els.camSelect.options);
+    const has = id => id && opts.some(o => o.value === id);
+    let chosen = '';
+    if (has(activeId)) chosen = activeId;
+    else if (has(wanted)) chosen = wanted;
+    else if (facing) {
+      const re = facing === 'environment' ? isBackLabel : isFrontLabel;
+      const match = state.devices.find(d => re(d.label));
+      if (match) chosen = match.deviceId;
+    }
+    if (!chosen && activeId) chosen = activeId;
+    if (chosen) {
+      els.camSelect.value = chosen;
+      state.camDeviceId = chosen;
+    }
+    saveSettings();
   }
 
   // Best-effort: stop the camera from constantly hunting focus / exposure. This is
@@ -744,19 +770,24 @@
       state.stream = null;
     }
     try {
+      const wanted = deviceId || state.camDeviceId || '';
       const constraints = {
         video: {
-          deviceId: deviceId ? { exact: deviceId } : undefined,
+          deviceId: wanted ? { ideal: wanted } : undefined,
           width: { ideal: 1280 }, height: { ideal: 720 },
           facingMode: { ideal: 'environment' }
         }, audio: false
       };
       state.stream = await navigator.mediaDevices.getUserMedia(constraints);
       els.video.srcObject = state.stream;
+      const track = state.stream.getVideoTracks()[0];
+      const tsettings = (track && track.getSettings) ? track.getSettings() : {};
+      const activeId = tsettings.deviceId || '';
+      const facing = tsettings.facingMode || '';
       applyCameraLock();
       await els.video.play();
       await enumerateCameras();
-      if (deviceId) els.camSelect.value = deviceId;
+      selectActiveCamera(activeId, facing, wanted);
       setStatus(t('cam_running'));
       els.zoneHint.style.display = 'block';
       updateCamButtonText();
