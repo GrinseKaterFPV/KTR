@@ -181,7 +181,7 @@ check('W4: the K.W.A.D add row gets the same treatment (min-width: 0 + wrap)',
 
 // --- cache / version bookkeeping ---------------------------------------------
 check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.16\.0'/.test(app));
+check('V2: app version was bumped', /APP_VERSION = '0\.17\.0'/.test(app));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
