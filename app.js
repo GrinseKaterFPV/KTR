@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.2';
+  const APP_VERSION = '0.6.3';
 
   // ---------- State ----------
   const state = {
@@ -45,6 +45,7 @@
     direction: 'aus',
     pendingLap: null,
     wrongFlashUntil: 0,
+    directionToastUntil: 0,
     rafId: null,
     frameCount: 0,
   };
@@ -93,6 +94,7 @@
     announceRateVal: document.getElementById('announceRateVal'),
     btnTestVoice: document.getElementById('btnTestVoice'),
     btnDirection: document.getElementById('btnDirection'),
+    directionSelect: document.getElementById('directionSelect'),
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
@@ -278,18 +280,27 @@
     bt: 'unten → oben',
   };
   function updateDirectionButton() {
-    if (!els.btnDirection) return;
-    els.btnDirection.textContent = DIRECTION_LABEL[state.direction] || '↔ aus';
-    els.btnDirection.title = 'Erwartete Richtung: ' + (DIRECTION_TEXT[state.direction] || 'aus') + ' – antippen zum Ändern';
+    if (els.btnDirection) {
+      els.btnDirection.textContent = DIRECTION_LABEL[state.direction] || '↔ aus';
+      els.btnDirection.title = 'Erwartete Richtung: ' + (DIRECTION_TEXT[state.direction] || 'aus') + ' – antippen zum Ändern';
+    }
+    if (els.directionSelect) els.directionSelect.value = state.direction;
+  }
+  function setDirection(dir, showToast) {
+    state.direction = dir;
+    updateDirectionButton();
+    saveSettings();
+    setStatus('Richtung: ' + DIRECTION_TEXT[state.direction]);
+    if (showToast) state.directionToastUntil = performance.now() + 1400;
   }
   if (els.btnDirection) {
     els.btnDirection.addEventListener('click', () => {
       const i = DIRECTION_ORDER.indexOf(state.direction);
-      state.direction = DIRECTION_ORDER[(i + 1) % DIRECTION_ORDER.length];
-      updateDirectionButton();
-      saveSettings();
-      setStatus('Richtung: ' + DIRECTION_TEXT[state.direction]);
+      setDirection(DIRECTION_ORDER[(i + 1) % DIRECTION_ORDER.length], true);
     });
+  }
+  if (els.directionSelect) {
+    els.directionSelect.addEventListener('change', e => setDirection(e.target.value, true));
   }
 
   // ---------- settings panel ----------
@@ -669,13 +680,14 @@
     }
     const dx = p.last.x - p.start.x;
     const dy = p.last.y - p.start.y;
-    const minTravel = 4; // process pixels
+    // require the drone to actually travel a meaningful distance across the ROI
+    const minTravel = state.roi ? Math.max(3, Math.min(state.roi.w, state.roi.h) * 0.05) : 4;
     const dir = state.direction;
     let ok = false;
-    if (dir === 'lr') ok = dx >= minTravel && Math.abs(dx) >= Math.abs(dy);
-    else if (dir === 'rl') ok = dx <= -minTravel && Math.abs(dx) >= Math.abs(dy);
-    else if (dir === 'tb') ok = dy >= minTravel && Math.abs(dy) >= Math.abs(dx);
-    else if (dir === 'bt') ok = dy <= -minTravel && Math.abs(dy) >= Math.abs(dx);
+    if (dir === 'lr') ok = dx >= Math.abs(dy) && dx >= minTravel;
+    else if (dir === 'rl') ok = -dx >= Math.abs(dy) && -dx >= minTravel;
+    else if (dir === 'tb') ok = dy >= Math.abs(dx) && dy >= minTravel;
+    else if (dir === 'bt') ok = -dy >= Math.abs(dx) && -dy >= minTravel;
     else ok = true;
     if (ok) {
       // use the entry time so timing reflects when the drone entered the gate
@@ -966,6 +978,23 @@
       overlayCtx.strokeStyle = '#ff3c3c';
       overlayCtx.lineWidth = 4;
       overlayCtx.strokeRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
+    }
+
+    // Direction-change toast (short feedback when tapping the direction button)
+    if (state.directionToastUntil && nowp < state.directionToastUntil) {
+      const label = (DIRECTION_LABEL[state.direction] || '') + '  ' + (DIRECTION_TEXT[state.direction] || '');
+      overlayCtx.save();
+      overlayCtx.font = 'bold ' + Math.round(h * 0.075) + 'px sans-serif';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.textBaseline = 'middle';
+      const tw = overlayCtx.measureText(label).width;
+      const boxW = tw + 32;
+      const boxH = h * 0.13;
+      overlayCtx.fillStyle = 'rgba(0,0,0,0.7)';
+      overlayCtx.fillRect((w - boxW) / 2, h * 0.06, boxW, boxH);
+      overlayCtx.fillStyle = '#ffd23c';
+      overlayCtx.fillText(label, w / 2, h * 0.06 + boxH / 2);
+      overlayCtx.restore();
     }
 
     // Countdown / GO overlay
