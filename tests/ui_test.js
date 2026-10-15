@@ -135,9 +135,39 @@ check('N3: both back buttons open the home screen',
 check('N4: the back buttons sit in the screen corner',
   /\.screen-back \{ position: fixed;/.test(css));
 
+// --- 8) home tiles: last used is highlighted (localStorage) -------------------
+check('H1: the Timer tile is no longer hard-wired as primary',
+  !/class="home-tile is-primary" id="tileTimer"/.test(html));
+check('H2: the home grid still offers all four tiles',
+  ['tileTimer', 'tileKwad', 'tilePilots', 'tileSettings'].every(id => html.includes('id="' + id + '"')));
+check('H3: the highlight helper toggles is-primary',
+  /classList\.toggle\('is-primary'/.test(app));
+check('H4: the used tile is stored under "lastHomeTile"',
+  /localStorage\.setItem\('lastHomeTile'/.test(app));
+check('H5: the highlight is restored on load with a timer fallback',
+  /localStorage\.getItem\('lastHomeTile'\)/.test(app) && /let id = 'tileTimer'/.test(app));
+
+// --- 9) cat-head timer icon (original app logo) -------------------------------
+const iconTimer = fs.readFileSync(path.join(root, 'icon-timer.svg'), 'utf8');
+check('T1: the timer icon is the cat-head stopwatch (ears + whiskers + face)',
+  /cat ears/.test(iconTimer) && /whiskers/.test(iconTimer) && /nose/.test(iconTimer) && /ellipse/.test(iconTimer));
+check('T2: the timer icon keeps the shared app-logo frame',
+  /<rect width="512" height="512" rx="112" fill="url\(#bg\)"/.test(iconTimer) && iconTimer.includes('url(#acc)'));
+check('T3: the tile shows the timer icon',
+  /id="tileTimer"[^]*?src="icon-timer\.svg"/.test(html));
+
+// --- 10) back arrow is a centred SVG ------------------------------------------
+check('B1: the back buttons draw the arrow as an inline SVG',
+  (html.match(/class="back-arrow" viewBox="0 0 24 24"/g) || []).length === 3);
+check('B2: no raw ← glyph is left in the back buttons',
+  !/>←<\/button>/.test(html));
+check('B3: the arrow SVG is flex-centred in the shared button',
+  /\.gear-btn \{[^}]*align-items: center; justify-content: center;/.test(css)
+  && /\.back-arrow \{ display: block; width: 18px; height: 18px; \}/.test(css));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v45'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.15\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.16\.0'/.test(app));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
