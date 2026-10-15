@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.10';
+  const APP_VERSION = '0.14.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -9,6 +9,7 @@
       title: 'KTR',
       settings: 'Einstellungen',
       settings_timer: 'Timer-Einstellungen',
+      settings_camera: 'Kamera-Einstellungen',
       close: 'Schließen',
       home: 'Startseite',
       m_timer: 'Timer',
@@ -17,6 +18,13 @@
       m_note: 'Mehr Funktionen kommen schrittweise dazu.',
       m_kwad: 'Game of K.W.A.D',
       m_kwad_desc: 'Freestyle-Tricks, Strafbuchstaben',
+      m_pilots: 'Piloten',
+      m_pilots_desc: 'Profile, Farben & Vergleich',
+      pilots_hint: 'Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.',
+      pilots_active_hint: 'Tippe einen Piloten an, um ihn als aktiven Piloten zu wählen.',
+      export_pilots: 'Piloten exportieren (CSV)',
+      pilot_delete: 'Pilot löschen',
+      pilot_screen_empty: 'Noch keine Piloten angelegt.',
       kwad_hint: 'Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.',
       kwad_trick: 'Trick',
       kwad_new_trick: 'Neuer Trick',
@@ -56,7 +64,7 @@
       th_lap: 'Rundenzeit',
       th_total: 'Gesamt',
       th_between: 'Zwischen',
-      g_detection: 'Erkennung',
+      g_detection: 'Kamera',
       diff_thresh: 'Diff-Schwelle',
       enter_px: 'Enter (px)',
       exit_px: 'Exit (px)',
@@ -72,7 +80,6 @@
       drift_comp: 'Autofokus-/Belichtungsdrift ausgleichen (empfohlen)',
       cam_lock: 'Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt',
       hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
-      g_autostart: 'Auto-Start & Rennen',
       g_audio: 'Rennen & Audio',
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
@@ -176,6 +183,7 @@
       title: 'KTR',
       settings: 'Settings',
       settings_timer: 'Timer settings',
+      settings_camera: 'Camera settings',
       close: 'Close',
       home: 'Home',
       m_timer: 'Timer',
@@ -184,6 +192,13 @@
       m_note: 'More features will be added gradually.',
       m_kwad: 'Game of K.W.A.D',
       m_kwad_desc: 'Freestyle tricks, penalty letters',
+      m_pilots: 'Pilots',
+      m_pilots_desc: 'Profiles, colours & comparison',
+      pilots_hint: 'Create pilots with a name and colour. The colour is used in the chart and the comparison table.',
+      pilots_active_hint: 'Tap a pilot to make it the active pilot.',
+      export_pilots: 'Export pilots (CSV)',
+      pilot_delete: 'Delete pilot',
+      pilot_screen_empty: 'No pilots yet.',
       kwad_hint: 'Call a trick – whoever cannot fly it collects a letter. The first to hold K, W, A and D loses.',
       kwad_trick: 'Trick',
       kwad_new_trick: 'New trick',
@@ -223,7 +238,7 @@
       th_lap: 'Lap time',
       th_total: 'Total',
       th_between: 'Split',
-      g_detection: 'Detection',
+      g_detection: 'Camera',
       diff_thresh: 'Diff threshold',
       enter_px: 'Enter (px)',
       exit_px: 'Exit (px)',
@@ -239,7 +254,6 @@
       drift_comp: 'Compensate autofocus/exposure drift (recommended)',
       cam_lock: 'Lock camera (manual focus/exposure) – only enable if the image stays reliably bright',
       hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
-      g_autostart: 'Auto-start & race',
       g_audio: 'Race & audio',
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
@@ -461,7 +475,6 @@
     directionSelect: document.getElementById('directionSelect'),
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
-    autoStart: document.getElementById('autoStart'),
     autoStartQuick: document.getElementById('autoStartQuick'),
     autoLaps: document.getElementById('autoLaps'),
     autoLapsBadge: document.getElementById('autoLapsBadge'),
@@ -495,12 +508,23 @@
     btnTimerSettings: document.getElementById('btnTimerSettings'),
     timerSettingsOverlay: document.getElementById('timerSettingsOverlay'),
     btnTimerSettingsClose: document.getElementById('btnTimerSettingsClose'),
+    btnCameraSettings: document.getElementById('btnCameraSettings'),
+    cameraSettingsOverlay: document.getElementById('cameraSettingsOverlay'),
+    btnCameraSettingsClose: document.getElementById('btnCameraSettingsClose'),
     homeScreen: document.getElementById('homeScreen'),
     btnHome: document.getElementById('btnHome'),
     homeVersionBadge: document.getElementById('homeVersionBadge'),
     tileTimer: document.getElementById('tileTimer'),
     tileSettings: document.getElementById('tileSettings'),
     tileKwad: document.getElementById('tileKwad'),
+    tilePilots: document.getElementById('tilePilots'),
+    pilotsScreen: document.getElementById('pilotsScreen'),
+    pilotScreenName: document.getElementById('pilotScreenName'),
+    pilotScreenColor: document.getElementById('pilotScreenColor'),
+    btnPilotScreenAdd: document.getElementById('btnPilotScreenAdd'),
+    pilotsScreenList: document.getElementById('pilotsScreenList'),
+    pilotsScreenCompare: document.getElementById('pilotsScreenCompare'),
+    btnPilotExport: document.getElementById('btnPilotExport'),
     kwadScreen: document.getElementById('kwadScreen'),
     kwadTrick: document.getElementById('kwadTrick'),
     kwadTurn: document.getElementById('kwadTurn'),
@@ -683,7 +707,6 @@
     if (els.camLock) els.camLock.checked = state.camLock;
     state.camDeviceId = s.camDeviceId || '';
     state.autoStart = s.autoStart ?? false;
-    if (els.autoStart) els.autoStart.checked = state.autoStart;
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     state.armed = s.armed ?? false;
     if (els.armedToggle) els.armedToggle.checked = state.armed;
@@ -907,11 +930,9 @@
       if (state.stream) applyCameraLock();
     });
   }
-  // Auto-Start can be toggled from the timer card (quick) or in the settings;
-  // both inputs stay in sync.
+  // Auto-Start is toggled from the timer card quick switch.
   function setAutoStart(on) {
     state.autoStart = !!on;
-    if (els.autoStart) els.autoStart.checked = state.autoStart;
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     saveSettings();
     if (state.autoStart && state.stream && !state.raceActive && !state.countdownActive) {
@@ -962,9 +983,6 @@
   }
   function closePops(except) {
     [els.lapsPop, els.countdownPop].forEach(p => { if (p && p !== except) p.hidden = true; });
-  }
-  if (els.autoStart) {
-    els.autoStart.addEventListener('change', e => setAutoStart(e.target.checked));
   }
   if (els.autoStartQuick) {
     els.autoStartQuick.addEventListener('change', e => setAutoStart(e.target.checked));
@@ -1082,11 +1100,14 @@
   }
 
   // ---------- settings panel ----------
-  // Two contexts: app settings (home tile + topbar gear) and timer settings
-  // (gear inside the timer card). Only one overlay can be open at a time.
-  const allSettingsOverlays = [els.settingsOverlay, els.timerSettingsOverlay].filter(Boolean);
+  // Three contexts: app settings (home tile + topbar gear), timer settings
+  // (gear inside the timer card) and camera settings (gear inside the camera
+  // card). Only one overlay can be open at a time.
+  const allSettingsOverlays = [els.settingsOverlay, els.timerSettingsOverlay, els.cameraSettingsOverlay].filter(Boolean);
   function openSettings(which) {
-    const target = (which === 'timer') ? els.timerSettingsOverlay : els.settingsOverlay;
+    const target = (which === 'timer') ? els.timerSettingsOverlay
+      : (which === 'camera') ? els.cameraSettingsOverlay
+      : els.settingsOverlay;
     closeSettings();
     if (target) target.hidden = false;
   }
@@ -1099,6 +1120,8 @@
   if (els.tileSettings) els.tileSettings.addEventListener('click', () => openSettings('app'));
   if (els.btnTimerSettings) els.btnTimerSettings.addEventListener('click', () => openSettings('timer'));
   if (els.btnTimerSettingsClose) els.btnTimerSettingsClose.addEventListener('click', closeSettings);
+  if (els.btnCameraSettings) els.btnCameraSettings.addEventListener('click', () => openSettings('camera'));
+  if (els.btnCameraSettingsClose) els.btnCameraSettingsClose.addEventListener('click', closeSettings);
   allSettingsOverlays.forEach(o => {
     o.addEventListener('click', e => {
       if (e.target === o) closeSettings();
@@ -1115,6 +1138,7 @@
     if (!els.homeScreen) return;
     els.homeScreen.hidden = false;
     if (els.kwadScreen) els.kwadScreen.hidden = true;
+    if (els.pilotsScreen) els.pilotsScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = true;
     // The topbar gear belongs to the home screen (app settings); the timer view
     // has its own gear inside the timer card.
@@ -1125,6 +1149,7 @@
     if (!els.homeScreen) return;
     els.homeScreen.hidden = true;
     if (els.kwadScreen) els.kwadScreen.hidden = true;
+    if (els.pilotsScreen) els.pilotsScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = false;
     if (els.btnSettings) els.btnSettings.hidden = true;
     closeSettings();
@@ -2058,15 +2083,16 @@
     els.setPilotFilter.value = cur;
     if (els.btnExportAll) els.btnExportAll.textContent = state.setFilter ? t('export_filtered') : t('export_all');
   }
-  function renderPilotCompare() {
-    if (!els.pilotCompare) return;
+  // Shared builder so the sets card and the dedicated Piloten screen show the
+  // exact same comparison. Returns '' when fewer than two pilots have sets.
+  function pilotCompareHTML() {
     const groups = new Map();
     state.sets.forEach(s => {
       const p = s.pilot || '';
       if (!groups.has(p)) groups.set(p, []);
       groups.get(p).push(s);
     });
-    if (groups.size < 2) { els.pilotCompare.innerHTML = ''; return; }
+    if (groups.size < 2) return '';
     const rows = [...groups.entries()].map(([p, sets]) => {
       const laps = [];
       sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
@@ -2090,9 +2116,13 @@
       `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
       `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
     ).join('');
-    els.pilotCompare.innerHTML =
-      `<h4>${t('pilot_compare_title')}</h4>` +
+    return `<h4>${t('pilot_compare_title')}</h4>` +
       `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  }
+  function renderPilotCompare() {
+    const html = pilotCompareHTML();
+    if (els.pilotCompare) els.pilotCompare.innerHTML = html;
+    if (els.pilotsScreenCompare) els.pilotsScreenCompare.innerHTML = html;
   }
 
   function renderSets() {
@@ -2377,24 +2407,124 @@
       chip.addEventListener('click', () => { state.currentPilot = name; if (els.pilotName) els.pilotName.value = name; ensurePilotColorInput(); renderPilots(); saveSettings(); });
       els.pilots.appendChild(chip);
     });
+    renderPilotsScreen();
     renderSets();
   }
+
+  // Dedicated "Piloten" screen: full profile workflow (name + colour, select,
+  // delete) with the comparison table and a CSV export.
+  function renderPilotsScreen() {
+    if (!els.pilotsScreenList) return;
+    els.pilotsScreenList.innerHTML = '';
+    if (!state.pilots.length) {
+      const empty = document.createElement('div');
+      empty.className = 'set-empty';
+      empty.textContent = t('pilot_screen_empty');
+      els.pilotsScreenList.appendChild(empty);
+    }
+    state.pilots.forEach(name => {
+      const chip = document.createElement('div');
+      const active = state.currentPilot === name;
+      const col = pilotColor(name);
+      chip.className = 'pilot-chip' + (active ? ' active' : '');
+      chip.textContent = name;
+      chip.style.borderColor = col;
+      chip.style.color = active ? '#0b0f14' : col;
+      if (active) chip.style.background = col;
+      chip.title = t('pilots_active_hint');
+      chip.addEventListener('click', () => {
+        state.currentPilot = name;
+        if (els.pilotName) els.pilotName.value = name;
+        if (els.pilotScreenName) els.pilotScreenName.value = name;
+        ensurePilotColorInput();
+        renderPilots();
+        saveSettings();
+      });
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'pilot-remove';
+      rm.textContent = '✕';
+      rm.title = t('pilot_delete');
+      rm.setAttribute('aria-label', t('pilot_delete') + ': ' + name);
+      rm.addEventListener('click', e => { e.stopPropagation(); removePilot(name); });
+      chip.appendChild(rm);
+      els.pilotsScreenList.appendChild(chip);
+    });
+    if (els.pilotScreenColor) els.pilotScreenColor.value = nextPilotColor();
+  }
+
+  function addPilot(name, color) {
+    name = (name || '').trim();
+    if (!name) return false;
+    if (!state.pilots.includes(name)) state.pilots.push(name);
+    if (color) state.pilotColors[name] = color;
+    state.currentPilot = name;
+    renderPilots();
+    saveSettings();
+    return true;
+  }
+  function removePilot(name) {
+    const idx = state.pilots.indexOf(name);
+    if (idx === -1) return;
+    state.pilots.splice(idx, 1);
+    if (state.pilotColors) delete state.pilotColors[name];
+    if (state.currentPilot === name) state.currentPilot = state.pilots[0] || null;
+    renderPilots();
+    saveSettings();
+  }
+
+  function openPilots() {
+    if (!els.pilotsScreen) return;
+    if (els.homeScreen) els.homeScreen.hidden = true;
+    if (els.kwadScreen) els.kwadScreen.hidden = true;
+    els.pilotsScreen.hidden = false;
+    if (els.btnHome) els.btnHome.hidden = false;
+    // The topbar gear is the app-settings gear for the home screen only.
+    if (els.btnSettings) els.btnSettings.hidden = true;
+    renderPilotsScreen();
+    els.pilotsScreen.scrollTop = 0;
+  }
+  if (els.tilePilots) els.tilePilots.addEventListener('click', openPilots);
   if (els.pilotName) {
     els.pilotName.addEventListener('input', () => {
       ensurePilotColorInput();
     });
   }
   els.btnAddPilot.addEventListener('click', () => {
-    const name = els.pilotName.value.trim();
-    if (!name) return;
-    if (!state.pilots.includes(name)) state.pilots.push(name);
-    if (els.pilotColor) state.pilotColors[name] = els.pilotColor.value;
-    state.currentPilot = name;
+    const ok = addPilot(els.pilotName.value, els.pilotColor ? els.pilotColor.value : null);
+    if (!ok) return;
     els.pilotName.value = '';
     if (els.pilotColor) els.pilotColor.hidden = true;
-    renderPilots();
-    saveSettings();
   });
+  if (els.btnPilotScreenAdd) {
+    els.btnPilotScreenAdd.addEventListener('click', () => {
+      addPilot(els.pilotScreenName.value, els.pilotScreenColor ? els.pilotScreenColor.value : null);
+      if (els.pilotScreenName) els.pilotScreenName.value = '';
+    });
+  }
+  if (els.pilotScreenName) {
+    els.pilotScreenName.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); if (els.btnPilotScreenAdd) els.btnPilotScreenAdd.click(); }
+    });
+  }
+  if (els.btnPilotExport) {
+    els.btnPilotExport.addEventListener('click', () => {
+      const rows = [['pilot', 'colour', 'sets', 'laps', 'best_ms', 'avg_ms', 'total_ms']];
+      state.pilots.forEach(name => {
+        const sets = state.sets.filter(s => (s.pilot || '') === name);
+        const laps = [];
+        sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
+        rows.push([
+          name, pilotColor(name), sets.length, laps.length,
+          laps.length ? Math.round(Math.min(...laps)) : '',
+          laps.length ? Math.round(laps.reduce((a, d) => a + d, 0) / laps.length) : '',
+          laps.length ? Math.round(laps.reduce((a, d) => a + d, 0)) : '',
+        ]);
+      });
+      if (rows.length === 1) return;
+      downloadCsv('fpv-pilots.csv', rows);
+    });
+  }
 
   // ---------- export ----------
   els.btnExport.addEventListener('click', () => {
@@ -2758,6 +2888,7 @@
   function openKwad() {
     if (!els.kwadScreen) return;
     if (els.homeScreen) els.homeScreen.hidden = true;
+    if (els.pilotsScreen) els.pilotsScreen.hidden = true;
     els.kwadScreen.hidden = false;
     if (els.btnHome) els.btnHome.hidden = false;
     // The topbar gear is the app-settings gear; the timer view owns its own.
