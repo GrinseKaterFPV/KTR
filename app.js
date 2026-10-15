@@ -1192,8 +1192,10 @@
     const scale = Math.min(w / vw, h / vh);
     const dw = vw * scale, dh = vh * scale;
     const dx = (w - dw) / 2, dy = (h - dh) / 2;
-    state.view = { dx, dy, dw, dh, sx: dw / state.procW, sy: dh / state.procH };
-    overlayCtx.drawImage(els.video, dx, dy, dw, dh);
+    if (w > 0 && h > 0) {
+      state.view = { dx, dy, dw, dh, sx: dw / state.procW, sy: dh / state.procH };
+      overlayCtx.drawImage(els.video, dx, dy, dw, dh);
+    }
 
     const gray = new Float32Array(state.procW * state.procH);
     processGrayInto(gray, false);
