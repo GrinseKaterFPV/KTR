@@ -76,6 +76,11 @@
         <input type="checkbox" id="armedToggle" />
         <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span>
       </label>
+      <label class="toggle auto-quick">
+        <input type="checkbox" id="autoStartQuick" />
+        <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span>
+        <span class="quick-badge" id="autoLapsBadge" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)">∞</span>
+      </label>
       <div class="pilot-row">
         <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
         <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
@@ -101,6 +106,10 @@
           <button id="btnExportAll" data-i18n="export_all">Alle exportieren</button>
           <button id="btnClearSets" class="btn-danger" data-i18n="clear_sets">Alle löschen</button>
         </div>
+      </div>
+      <div class="chart-block" id="chartBlock">
+        <div class="chart-title" data-i18n="chart_title">Rundenverlauf</div>
+        <canvas id="setsChart" class="sets-chart"></canvas>
       </div>
       <div id="setsList" class="sets-list"></div>
     </section>

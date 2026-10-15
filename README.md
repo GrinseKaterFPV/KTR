@@ -23,6 +23,9 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
 - Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, einzeln löschen oder gesammelt als CSV exportieren
+- Vergleichs-Graph: Rundenzeiten aller Sätze als Linien-Diagramm (beste Runde als grüne Referenzlinie), automatisch Querformat-tauglich
+- Auto-Start auch direkt in der Timer-Karte (Schnellschalter mit Rundenzahl-Anzeige)
+- Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde

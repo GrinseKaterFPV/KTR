@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.9.0';
+  const APP_VERSION = '0.10.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -126,6 +126,9 @@
       delete_word: 'Löschen',
       avg_word: 'Ø',
       hint_auto: 'Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).',
+      auto_start_quick: 'Auto-Start (Timer startet beim 1. Durchflug)',
+      chart_title: 'Rundenverlauf',
+      chart_last8: 'Rundenverlauf (letzte 8 Sätze)',
     },
     en: {
       title: 'FPV Racing Timer',
@@ -248,6 +251,9 @@
       delete_word: 'Delete',
       avg_word: 'avg',
       hint_auto: 'Auto-start: The first gate crossing starts the timer (it is not counted as a lap). After the configured number of laps the timer stops automatically, the set is saved, and the next crossing starts the next set. This lets you fly several sets and compare them at the end. 0 = unlimited (manual stop).',
+      auto_start_quick: 'Auto-start (timer starts on 1st crossing)',
+      chart_title: 'Lap progress',
+      chart_last8: 'Lap progress (last 8 sets)',
     },
   };
 
@@ -366,9 +372,13 @@
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
     autoStart: document.getElementById('autoStart'),
+    autoStartQuick: document.getElementById('autoStartQuick'),
+    autoLapsBadge: document.getElementById('autoLapsBadge'),
     autoLaps: document.getElementById('autoLaps'),
     autoLapsVal: document.getElementById('autoLapsVal'),
     setsList: document.getElementById('setsList'),
+    chartBlock: document.getElementById('chartBlock'),
+    setsChart: document.getElementById('setsChart'),
     btnExportAll: document.getElementById('btnExportAll'),
     btnClearSets: document.getElementById('btnClearSets'),
     langSelect: document.getElementById('langSelect'),
@@ -479,8 +489,10 @@
     state.camDeviceId = s.camDeviceId || '';
     state.autoStart = s.autoStart ?? false;
     if (els.autoStart) els.autoStart.checked = state.autoStart;
+    if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     state.autoLaps = s.autoLaps ?? 0;
     if (els.autoLaps) { els.autoLaps.value = state.autoLaps; els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps); }
+    updateAutoLapsBadge();
     state.sets = loadSets();
     state.setCounter = state.sets.reduce((m, x) => Math.max(m, x.n || 0), 0);
     state.lang = (s.lang === 'en') ? 'en' : 'de';
@@ -681,21 +693,33 @@
       if (state.stream) applyCameraLock();
     });
   }
+  // Auto-Start can be toggled from the timer card (quick) or in the settings;
+  // both inputs stay in sync.
+  function setAutoStart(on) {
+    state.autoStart = !!on;
+    if (els.autoStart) els.autoStart.checked = state.autoStart;
+    if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
+    saveSettings();
+    if (state.autoStart && state.stream && !state.raceActive && !state.countdownActive) {
+      armAutoWait(false);
+    } else if (!state.autoStart) {
+      state.awaitingStart = false;
+    }
+  }
+  function updateAutoLapsBadge() {
+    if (els.autoLapsBadge) els.autoLapsBadge.textContent = formatAutoLaps(state.autoLaps);
+  }
   if (els.autoStart) {
-    els.autoStart.addEventListener('change', e => {
-      state.autoStart = e.target.checked;
-      saveSettings();
-      if (state.autoStart && state.stream && !state.raceActive && !state.countdownActive) {
-        armAutoWait();
-      } else if (!state.autoStart) {
-        state.awaitingStart = false;
-      }
-    });
+    els.autoStart.addEventListener('change', e => setAutoStart(e.target.checked));
+  }
+  if (els.autoStartQuick) {
+    els.autoStartQuick.addEventListener('change', e => setAutoStart(e.target.checked));
   }
   if (els.autoLaps) {
     els.autoLaps.addEventListener('input', e => {
       state.autoLaps = +e.target.value;
-      els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps);
+      if (els.autoLapsVal) els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps);
+      updateAutoLapsBadge();
       saveSettings();
     });
   }
@@ -1514,6 +1538,7 @@
       p.className = 'set-empty';
       p.textContent = t('no_sets');
       els.setsList.appendChild(p);
+      renderChart();
       return;
     }
     // newest first
@@ -1564,6 +1589,116 @@
       item.appendChild(lapsBox);
       els.setsList.appendChild(item);
     });
+    renderChart();
+  }
+
+  // ---------- comparison chart: lap times of all sets ----------
+  const CHART_COLORS = ['#ff7a1a', '#20c4c4', '#4ade80', '#ffd23c', '#ff4d8d', '#a78bfa', '#60a5fa', '#fb923c'];
+  function fmtSec(ms) {
+    return (ms / 1000).toFixed(2).replace('.', t('decimal_sep'));
+  }
+  function renderChart() {
+    const cv = els.setsChart;
+    if (!cv) return;
+    const sets = state.sets;
+    if (els.chartBlock) els.chartBlock.style.display = sets.length ? '' : 'none';
+    const titleEl = els.chartBlock ? els.chartBlock.querySelector('.chart-title') : null;
+    if (titleEl) titleEl.textContent = sets.length > 8 ? t('chart_last8') : t('chart_title');
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = Math.max(120, Math.round(cv.clientWidth || cv.getBoundingClientRect().width || 300));
+    const cssH = Math.max(100, Math.round(cv.clientHeight || cv.getBoundingClientRect().height || 190));
+    if (cv.width !== Math.round(cssW * dpr)) cv.width = Math.round(cssW * dpr);
+    if (cv.height !== Math.round(cssH * dpr)) cv.height = Math.round(cssH * dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    if (!sets.length) return;
+
+    const shown = sets.slice(-8);
+    const maxLaps = Math.max(1, ...shown.map(s => s.laps.length));
+    let minMs = Infinity, maxMs = -Infinity;
+    shown.forEach(s => s.laps.forEach(l => {
+      if (l.duration < minMs) minMs = l.duration;
+      if (l.duration > maxMs) maxMs = l.duration;
+    }));
+    if (!isFinite(minMs)) return;
+    if (maxMs - minMs < 500) {
+      const pad = (500 - (maxMs - minMs)) / 2;
+      minMs -= pad; maxMs += pad;
+    }
+    const span = maxMs - minMs;
+    const padTop = 16, padBottom = 20, padLeft = 52, padRight = 60;
+    const plotW = Math.max(30, cssW - padLeft - padRight);
+    const plotH = Math.max(30, cssH - padTop - padBottom);
+    const X = i => padLeft + (maxLaps <= 1 ? plotW / 2 : ((i - 1) / (maxLaps - 1)) * plotW);
+    const Y = ms => padTop + (1 - (ms - minMs) / span) * plotH;
+
+    // horizontal grid + y labels (seconds)
+    ctx.lineWidth = 1;
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let k = 0; k <= 2; k++) {
+      const ms = minMs + (span * k) / 2;
+      const y = Math.round(Y(ms)) + 0.5;
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      ctx.beginPath(); ctx.moveTo(padLeft, y); ctx.lineTo(padLeft + plotW, y); ctx.stroke();
+      ctx.fillStyle = '#9aa7b4';
+      ctx.fillText(fmtSec(ms), padLeft - 6, y);
+    }
+    // x labels (lap index)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#9aa7b4';
+    const step = Math.max(1, Math.ceil(maxLaps / 8));
+    for (let i = 1; i <= maxLaps; i++) {
+      if (i !== 1 && i !== maxLaps && i % step !== 0) continue;
+      ctx.fillText(String(i), X(i), padTop + plotH + 5);
+    }
+
+    // overall best lap as dashed reference line
+    const overallBest = Math.min(...shown.map(s => s.bestMs));
+    const bestY = Math.round(Y(overallBest)) + 0.5;
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = 'rgba(74,222,128,0.7)';
+    ctx.beginPath(); ctx.moveTo(padLeft, bestY); ctx.lineTo(padLeft + plotW, bestY); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#4ade80';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(t('set_best_word') + ' ' + fmtSec(overallBest), padLeft + plotW - 2, bestY - 3);
+
+    // one line per set
+    shown.forEach((s, si) => {
+      const color = CHART_COLORS[si % CHART_COLORS.length];
+      if (s.laps.length > 1) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        s.laps.forEach((l, i) => {
+          const x = X(l.idx), y = Y(l.duration);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+      s.laps.forEach(l => {
+        const isBest = l.duration === s.bestMs;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(X(l.idx), Y(l.duration), isBest ? 4 : 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        if (isBest) { ctx.strokeStyle = '#0b0f14'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      });
+      const last = s.laps[s.laps.length - 1];
+      ctx.fillStyle = color;
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(t('set_word') + ' ' + s.n, X(last.idx) + 6, Y(last.duration));
+    });
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 
   if (els.btnClearSets) {
@@ -1777,7 +1912,8 @@
     saveSettings();
   }
 
-  window.addEventListener('resize', () => { drawOverlay(); });
+  window.addEventListener('resize', () => { drawOverlay(); renderChart(); });
+  window.addEventListener('orientationchange', () => setTimeout(() => { drawOverlay(); renderChart(); }, 250));
   init();
   // try to enumerate after potential permission later
 })();

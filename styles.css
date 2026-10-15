@@ -12,7 +12,10 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+html { height: 100%; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+body { min-height: 100%; }
+body, .layout { -webkit-overflow-scrolling: touch; }
 button, input, select { font: inherit; }
 
 .topbar {
@@ -147,3 +150,48 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .settings-group .settings-grid { padding: 4px 12px 12px; }
 .settings-grid .check-row { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
 .hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 10px; }
+
+/* ---- auto-start quick toggle ---- */
+.auto-quick { font-weight: 600; }
+.auto-quick input:checked + span { color: var(--accent); }
+.quick-badge {
+  margin-left: auto; font-family: monospace; font-size: 12px; font-weight: 700;
+  background: var(--elev); border: 1px solid var(--border); border-radius: 999px;
+  padding: 1px 9px; color: var(--accent);
+}
+
+/* ---- sets comparison chart ---- */
+.chart-block { margin: 4px 0 12px; }
+.chart-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.sets-chart { width: 100%; height: 190px; display: block; background: var(--elev); border: 1px solid var(--border); border-radius: 10px; }
+
+/* ---- landscape / horizontal mode ----
+   The preview gets touch-action:none so a rectangle can be drawn on it. In
+   portrait there is always content below the video to start a scroll gesture
+   from; in landscape a full-width 4:3 preview covers the whole screen, so the
+   page could neither show nor reach anything. This layout keeps the preview
+   within the viewport height and puts the controls next to it. */
+@media (orientation: landscape) and (max-height: 660px) {
+  .topbar { padding: 8px 12px; }
+  .logo { font-size: 17px; }
+  .title { font-size: 15px; }
+  .status { font-size: 12px; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .layout {
+    grid-template-columns: minmax(280px, 46%) minmax(240px, 1fr);
+    gap: 10px; padding: 10px; align-items: start;
+  }
+  .video-card { grid-row: auto; grid-column: 1; padding: 10px; }
+  .timer-card { grid-row: 1; grid-column: 2; padding: 10px; }
+  .laps-card, .sets-card { grid-column: 1 / -1; }
+  .video-wrap { height: clamp(140px, 40vh, 250px); }
+  .video-actions { margin-top: 8px; gap: 6px; }
+  .video-actions button, .video-actions select { padding: 7px 9px; font-size: 13px; }
+  .metric { margin-top: 8px; }
+  .timer-time { font-size: 34px; margin: 2px 0 6px; }
+  .timer-row { gap: 6px; margin-bottom: 8px; }
+  .current-lap, .last-lap, .best-lap { font-size: 15px; }
+  .controls { gap: 6px; margin-bottom: 8px; }
+  .controls button { padding: 8px 10px; font-size: 13px; }
+  .toggle { font-size: 13px; margin: 4px 0; }
+  .sets-chart { height: 150px; }
+}
