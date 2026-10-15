@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.5.1';
+  const APP_VERSION = '0.6.0';
 
   // ---------- State ----------
   const state = {
@@ -42,6 +42,9 @@
     countdownSecs: 5,
     announceMode: 'jede',
     announceRate: 1,
+    direction: 'aus',
+    pendingLap: null,
+    wrongFlashUntil: 0,
     rafId: null,
     frameCount: 0,
   };
@@ -89,6 +92,7 @@
     announceRate: document.getElementById('announceRate'),
     announceRateVal: document.getElementById('announceRateVal'),
     btnTestVoice: document.getElementById('btnTestVoice'),
+    btnDirection: document.getElementById('btnDirection'),
     versionBadge: document.getElementById('versionBadge'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
@@ -128,6 +132,7 @@
       countdownSecs: state.countdownSecs,
       announceMode: state.announceMode,
       announceRate: state.announceRate,
+      direction: state.direction,
     }));
   }
   function fmt(ms) {
@@ -166,6 +171,8 @@
     if (els.announceMode) els.announceMode.value = state.announceMode;
     state.announceRate = s.announceRate ?? 1;
     if (els.announceRate) { els.announceRate.value = state.announceRate; els.announceRateVal.textContent = (+state.announceRate).toFixed(2); }
+    state.direction = s.direction ?? 'aus';
+    updateDirectionButton();
     applyProcRes();
     renderPilots();
   }
@@ -254,6 +261,31 @@
     els.btnTestVoice.addEventListener('click', () => {
       primeSpeech();
       speak('Runde 1: 12,45 Sekunden');
+    });
+  }
+
+  // ---------- direction control ----------
+  const DIRECTION_ORDER = ['aus', 'lr', 'rl', 'tb', 'bt'];
+  const DIRECTION_LABEL = { aus: '↔ aus', lr: '→', rl: '←', tb: '↓', bt: '↑' };
+  const DIRECTION_TEXT = {
+    aus: 'keine Richtungsprüfung',
+    lr: 'links → rechts',
+    rl: 'rechts → links',
+    tb: 'oben → unten',
+    bt: 'unten → oben',
+  };
+  function updateDirectionButton() {
+    if (!els.btnDirection) return;
+    els.btnDirection.textContent = DIRECTION_LABEL[state.direction] || '↔ aus';
+    els.btnDirection.title = 'Erwartete Richtung: ' + (DIRECTION_TEXT[state.direction] || 'aus') + ' – antippen zum Ändern';
+  }
+  if (els.btnDirection) {
+    els.btnDirection.addEventListener('click', () => {
+      const i = DIRECTION_ORDER.indexOf(state.direction);
+      state.direction = DIRECTION_ORDER[(i + 1) % DIRECTION_ORDER.length];
+      updateDirectionButton();
+      saveSettings();
+      setStatus('Richtung: ' + DIRECTION_TEXT[state.direction]);
     });
   }
 
@@ -565,9 +597,26 @@
     if (state.armed && state.raceActive && roi) {
       if (state.machine === 0 && changed >= state.enterThreshold) {
         state.machine = 1;
-        tryTriggerLap(now);
-      } else if (state.machine === 1 && changed <= state.exitThreshold) {
-        state.machine = 0;
+        state.pendingLap = {
+          t: now,
+          start: (state.motionBox && state.motionBox.changed > 0) ? { x: state.motionBox.cx, y: state.motionBox.cy } : null,
+          last: (state.motionBox && state.motionBox.changed > 0) ? { x: state.motionBox.cx, y: state.motionBox.cy } : null,
+        };
+        if (state.direction === 'aus') {
+          tryTriggerLap(now);
+          state.pendingLap = null;
+        }
+      } else if (state.machine === 1) {
+        if (state.motionBox && state.motionBox.changed > 0 && state.pendingLap) {
+          state.pendingLap.last = { x: state.motionBox.cx, y: state.motionBox.cy };
+        }
+        if (changed <= state.exitThreshold) {
+          state.machine = 0;
+          if (state.pendingLap && state.direction !== 'aus') {
+            evaluatePendingLap(now);
+          }
+          state.pendingLap = null;
+        }
       }
     }
 
@@ -586,6 +635,32 @@
     state.lastTrigger = now;
     recordLap(now);
     haptic();
+  }
+
+  function evaluatePendingLap(now) {
+    const p = state.pendingLap;
+    if (!p || !p.start || !p.last) {
+      // no usable trajectory -> fall back to counting at exit time
+      tryTriggerLap(now);
+      return;
+    }
+    const dx = p.last.x - p.start.x;
+    const dy = p.last.y - p.start.y;
+    const minTravel = 4; // process pixels
+    const dir = state.direction;
+    let ok = false;
+    if (dir === 'lr') ok = dx >= minTravel && Math.abs(dx) >= Math.abs(dy);
+    else if (dir === 'rl') ok = dx <= -minTravel && Math.abs(dx) >= Math.abs(dy);
+    else if (dir === 'tb') ok = dy >= minTravel && Math.abs(dy) >= Math.abs(dx);
+    else if (dir === 'bt') ok = dy <= -minTravel && Math.abs(dy) >= Math.abs(dx);
+    else ok = true;
+    if (ok) {
+      // use the entry time so timing reflects when the drone entered the gate
+      tryTriggerLap(p.t);
+    } else {
+      state.wrongFlashUntil = now + 600;
+      setStatus('Bewegung erkannt, aber falsche Richtung (' + DIRECTION_TEXT[dir] + ')');
+    }
   }
 
   function recordLap(triggerTime) {
@@ -637,6 +712,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.pendingLap = null;
+    state.wrongFlashUntil = 0;
     state.lastTrigger = 0;
     if (state.countdownSecs <= 0) { beginRace(); return; }
     state.countdownActive = true;
@@ -653,6 +730,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.pendingLap = null;
+    state.wrongFlashUntil = 0;
     state.lastTrigger = 0;
     state.goFlashUntil = performance.now() + 800;
     soundGo();
@@ -698,6 +777,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.pendingLap = null;
+    state.wrongFlashUntil = 0;
     state.goFlashUntil = 0;
     renderLaps();
     updateBest();
@@ -709,6 +790,7 @@
   els.armedToggle.addEventListener('change', e => {
     state.armed = e.target.checked;
     state.machine = 0;
+    state.pendingLap = null;
   });
 
   function updateTimers() {
@@ -834,8 +916,36 @@
       overlayCtx.strokeRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
     }
 
-    // Countdown / GO overlay
     const nowp = performance.now();
+
+    // Expected direction arrow drawn in the ROI center
+    if (r && state.direction && state.direction !== 'aus') {
+      const cx = X(r.x + r.w / 2);
+      const cy = Y(r.y + r.h / 2);
+      const size = Math.max(22, Math.min(r.h * v.sy, r.w * v.sx) * 0.5);
+      overlayCtx.save();
+      overlayCtx.globalAlpha = 0.8;
+      overlayCtx.fillStyle = '#ffd23c';
+      overlayCtx.strokeStyle = 'rgba(0,0,0,0.55)';
+      overlayCtx.lineWidth = 4;
+      overlayCtx.font = 'bold ' + Math.round(size) + 'px sans-serif';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.textBaseline = 'middle';
+      overlayCtx.strokeText(DIRECTION_LABEL[state.direction], cx, cy);
+      overlayCtx.fillText(DIRECTION_LABEL[state.direction], cx, cy);
+      overlayCtx.restore();
+    }
+
+    // Wrong-direction flash
+    if (r && state.wrongFlashUntil && nowp < state.wrongFlashUntil) {
+      overlayCtx.fillStyle = 'rgba(255,60,60,0.30)';
+      overlayCtx.fillRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
+      overlayCtx.strokeStyle = '#ff3c3c';
+      overlayCtx.lineWidth = 4;
+      overlayCtx.strokeRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
+    }
+
+    // Countdown / GO overlay
     if (state.countdownActive) {
       const remaining = Math.max(0, state.countdownEnd - nowp);
       const num = Math.ceil(remaining / 1000);

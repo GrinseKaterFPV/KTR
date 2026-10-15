@@ -22,6 +22,7 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
+- Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
 - Einklappbare Einstellungen für Erkennung und Rennen/Audio
