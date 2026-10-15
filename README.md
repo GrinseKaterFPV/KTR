@@ -116,13 +116,3 @@ Vorbereitete Werte:
 - **Topics:**
   `fpv`, `drone`, `racing`, `timer`, `pwa`, `web-app`, `javascript`, `camera`, `freestyle`, `game-of-skate`, `game-of-kwad`, `pilot-management`, `github-pages`
 
-Mit installierter und angemeldeter [GitHub CLI](https://cli.github.com/) direkt setzen:
-
-```bash
-gh repo edit GrinseKaterFPV/KTR \
-  --description "FPV Racing Toolkit als Web-/PWA-App: Rundentimer mit Bewegungserkennung, Game of K.W.A.D und Pilotenverwaltung." \
-  --homepage "https://grinsekaterfpv.github.io/KTR/" \
-  --add-topic fpv,drone,racing,timer,pwa,web-app,javascript,camera,freestyle,game-of-skate,game-of-kwad,pilot-management,github-pages
-```
-
-Ohne CLI: auf der Repo-Seite **About** (Zahnrad) öffnen, Description/Website eintragen und die Topics nacheinander hinzufügen.
