@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.15.0';
+  const APP_VERSION = '0.16.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -1160,6 +1160,23 @@
   if (els.btnKwadHome) els.btnKwadHome.addEventListener('click', openHome);
   if (els.btnPilotsHome) els.btnPilotsHome.addEventListener('click', openHome);
   if (els.tileTimer) els.tileTimer.addEventListener('click', closeHome);
+
+  // The home grid marks the tile that was used last (restored on reload).
+  // Falls back to the first tile (Timer) when nothing sensible is stored.
+  const homeTiles = [els.tileTimer, els.tileKwad, els.tilePilots, els.tileSettings].filter(Boolean);
+  function highlightHomeTile(id) {
+    homeTiles.forEach(t => t.classList.toggle('is-primary', t.id === id));
+  }
+  homeTiles.forEach(t => t.addEventListener('click', () => {
+    highlightHomeTile(t.id);
+    try { localStorage.setItem('lastHomeTile', t.id); } catch (e) { /* ignore */ }
+  }));
+  (function restoreHomeTile() {
+    let id = 'tileTimer';
+    try { id = localStorage.getItem('lastHomeTile') || id; } catch (e) { /* ignore */ }
+    if (!homeTiles.some(t => t.id === id)) id = 'tileTimer';
+    highlightHomeTile(id);
+  })();
 
   // ---------- audio feedback ----------
   // WebAudio only produces sound after a user gesture on Safari and on
