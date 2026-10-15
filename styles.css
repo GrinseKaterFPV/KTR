@@ -222,6 +222,18 @@ button, input, select { font: inherit; }
 /* Context gear inside a card header (e.g. timer card → timer settings) */
 .card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; }
 
+/* Card header wrapper for summary + gear button (accessibility fix) */
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin: 0; padding: 0;
+}
+.card-header > .card-summary {
+  flex: 1; min-width: 0;
+}
+.card-header > .gear-btn {
+  flex-shrink: 0;
+}
+
 .video-wrap {
   position: relative; width: 100%; aspect-ratio: 4/3; background: #000;
   border-radius: 10px; overflow: hidden; touch-action: none;
