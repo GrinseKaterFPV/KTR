@@ -416,7 +416,8 @@
       backup_done: 'Backup created: {name}',
       restore_done: 'Restore successful – reloading app',
       restore_error: 'Restore failed: {error}',
-  };
+  }
+};
 
   function t(key) {
     const dict = I18N[state.lang] || I18N.de;
