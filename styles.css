@@ -111,8 +111,10 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .set-summary .set-name { font-weight: 700; }
 .set-summary .set-meta { color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
 .set-summary .set-meta b { color: var(--text); font-family: monospace; }
-.set-summary .set-arrow { margin-left: auto; color: var(--muted); }
+.set-summary .set-arrow { margin-left: 0; color: var(--muted); }
+.set-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .set-del { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; padding: 4px 8px; font-size: 12px; }
+.set-exp { background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 12px; }
 .set-laps { padding: 0 12px 10px; }
 .set-laps table { font-size: 12px; }
 .set-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }

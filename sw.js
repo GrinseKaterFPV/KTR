@@ -1,4 +1,4 @@
-const CACHE = 'fpv-timer-v23';
+const CACHE = 'fpv-timer-v24';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

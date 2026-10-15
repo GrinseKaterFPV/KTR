@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.10.0';
+  const APP_VERSION = '0.10.1';
 
   // ---------- i18n ----------
   const I18N = {
@@ -120,6 +120,7 @@
       set_end: 'Satz beendet. Gesamtzeit ',
       sets_title: 'Sätze (Vergleich)',
       export_all: 'Alle exportieren',
+      export_set: 'Satz exportieren',
       clear_sets: 'Alle löschen',
       no_sets: 'Noch keine Sätze gespeichert.',
       confirm_clear_sets: 'Wirklich alle Sätze löschen?',
@@ -245,6 +246,7 @@
       set_end: 'Set finished. Total time ',
       sets_title: 'Sets (compare)',
       export_all: 'Export all',
+      export_set: 'Export set',
       clear_sets: 'Clear all',
       no_sets: 'No sets saved yet.',
       confirm_clear_sets: 'Really delete all sets?',
@@ -1530,6 +1532,19 @@
       return `${p(d.getHours())}:${p(d.getMinutes())}`;
     } catch { return ''; }
   }
+  function downloadCsv(filename, rows) {
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function setCsvRows(set) {
+    const rows = [['set', 'pilot', 'index', 'lap_ms', 'total_ms']];
+    set.laps.forEach(l => rows.push([set.n, l.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)]));
+    return rows;
+  }
   function renderSets() {
     if (!els.setsList) return;
     els.setsList.innerHTML = '';
@@ -1556,8 +1571,18 @@
           `<span>${t('set_best_word')} <b>${fmt(set.bestMs)}</b></span>` +
           `<span>${t('avg_word')} <b>${fmt(avg)}</b></span>` +
           `<span>${t('th_total')} <b>${fmt(set.totalMs)}</b></span>` +
-        `</span>` +
-        `<span class="set-arrow">▸</span>`;
+        `</span>`;
+      const actions = document.createElement('span');
+      actions.className = 'set-actions';
+      const exp = document.createElement('button');
+      exp.className = 'set-exp';
+      exp.type = 'button';
+      exp.textContent = '⬇';
+      exp.title = t('export_set');
+      exp.addEventListener('click', ev => {
+        ev.stopPropagation();
+        downloadCsv('fpv-set-' + set.n + '.csv', setCsvRows(set));
+      });
       const del = document.createElement('button');
       del.className = 'set-del';
       del.type = 'button';
@@ -1569,7 +1594,13 @@
         saveSets();
         renderSets();
       });
-      head.appendChild(del);
+      const arrow = document.createElement('span');
+      arrow.className = 'set-arrow';
+      arrow.textContent = '▸';
+      actions.appendChild(exp);
+      actions.appendChild(del);
+      actions.appendChild(arrow);
+      head.appendChild(actions);
       const lapsBox = document.createElement('div');
       lapsBox.className = 'set-laps';
       lapsBox.hidden = true;
@@ -1714,14 +1745,9 @@
   if (els.btnExportAll) {
     els.btnExportAll.addEventListener('click', () => {
       if (!state.sets.length) return;
-      const rows = [['set','pilot','index','lap_ms','total_ms']];
+      const rows = [['set', 'pilot', 'index', 'lap_ms', 'total_ms']];
       state.sets.forEach(s => s.laps.forEach(l => rows.push([s.n, l.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)])));
-      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'fpv-sets.csv'; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      downloadCsv('fpv-sets.csv', rows);
     });
   }
 
