@@ -1,6 +1,6 @@
 {
   "name": "fpv-racing-timer",
-  "version": "0.13.4",
+  "version": "0.13.5",
   "description": "KTR FPV APP PWA (camera-based lap detection and racing toolkit)",
   "scripts": {
     "serve": "http-server -p 8080",

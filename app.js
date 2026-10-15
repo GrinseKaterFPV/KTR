@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.4';
+  const APP_VERSION = '0.13.5';
 
   // ---------- i18n ----------
   const I18N = {
@@ -14,9 +14,6 @@
       m_timer: 'Timer',
       m_timer_desc: 'Runden, Sätze & Vergleich',
       m_settings_desc: 'Sprache, Farben, Sensorik',
-      m_telemetry: 'Telemetrie',
-      m_pilots: 'Piloten',
-      m_soon: 'Bald verfügbar',
       m_note: 'Mehr Funktionen kommen schrittweise dazu.',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
@@ -169,9 +166,6 @@
       m_timer: 'Timer',
       m_timer_desc: 'Laps, sets & comparison',
       m_settings_desc: 'Language, colours, sensors',
-      m_telemetry: 'Telemetry',
-      m_pilots: 'Pilots',
-      m_soon: 'Coming soon',
       m_note: 'More features will be added gradually.',
       camera: 'Camera',
       start_camera: 'Start camera',
