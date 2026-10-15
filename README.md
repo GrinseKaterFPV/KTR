@@ -11,6 +11,24 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 2. Im Browser öffnen: `http://localhost:8080` (oder die IP des PCs im LAN).
 3. Auf Android: Chrome öffnen, URL aufrufen, Menü → „Zum Startbildschirm hinzufügen“.
 
+## Öffentliche URL (`/KTR`)
+Veröffentlicht wird über GitHub Pages (Branch `main`). Der öffentliche Titel ist **KTR**;
+angestrebt ist die kurze URL `https://grinsekaterfpv.github.io/KTR/`.
+
+Dafür muss das GitHub-Repository einmalig von `Timer` in `KTR` umbenannt werden
+(GitHub → Repository → *Settings* → *Repository name*). Alle Pfade in der App sind
+relativ (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `icon-ktr.svg`,
+`sw.js`), deshalb funktioniert die App danach unverändert unter dem neuen Pfad.
+
+> **Reset-Hinweis:** Nach der Umbenennung antwortet die alte URL `…/Timer/` mit 404.
+> Bereits installierte PWA-Kurzbefehle und Lesezeichen müssen einmal neu angelegt werden
+> (Chrome → Menü → „Zum Startbildschirm hinzufügen“). In der App hilft zusätzlich
+> *Einstellungen → App → „App aktualisieren (Cache leeren)“*, damit der neue
+> Service-Worker-Cache (`fpv-timer-v40`) greift.
+
+*Optional:* Für eine eigene Domain (`CNAME`) einfach eine Datei `CNAME` mit dem
+Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
+
 ## Bedienung
 1. Kamera starten (Button toggelt: läuft die Kamera, stoppt derselbe Button sie wieder).
 2. Mit der Maus/Touch einen Rahmen über die Start/Ziel-Zone zeichnen.
@@ -20,8 +38,8 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
-- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – **Timer** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
-- **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
+- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen mit großem Logo und dem Namen **„Katers FPV Toolkit“**. Dort wählt man das Feature – **Timer** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
+- **Logo:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen
   - *Hinweis:* Nach einem Logo-Wechsel zeigt der Startbildschirm bei installierten PWAs oft noch das alte Symbol – App dort entfernen und erneut hinzufügen, um das neue zu sehen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Erkennungs-Bereich (ROI) per Fingermalerei ins Bild ziehen; die Bildschirm-/Bildzuordnung funktioniert korrekt in Hoch- und Querformat und bei jedem Wechsel der Verarbeitungs-Auflösung (320×240 ↔ 480×360) – der Rahmen bleibt auf demselben Bildausschnitt liegen

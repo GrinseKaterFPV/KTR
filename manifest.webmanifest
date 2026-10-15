@@ -1,6 +1,6 @@
 {
-  "name": "KTR FPV APP",
-  "short_name": "KTR FPV APP",
+  "name": "KTR",
+  "short_name": "KTR",
   "description": "FPV Racing Toolkit: Rundenzeiten per Bilderkennung, Piloten und Vergleich.",
   "start_url": "./index.html",
   "display": "standalone",

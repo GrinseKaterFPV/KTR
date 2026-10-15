@@ -1,17 +1,16 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.6';
+  const APP_VERSION = '0.13.7';
 
   // ---------- i18n ----------
   const I18N = {
     de: {
-      title: 'KTR FPV APP',
+      title: 'KTR',
       settings: 'Einstellungen',
       settings_timer: 'Timer-Einstellungen',
       close: 'Schließen',
       home: 'Startseite',
-      home_sub: 'FPV Racing Toolkit',
       m_timer: 'Timer',
       m_timer_desc: 'Runden, Sätze & Vergleich',
       m_settings_desc: 'Sprache, Farben, Sensorik',
@@ -160,12 +159,11 @@
       storage_full: 'Speicher voll – Speichern fehlgeschlagen. Bitte ältere Sätze löschen.',
     },
     en: {
-      title: 'KTR FPV APP',
+      title: 'KTR',
       settings: 'Settings',
       settings_timer: 'Timer settings',
       close: 'Close',
       home: 'Home',
-      home_sub: 'FPV Racing Toolkit',
       m_timer: 'Timer',
       m_timer_desc: 'Laps, sets & comparison',
       m_settings_desc: 'Language, colours, sensors',

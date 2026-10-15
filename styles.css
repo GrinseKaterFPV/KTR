@@ -61,7 +61,6 @@ button, input, select { font: inherit; }
 .home-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 16px 0 4px; }
 .home-logo { width: 104px; height: 104px; border-radius: 24px; display: block; }
 .home-app { font-size: 26px; font-weight: 800; letter-spacing: 1px; margin-top: 10px; }
-.home-sub { font-size: 13px; color: var(--muted); }
 .home-hero .version { margin-top: 8px; }
 .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 .home-tile {
