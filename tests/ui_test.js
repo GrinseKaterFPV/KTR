@@ -1,5 +1,6 @@
 // UI round: Camera-settings overlay, slimmed timer settings, checkbox styling,
-// the dedicated Piloten screen and the K.W.A.D copter icon. Structure is checked
+// the dedicated Piloten screen, the unified home-tile icons and the K.W.A.D
+// 2x2 letter-grid logo. Structure is checked
 // against the real index.html / styles.css / sw.js / manifest, and the pilot
 // profile helpers (addPilot / removePilot) are extracted from app.js and driven
 // against stubs, so we test the shipped logic, not a copy.
@@ -95,20 +96,48 @@ check('P6: the comparison table is shared with the sets card',
 check('P7: openHome / closeHome hide the Piloten screen',
   (app.match(/els\.pilotsScreen\) els\.pilotsScreen\.hidden = true/g) || []).length >= 3);
 
-// --- 5) K.W.A.D copter icon ---------------------------------------------------
+// --- 5) K.W.A.D 2x2 letter-grid logo ------------------------------------------
 const iconKwadPath = path.join(root, 'icon-kwad.svg');
 check('I1: the K.W.A.D icon file exists', fs.existsSync(iconKwadPath));
 const iconKwad = fs.existsSync(iconKwadPath) ? fs.readFileSync(iconKwadPath, 'utf8') : '';
-check('I2: the icon is a quadcopter drawing, not a skateboard',
-  /<svg/.test(iconKwad) && /circle/.test(iconKwad) && !/skate|🛹/i.test(iconKwad));
+check('I2: the icon is a 2x2 letter grid reading K W / A D',
+  /<svg/.test(iconKwad) && ['>K<', '>W<', '>A<', '>D<'].every(l => iconKwad.includes(l))
+  && !/skate|🛹/i.test(iconKwad));
 check('I3: the tile uses the icon instead of the skateboard emoji',
   /id="tileKwad"[^]*?src="icon-kwad\.svg"/.test(html) && !html.includes('🛹'));
 check('I4: the K.W.A.D hero uses the icon', /kwad-hero[^]*?src="icon-kwad\.svg"/.test(html));
 check('I5: the icon ships in the service-worker asset list', sw.includes("'./icon-kwad.svg'"));
 
+// --- 6) unified home-tile icons (same frame as the app logo) ------------------
+check('U1: every home tile uses an <img> icon',
+  (html.match(/class="home-tile-icon home-tile-img"/g) || []).length === 4);
+check('U2: the four tile icons exist',
+  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg', 'icon-kwad.svg']
+    .every(f => fs.existsSync(path.join(root, f))));
+check('U3: all tile icons render at the same size',
+  /\.home-tile-img \{ width: 30px; height: 30px;/.test(css));
+check('U4: no emoji icons are left in the home tiles',
+  !/home-tile-icon">⏱/.test(html) && !/home-tile-icon">⚙/.test(html) && !/home-tile-icon">🏁/.test(html));
+check('U5: the shared icons reuse the app-logo accent gradient',
+  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg']
+    .every(f => fs.readFileSync(path.join(root, f), 'utf8').includes('url(#acc)')));
+check('U6: the shared icons ship in the service-worker asset list',
+  ['./icon-timer.svg', './icon-pilots.svg', './icon-settings.svg'].every(f => sw.includes("'" + f + "'")));
+
+// --- 7) in-screen back buttons (K.W.A.D / Piloten -> home) --------------------
+check('N1: the K.W.A.D screen has a back button',
+  /id="kwadScreen"[^]*?id="btnKwadHome"/.test(html));
+check('N2: the Piloten screen has a back button',
+  /id="pilotsScreen"[^]*?id="btnPilotsHome"/.test(html));
+check('N3: both back buttons open the home screen',
+  /els\.btnKwadHome\.addEventListener\('click', openHome\)/.test(app)
+  && /els\.btnPilotsHome\.addEventListener\('click', openHome\)/.test(app));
+check('N4: the back buttons sit in the screen corner',
+  /\.screen-back \{ position: fixed;/.test(css));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v44'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.14\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v45'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.15\.0'/.test(app));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
