@@ -52,8 +52,8 @@ check('C2: camera overlay carries the Kamera group', cameraOverlay.includes('dat
 check('C3: detection fields moved to camera overlay',
   ['diffThresh', 'enterThresh', 'exitThresh', 'cooldown', 'procRes', 'directionSelect', 'driftComp', 'camLock']
     .every(id => cameraOverlay.includes('id="' + id + '"')));
-check('C4: camera gear sits in the camera card summary',
-  /<summary class="card-summary">[^]*?id="btnCameraSettings"[^]*?<\/summary>/.test(html));
+check('C4: camera gear sits in the camera card header (accessibility fix)',
+  /<div class="card-header">[^]*?id="btnCameraSettings"[^]*?<\/div>/.test(html));
 check('C5: camera gear opens the camera overlay',
   /els\.btnCameraSettings\.addEventListener\('click', \(\) => openSettings\('camera'\)\)/.test(app));
 check('C6: the camera overlay is part of the single-overlay set',
