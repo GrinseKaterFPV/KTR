@@ -27,6 +27,8 @@
     cooldownMs: 2000,
     lastChanged: 0,
     maxChangedSeen: 0,
+    showMotion: true,
+    motionBox: null,
     rafId: null,
     frameCount: 0,
   };
@@ -66,11 +68,24 @@
     cooldownVal: document.getElementById('cooldownVal'),
     procRes: document.getElementById('procRes'),
     zoneHint: document.getElementById('zoneHint'),
+    showMotion: document.getElementById('showMotion'),
   };
 
   const procCanvas = document.createElement('canvas');
   const procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
+  const maskCanvas = document.createElement('canvas');
+  const maskCtx = maskCanvas.getContext('2d');
+  let maskImage = null;
   const overlayCtx = els.overlay.getContext('2d');
+
+  function ensureMask() {
+    if (maskCanvas.width !== state.procW || maskCanvas.height !== state.procH) {
+      maskCanvas.width = state.procW;
+      maskCanvas.height = state.procH;
+      maskImage = maskCtx.createImageData(state.procW, state.procH);
+    }
+    return maskImage;
+  }
 
   // ---------- helpers ----------
   function loadSettings() {
@@ -86,6 +101,7 @@
       roi: state.roi,
       pilots: state.pilots,
       currentPilot: state.currentPilot,
+      showMotion: state.showMotion,
     }));
   }
   function fmt(ms) {
@@ -114,6 +130,8 @@
     els.enterThresh.value = state.enterThreshold; els.enterThreshVal.textContent = state.enterThreshold;
     els.exitThresh.value = state.exitThreshold; els.exitThreshVal.textContent = state.exitThreshold;
     els.cooldown.value = state.cooldownMs; els.cooldownVal.textContent = state.cooldownMs;
+    state.showMotion = s.showMotion ?? true;
+    if (els.showMotion) els.showMotion.checked = state.showMotion;
     applyProcRes();
     renderPilots();
   }
@@ -139,6 +157,9 @@
   els.exitThresh.addEventListener('input', e => { state.exitThreshold = +e.target.value; els.exitThreshVal.textContent = state.exitThreshold; saveSettings(); });
   els.cooldown.addEventListener('input', e => { state.cooldownMs = +e.target.value; els.cooldownVal.textContent = state.cooldownMs; saveSettings(); });
   els.procRes.addEventListener('change', () => { applyProcRes(); saveSettings(); });
+  if (els.showMotion) {
+    els.showMotion.addEventListener('change', e => { state.showMotion = e.target.checked; saveSettings(); });
+  }
 
   // ---------- camera ----------
   async function enumerateCameras() {
@@ -301,18 +322,39 @@
 
     const roi = state.roi;
     let changed = 0;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let sumX = 0, sumY = 0;
+    const mask = ensureMask();
+    if (mask) mask.data.fill(0);
     if (roi) {
       for (let y = Math.floor(roi.y); y < Math.floor(roi.y + roi.h); y++) {
         if (y < 0 || y >= state.procH) continue;
         for (let x = Math.floor(roi.x); x < Math.floor(roi.x + roi.w); x++) {
           if (x < 0 || x >= state.procW) continue;
           const idx = y * state.procW + x;
-          if (Math.abs(gray[idx] - state.background[idx]) > state.diffThreshold) changed++;
+          if (Math.abs(gray[idx] - state.background[idx]) > state.diffThreshold) {
+            changed++;
+            sumX += x; sumY += y;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            if (mask) {
+              const m = idx * 4;
+              mask.data[m] = 255;
+              mask.data[m + 1] = 235;
+              mask.data[m + 2] = 0;
+              mask.data[m + 3] = 170;
+            }
+          }
         }
       }
     }
     state.lastChanged = changed;
     if (changed > state.maxChangedSeen) state.maxChangedSeen = changed; // debug
+    state.motionBox = changed > 0
+      ? { minX, minY, maxX, maxY, cx: sumX / changed, cy: sumY / changed, changed }
+      : null;
 
     // state machine
     const now = performance.now();
@@ -471,20 +513,53 @@
   function drawOverlay() {
     const w = els.overlay.width, h = els.overlay.height;
     if (!w || !h) return;
-    // draw ROI
-    if (state.roi) {
-      const scaleX = w / state.procW, scaleY = h / state.procH;
-      const r = state.roi;
+    const scaleX = w / state.procW, scaleY = h / state.procH;
+    const r = state.roi;
+
+    if (r) {
+      // ROI hint fill
+      overlayCtx.fillStyle = 'rgba(255,122,26,0.10)';
+      overlayCtx.fillRect(r.x * scaleX, r.y * scaleY, r.w * scaleX, r.h * scaleY);
+    }
+
+    // Motion mask (where pixels differ from the background)
+    const box = state.motionBox;
+    if (state.showMotion && r && box && box.changed > 0 && maskImage) {
+      maskCtx.putImageData(maskImage, 0, 0);
+      overlayCtx.imageSmoothingEnabled = false;
+      overlayCtx.drawImage(
+        maskCanvas,
+        Math.floor(r.x), Math.floor(r.y), Math.ceil(r.w), Math.ceil(r.h),
+        Math.floor(r.x) * scaleX, Math.floor(r.y) * scaleY,
+        Math.ceil(r.w) * scaleX, Math.ceil(r.h) * scaleY
+      );
+      overlayCtx.imageSmoothingEnabled = true;
+
+      // Bounding box of detected motion
+      const bw = (box.maxX - box.minX + 1) * scaleX;
+      const bh = (box.maxY - box.minY + 1) * scaleY;
+      overlayCtx.strokeStyle = '#00ff88';
+      overlayCtx.lineWidth = 2;
+      overlayCtx.setLineDash([6, 4]);
+      overlayCtx.strokeRect(box.minX * scaleX, box.minY * scaleY, bw, bh);
+      overlayCtx.setLineDash([]);
+
+      // Centroid marker
+      overlayCtx.fillStyle = '#00ff88';
+      overlayCtx.beginPath();
+      overlayCtx.arc(box.cx * scaleX, box.cy * scaleY, 5, 0, Math.PI * 2);
+      overlayCtx.fill();
+      overlayCtx.strokeStyle = '#003322';
+      overlayCtx.lineWidth = 1.5;
+      overlayCtx.stroke();
+    }
+
+    if (r) {
+      // ROI border on top
       overlayCtx.strokeStyle = '#ff7a1a';
       overlayCtx.lineWidth = 2;
       overlayCtx.strokeRect(r.x * scaleX, r.y * scaleY, r.w * scaleX, r.h * scaleY);
-      overlayCtx.fillStyle = 'rgba(255,122,26,0.12)';
-      overlayCtx.fillRect(r.x * scaleX, r.y * scaleY, r.w * scaleX, r.h * scaleY);
     }
-    if (state.drawing && state.roi) {
-      // already
-    }
-    // crosshair hint
   }
 
   // ---------- init ----------
