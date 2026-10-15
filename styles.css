@@ -121,8 +121,9 @@ button, input, select { font: inherit; }
   background: transparent; color: var(--muted); border-color: var(--border);
 }
 .kwad-remove:hover { color: var(--danger); border-color: var(--danger); }
-.kwad-add { display: flex; gap: 8px; }
-.kwad-add input { flex: 1; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.kwad-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.kwad-add input { flex: 1 1 9rem; min-width: 0; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.kwad-add button { flex: 0 1 auto; white-space: nowrap; }
 
 /* ---- Piloten screen ---- */
 .pilots-screen .home-inner { max-width: 560px; }
@@ -223,9 +224,10 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .controls-vertical { display: flex; flex-direction: column; gap: 6px; }
 .controls-vertical .btn { width: 100%; padding: 8px 6px; font-size: 13px; }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
-.pilot-row { display: flex; gap: 8px; }
-.pilot-row input { flex: 1; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
-.pilot-row input[type="color"] { flex: 0 0 46px; width: 46px; padding: 2px; cursor: pointer; }
+.pilot-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pilot-row input { flex: 1 1 9rem; min-width: 0; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.pilot-row input[type="color"] { flex: 0 0 46px; width: 46px; min-width: 46px; padding: 2px; cursor: pointer; }
+.pilot-row button { flex: 0 1 auto; white-space: nowrap; }
 .pilots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pilot-chip {
   padding: 4px 10px; border-radius: 999px; background: var(--elev); border: 1px solid var(--border);
