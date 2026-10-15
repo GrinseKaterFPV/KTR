@@ -49,7 +49,8 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 - Exit (px): Schwellwert für „frei“
 - Cooldown: Mindestabstand zwischen zwei Runden
 - Auflösung: Verarbeitungsauflösung (niedriger = schneller)
-- Auto-Start & Sätze: automatischer Start beim ersten Durchflug und Rundenzahl pro Satz (0 = unbegrenzt)
+- Auto-Start direkt in der Timer-Karte: Schalter „Auto-Start“ und das Badge daneben (Rundenzahl pro Satz, 0 = unbegrenzt)
+- Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 
 ## Roadmap für native Kotlin-App
 - CameraX-Vorschau + Analyse-Thread
