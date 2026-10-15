@@ -71,6 +71,9 @@ Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
 - Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 
+## Geplante Modi
+- **Game of K.W.A.D** (in Planung, noch kein Code): Game of SKATE für FPV-Freestyle — eine Runde zieht einen zufälligen Trick, ein Fehlversuch kostet einen Strafbuchstaben, wer zuerst K, W, A und D hat, verliert. Konzept/Pflichtenheft: [`docs/game-of-kwad.md`](docs/game-of-kwad.md)
+
 ## Roadmap für native Kotlin-App
 - CameraX-Vorschau + Analyse-Thread
 - ML Kit / TFLite-Objekterkennung für Drone-Tracking
