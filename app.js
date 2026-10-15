@@ -1346,6 +1346,7 @@
   function soundKwadPenalty() { beep(300, 0.18, 0.25, 'sawtooth'); beep(220, 0.25, 0.22, 'sawtooth', 0.08); }
   function soundKwadNewTrick() { beep(800, 0.1, 0.2, 'sine'); beep(1100, 0.12, 0.2, 'sine', 0.08); }
   function soundKwadGameOver() { beep(200, 0.3, 0.28, 'sawtooth'); beep(150, 0.4, 0.25, 'sawtooth', 0.15); beep(100, 0.5, 0.22, 'sawtooth', 0.3); }
+  function soundKwadSuccess() { beep(600, 0.1, 0.22, 'sine'); beep(900, 0.12, 0.2, 'sine', 0.06); beep(1200, 0.15, 0.2, 'sine', 0.12); }
 
   // ---------- force update ----------
   async function forceUpdate() {
@@ -2788,10 +2789,9 @@
       difficulty: 1,
       enabled: true,
       tricks: [
-        { name: 'Dive', desc: 'Steiler Sturzflug durch das Tor, dann Pull-up' },
-        { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub durch das Tor' },
-        { name: 'Gate Roll', desc: 'Eine Rolle (Roll) genau im Tor' },
-        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Tor' },
+        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up' },
+        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap' },
+        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap' },
         { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen' },
       ]
     },
@@ -3161,6 +3161,7 @@
     } else {
       kwadLastPenalty = null; // successful attempt clears undo
       kwadRecordStat(currentTrickName, true);
+      if (typeof soundKwadSuccess === 'function') soundKwadSuccess();
     }
     if (kwadTried.indexOf(p.name) === -1) kwadTried.push(p.name);
     const n = kwadPlayers.length;
