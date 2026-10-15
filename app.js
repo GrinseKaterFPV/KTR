@@ -3610,6 +3610,29 @@
     saveSettings();
     // Start on the home screen — the app's features (Timer, …) are opened from here.
     openHome();
+    
+    // Fix: Remove browser's default "Details" fallback text from all summaries
+    document.querySelectorAll('summary').forEach(summary => {
+      // Remove any existing "Details" text nodes
+      summary.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === 'Details') {
+          node.remove();
+        }
+      });
+      // Also set a MutationObserver to catch any future "Details" text
+      new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === 'Details') {
+              node.remove();
+            }
+          });
+        });
+      }).observe(summary, { childList: true, subtree: true, characterData: true });
+    });
+    
+    // Start on the home screen — the app's features (Timer, …) are opened from here.
+    openHome();
   }
 
   window.addEventListener('resize', () => { drawOverlay(); renderChart(); });
