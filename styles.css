@@ -224,6 +224,14 @@ summary.card-summary::-webkit-details-marker {
 summary.card-summary::marker {
   display: none;
 }
+/* Hide browser's default "Details" fallback text */
+details > summary::before {
+  content: '';
+  display: none;
+}
+details > summary::after {
+  content: none;
+}
 .card-collapsible > .card-summary::after,
 .card-collapsible > .card-header > .card-summary::after { content: '▾'; color: var(--muted); font-size: 14px; flex-shrink: 0; }
 .card-collapsible[open] > .card-summary::after,
