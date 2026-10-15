@@ -3348,7 +3348,7 @@
     });
   }
 
-  function openKwad() {function openKwad() {
+  function openKwad() {
     if (!els.kwadScreen) return;
     if (els.homeScreen) els.homeScreen.hidden = true;
     if (els.pilotsScreen) els.pilotsScreen.hidden = true;
