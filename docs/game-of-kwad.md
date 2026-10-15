@@ -145,7 +145,7 @@ Details:
 
 ### 8.1 Homescreen-Kachel
 
-- Neue Kachel **„Game of K.W.A.D"** mit eigenem Kopter-Logo (`icon-kwad.svg`) und Kurzbeschreibung
+- Neue Kachel **„Game of K.W.A.D"** mit eigenem Logo (`icon-kwad.svg`: die Buchstaben **K W / A D** in einem 2×2-Raster im App-Icon-Stil) und Kurzbeschreibung
   „Freestyle-Tricks, Strafbuchstaben".
 - Umsetzung analog zur vorhandenen Kachel-Mechanik (Klick → Modus öffnen, ← führt zurück).
 
