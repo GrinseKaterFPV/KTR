@@ -10,18 +10,61 @@
     </linearGradient>
   </defs>
 
-  <!-- rounded background (same style as the KTR app icon) -->
+  <!-- rounded background -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
 
-  <!-- stopwatch: crown + stem -->
-  <rect x="226" y="86" width="60" height="34" rx="14" fill="url(#acc)"/>
-  <rect x="240" y="112" width="32" height="52" rx="12" fill="url(#acc)"/>
+  <!-- stopwatch crown / button -->
+  <rect x="244" y="66" width="24" height="34" rx="8" fill="url(#acc)"/>
+  <rect x="220" y="92" width="72" height="40" rx="12" fill="url(#acc)"/>
 
-  <!-- stopwatch: dial -->
-  <circle cx="256" cy="294" r="130" fill="none" stroke="url(#acc)" stroke-width="26"/>
+  <!-- cat ears -->
+  <g fill="url(#acc)">
+    <polygon points="127,212 120,122 208,140"/>
+    <polygon points="385,212 392,122 304,140"/>
+  </g>
 
-  <!-- hands -->
-  <line x1="256" y1="294" x2="256" y2="212" stroke="url(#acc)" stroke-width="24" stroke-linecap="round"/>
-  <line x1="256" y1="294" x2="322" y2="294" stroke="url(#acc)" stroke-width="24" stroke-linecap="round"/>
-  <circle cx="256" cy="294" r="16" fill="url(#acc)"/>
+  <!-- dial interior -->
+  <circle cx="256" cy="272" r="133" fill="#0b0f14"/>
+
+  <!-- outer ring -->
+  <circle cx="256" cy="272" r="140" fill="none" stroke="url(#acc)" stroke-width="16"/>
+
+  <!-- dial ticks -->
+  <g stroke="url(#acc)" stroke-width="7" stroke-linecap="round" opacity="0.85">
+    <line x1="256" y1="150" x2="256" y2="166"/>
+    <line x1="256" y1="378" x2="256" y2="394"/>
+    <line x1="134" y1="272" x2="150" y2="272"/>
+    <line x1="362" y1="272" x2="378" y2="272"/>
+    <line x1="170" y1="186" x2="181" y2="197"/>
+    <line x1="342" y1="186" x2="331" y2="197"/>
+    <line x1="170" y1="358" x2="181" y2="347"/>
+    <line x1="342" y1="358" x2="331" y2="347"/>
+  </g>
+
+  <!-- stopwatch hand -->
+  <line x1="256" y1="272" x2="256" y2="196" stroke="url(#acc)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="256" cy="272" r="13" fill="url(#acc)"/>
+
+  <!-- face: eyes -->
+  <g fill="url(#acc)">
+    <ellipse cx="205" cy="250" rx="17" ry="24"/>
+    <ellipse cx="307" cy="250" rx="17" ry="24"/>
+  </g>
+
+  <!-- nose -->
+  <polygon points="244,306 268,306 256,322" fill="url(#acc)"/>
+
+  <!-- mouth -->
+  <g fill="none" stroke="url(#acc)" stroke-width="6" stroke-linecap="round">
+    <path d="M256 322 q-15 15 -28 2"/>
+    <path d="M256 322 q15 15 28 2"/>
+  </g>
+
+  <!-- whiskers -->
+  <g stroke="url(#acc)" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <line x1="150" y1="286" x2="198" y2="292"/>
+    <line x1="146" y1="310" x2="194" y2="308"/>
+    <line x1="362" y1="286" x2="314" y2="292"/>
+    <line x1="366" y1="310" x2="318" y2="308"/>
+  </g>
 </svg>
