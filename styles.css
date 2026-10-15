@@ -208,7 +208,6 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .timer-header { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: stretch; margin-bottom: 6px; }
 .timer-main { display: flex; flex-direction: column; justify-content: center; }
 .controls-vertical { display: flex; flex-direction: column; gap: 6px; }
-.controls { display: none; }
 .controls-vertical .btn { width: 100%; padding: 8px 6px; font-size: 13px; }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
 .pilot-row { display: flex; gap: 8px; }
@@ -363,7 +362,6 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
   .current-lap, .last-lap, .best-lap { font-size: 15px; }
   .timer-header { gap: 8px; }
   .controls-vertical .btn { padding: 6px 6px; font-size: 12px; }
-  .controls { display: none; }
   .quick-panel { gap: 5px; margin-top: 8px; padding-top: 8px; }
   .quick-field { padding: 5px 5px 5px 8px; }
   .quick-field-label { font-size: 11px; }
