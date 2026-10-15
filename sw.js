@@ -1,5 +1,5 @@
-const CACHE = 'fpv-timer-v44';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon-ktr.svg', './icon-kwad.svg'];
+const CACHE = 'fpv-timer-v45';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon-ktr.svg', './icon-kwad.svg', './icon-timer.svg', './icon-pilots.svg', './icon-settings.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}));
