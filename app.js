@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.9';
+  const APP_VERSION = '0.7.0';
 
   // ---------- State ----------
   const state = {
@@ -17,6 +17,8 @@
     currentLapStart: 0,
     lastTrigger: 0,
     machine: 0, // 0 clear, 1 occupied
+    machineEnterAt: 0,
+    needsClear: false,
     laps: [],
     pilots: [],
     currentPilot: null,
@@ -648,28 +650,44 @@
       ? { minX, minY, maxX, maxY, cx: sumX / changed, cy: sumY / changed, changed }
       : null;
 
-    // How much of the ROI changed? Autofocus / exposure shifts change almost the
-    // entire frame at once, while a drone is a compact blob.
+    // How much of the frame changed? Autofocus / exposure shifts change a large
+    // part of the WHOLE image, while a drone can only ever cover a small blob.
     const roiArea = roi ? Math.max(1, Math.floor(roi.w) * Math.floor(roi.h)) : 0;
-    const globalChange = !!roi && changed > roiArea * 0.7;
+    let changedAll = 0, sampled = 0;
+    if (state.background) {
+      const nAll = state.procW * state.procH;
+      for (let i = 0; i < nAll; i += 4) { // every 4th pixel is enough and cheap
+        sampled++;
+        if (Math.abs(gray[i] - state.background[i]) > state.diffThreshold) changedAll++;
+      }
+    }
+    const fullFrameChange = sampled > 0 && (changedAll / sampled) > 0.45;
+    const globalChange = fullFrameChange || (!!roi && changed > roiArea * 0.9);
 
-    // Slowly adapt the background to the current frame while no gate crossing is
-    // active. This absorbs focus/exposure drift so it does not show up as motion.
-    if (state.driftComp && state.background && state.machine === 0) {
+    // Slowly adapt the background to the current frame. This absorbs focus/exposure
+    // drift so it does not show up as motion. It also runs while a crossing is
+    // active: a crossing is over in a few frames, so the drone is not absorbed,
+    // but a stale background (camera bump) heals itself within a few seconds.
+    if (state.driftComp && state.background) {
       const bg = state.background;
-      const a = 0.01; // slower drift absorption
+      const a = 0.01;
       for (let i = 0; i < bg.length; i++) bg[i] += (gray[i] - bg[i]) * a;
     }
 
     // state machine
     if (globalChange) {
-      // Whole ROI changed at once -> almost certainly focus/light, not a drone.
+      // Almost the whole frame/ROI changed at once -> focus/light, not a drone.
       state.machine = 0;
       state.pendingLap = null;
       state.wrongFlashUntil = 0;
     } else if (state.armed && state.raceActive && roi) {
-      if (state.machine === 0 && changed >= state.enterThreshold) {
+      if (state.machine === 0 && changed <= state.exitThreshold) {
+        // Gate really is clear again -> allow the next crossing to trigger.
+        state.needsClear = false;
+      }
+      if (state.machine === 0 && changed >= state.enterThreshold && !state.needsClear) {
         state.machine = 1;
+        state.machineEnterAt = now;
         state.pendingLap = {
           t: now,
           start: (state.motionBox && state.motionBox.changed > 0) ? { x: state.motionBox.cx, y: state.motionBox.cy } : null,
@@ -680,15 +698,25 @@
           state.pendingLap = null;
         }
       } else if (state.machine === 1) {
-        if (state.motionBox && state.motionBox.changed > 0 && state.pendingLap) {
-          state.pendingLap.last = { x: state.motionBox.cx, y: state.motionBox.cy };
-        }
-        if (changed <= state.exitThreshold) {
+        // Safety: never stay "occupied" forever. A real crossing lasts well under
+        // a second; if it does not, the background was stale (e.g. camera bump).
+        // We force the gate clear but require it to really go quiet before another
+        // lap may fire, so this can never produce phantom laps.
+        if (now - (state.machineEnterAt || now) > 2500) {
           state.machine = 0;
-          if (state.pendingLap && state.direction !== 'aus') {
-            evaluatePendingLap(now);
-          }
           state.pendingLap = null;
+          state.needsClear = true;
+        } else {
+          if (state.motionBox && state.motionBox.changed > 0 && state.pendingLap) {
+            state.pendingLap.last = { x: state.motionBox.cx, y: state.motionBox.cy };
+          }
+          if (changed <= state.exitThreshold) {
+            state.machine = 0;
+            if (state.pendingLap && state.direction !== 'aus') {
+              evaluatePendingLap(now);
+            }
+            state.pendingLap = null;
+          }
         }
       }
     }
@@ -792,6 +820,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.machineEnterAt = 0;
+    state.needsClear = false;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.directionToastUntil = 0;
@@ -812,6 +842,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.machineEnterAt = 0;
+    state.needsClear = false;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.directionToastUntil = 0;
@@ -861,6 +893,8 @@
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
+    state.machineEnterAt = 0;
+    state.needsClear = false;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.goFlashUntil = 0;
@@ -875,6 +909,8 @@
   els.armedToggle.addEventListener('change', e => {
     state.armed = e.target.checked;
     state.machine = 0;
+    state.machineEnterAt = 0;
+    state.needsClear = false;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.directionToastUntil = 0;
