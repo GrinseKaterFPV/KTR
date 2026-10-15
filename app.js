@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.3.0';
+  const APP_VERSION = '0.4.0';
 
   // ---------- State ----------
   const state = {
@@ -31,6 +31,15 @@
     maxChangedSeen: 0,
     showMotion: true,
     motionBox: null,
+    view: null,
+    raceElapsed: 0,
+    frozenLap: 0,
+    countdownActive: false,
+    countdownEnd: 0,
+    lastCountdownValue: null,
+    goFlashUntil: 0,
+    audioEnabled: true,
+    countdownSecs: 5,
     rafId: null,
     frameCount: 0,
   };
@@ -71,6 +80,9 @@
     procRes: document.getElementById('procRes'),
     zoneHint: document.getElementById('zoneHint'),
     showMotion: document.getElementById('showMotion'),
+    countdownSecs: document.getElementById('countdownSecs'),
+    countdownSecsVal: document.getElementById('countdownSecsVal'),
+    audioEnabled: document.getElementById('audioEnabled'),
   };
 
   const procCanvas = document.createElement('canvas');
@@ -104,6 +116,8 @@
       pilots: state.pilots,
       currentPilot: state.currentPilot,
       showMotion: state.showMotion,
+      audioEnabled: state.audioEnabled,
+      countdownSecs: state.countdownSecs,
     }));
   }
   function fmt(ms) {
@@ -134,6 +148,10 @@
     els.cooldown.value = state.cooldownMs; els.cooldownVal.textContent = state.cooldownMs;
     state.showMotion = s.showMotion ?? true;
     if (els.showMotion) els.showMotion.checked = state.showMotion;
+    state.audioEnabled = s.audioEnabled ?? true;
+    if (els.audioEnabled) els.audioEnabled.checked = state.audioEnabled;
+    state.countdownSecs = s.countdownSecs ?? 5;
+    if (els.countdownSecs) { els.countdownSecs.value = state.countdownSecs; els.countdownSecsVal.textContent = state.countdownSecs; }
     applyProcRes();
     renderPilots();
   }
@@ -162,6 +180,43 @@
   if (els.showMotion) {
     els.showMotion.addEventListener('change', e => { state.showMotion = e.target.checked; saveSettings(); });
   }
+  if (els.countdownSecs) {
+    els.countdownSecs.addEventListener('input', e => { state.countdownSecs = +e.target.value; els.countdownSecsVal.textContent = state.countdownSecs; saveSettings(); });
+  }
+  if (els.audioEnabled) {
+    els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; ensureAudio(); saveSettings(); });
+  }
+
+  // ---------- audio feedback ----------
+  let audioCtx = null;
+  function ensureAudio() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) { /* audio not available */ }
+    return audioCtx;
+  }
+  function beep(freq, dur = 0.12, gain = 0.25, type = 'sine', delay = 0) {
+    if (!state.audioEnabled) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.03);
+  }
+  function soundCountdownTick() { beep(700, 0.09, 0.22, 'square'); }
+  function soundGo() { beep(1100, 0.35, 0.3, 'sine'); beep(1500, 0.3, 0.22, 'sine', 0.05); }
+  function soundLap() { beep(900, 0.08, 0.25, 'square'); beep(1500, 0.12, 0.25, 'square', 0.1); }
+  function soundBest() { beep(1000, 0.08, 0.25, 'square'); beep(1400, 0.08, 0.25, 'square', 0.1); beep(1900, 0.16, 0.28, 'square', 0.2); }
+  function soundStop() { beep(500, 0.15, 0.22, 'sine'); beep(350, 0.2, 0.2, 'sine', 0.12); }
 
   // ---------- camera ----------
   async function enumerateCameras() {
@@ -202,24 +257,47 @@
       if (deviceId) els.camSelect.value = deviceId;
       setStatus('Kamera läuft');
       els.zoneHint.style.display = 'block';
+      els.btnStartCam.textContent = 'Kamera stoppen';
+      els.btnStartCam.classList.remove('primary');
       startLoop();
       // Auto-calibrate the background once video is running, so detection works right away.
-      setTimeout(() => { if (!state.background) calibrateBackground(); }, 1200);
+      setTimeout(() => { if (!state.background && state.stream) calibrateBackground(); }, 1200);
     } catch (e) {
       console.error(e);
       setStatus('Kamera-Fehler: ' + (e.message || e));
     }
   }
 
-  els.btnStartCam.addEventListener('click', () => startCamera(els.camSelect.value));
-  els.camSelect.addEventListener('change', () => startCamera(els.camSelect.value));
+  function stopCamera() {
+    if (state.stream) {
+      state.stream.getTracks().forEach(t => t.stop());
+      state.stream = null;
+    }
+    if (state.rafId) { cancelAnimationFrame(state.rafId); state.rafId = null; }
+    els.video.srcObject = null;
+    state.background = null;
+    state.view = null;
+    state.motionBox = null;
+    overlayCtx.clearRect(0, 0, els.overlay.width, els.overlay.height);
+    els.btnStartCam.textContent = 'Kamera starten';
+    els.btnStartCam.classList.add('primary');
+    els.zoneHint.style.display = 'block';
+    setStatus('Kamera gestoppt');
+  }
+
+  els.btnStartCam.addEventListener('click', () => {
+    if (state.stream) stopCamera();
+    else startCamera(els.camSelect.value);
+  });
+  els.camSelect.addEventListener('change', () => { if (state.stream) startCamera(els.camSelect.value); });
 
   // ---------- ROI drawing ----------
   function toProc(pos) {
     const rect = els.overlay.getBoundingClientRect();
-    const scaleX = state.procW / rect.width;
-    const scaleY = state.procH / rect.height;
-    return { x: (pos.x - rect.left) * scaleX, y: (pos.y - rect.top) * scaleY };
+    const cx = (pos.x - rect.left) * (els.overlay.width / rect.width);
+    const cy = (pos.y - rect.top) * (els.overlay.height / rect.height);
+    const v = state.view || { dx: 0, dy: 0, sx: els.overlay.width / state.procW, sy: els.overlay.height / state.procH };
+    return { x: (cx - v.dx) / v.sx, y: (cy - v.dy) / v.sy };
   }
   function getPos(e) {
     if (e.touches && e.touches.length) {
@@ -307,21 +385,47 @@
   }
 
   function processFrame() {
-    if (!els.video.videoWidth || !state.stream) return;
-    overlayCtx.clearRect(0, 0, els.overlay.width, els.overlay.height);
     // keep overlay size in sync with element
     const rect = els.overlay.getBoundingClientRect();
     if (els.overlay.width !== Math.round(rect.width) || els.overlay.height !== Math.round(rect.height)) {
       els.overlay.width = Math.round(rect.width);
       els.overlay.height = Math.round(rect.height);
     }
+    const w = els.overlay.width, h = els.overlay.height;
+    overlayCtx.clearRect(0, 0, w, h);
+
+    const vw = els.video.videoWidth, vh = els.video.videoHeight;
+    if (!vw || !vh || !state.stream) {
+      // Video not ready yet
+      if (state.stream) {
+        overlayCtx.fillStyle = 'rgba(0,0,0,0.6)';
+        overlayCtx.fillRect(0, h - 34, w, 34);
+        overlayCtx.fillStyle = '#ff7a1a';
+        overlayCtx.font = 'bold 15px sans-serif';
+        overlayCtx.textAlign = 'center';
+        overlayCtx.fillText('Kamera startet …', w / 2, h - 12);
+        overlayCtx.textAlign = 'left';
+      }
+      return;
+    }
+
+    // Draw the camera image ourselves with "contain" fit. This guarantees a
+    // visible preview even if the <video> element fails to paint on some devices,
+    // and it lets us map the ROI exactly onto the image.
+    const scale = Math.min(w / vw, h / vh);
+    const dw = vw * scale, dh = vh * scale;
+    const dx = (w - dw) / 2, dy = (h - dh) / 2;
+    state.view = { dx, dy, dw, dh, sx: dw / state.procW, sy: dh / state.procH };
+    overlayCtx.drawImage(els.video, dx, dy, dw, dh);
 
     const gray = new Float32Array(state.procW * state.procH);
     processGrayInto(gray, false);
 
+    const now = performance.now();
+    updateCountdown(now);
+
     if (!state.background) {
-      els.metricState.textContent = 'Status: Hintergrund kalibrieren…';
-      const w = els.overlay.width, h = els.overlay.height;
+      els.metricState.textContent = 'Status: Hintergrund kalibrieren… (v' + APP_VERSION + ')';
       overlayCtx.fillStyle = 'rgba(0,0,0,0.55)';
       overlayCtx.fillRect(0, h - 34, w, 34);
       overlayCtx.fillStyle = '#ff7a1a';
@@ -370,7 +474,6 @@
       : null;
 
     // state machine
-    const now = performance.now();
     if (state.armed && state.raceActive && roi) {
       if (state.machine === 0 && changed >= state.enterThreshold) {
         state.machine = 1;
@@ -400,6 +503,7 @@
   function recordLap(triggerTime) {
     const duration = triggerTime - state.currentLapStart;
     if (duration < 300) return; // ignore tiny
+    const prevBest = state.laps.length ? Math.min(...state.laps.map(l => l.duration)) : Infinity;
     state.laps.push({
       idx: state.laps.length + 1,
       pilot: state.currentPilot,
@@ -410,6 +514,7 @@
     state.currentLapStart = triggerTime;
     renderLaps();
     updateBest();
+    if (duration < prevBest) soundBest(); else soundLap();
   }
 
   els.btnLapManual.addEventListener('click', () => {
@@ -419,54 +524,107 @@
   });
 
   // ---------- race control ----------
-  els.btnRaceStart.addEventListener('click', () => {
+  function startCountdown() {
     if (!state.stream) { setStatus('Erst Kamera starten'); return; }
+    if (state.countdownActive || state.raceActive) return;
+    ensureAudio();
     state.laps = [];
+    renderLaps();
+    updateBest();
+    els.lastLap.textContent = '--';
+    state.armed = true;
+    els.armedToggle.checked = true;
+    state.raceElapsed = 0;
+    state.frozenLap = 0;
+    state.machine = 0;
+    state.lastTrigger = 0;
+    if (state.countdownSecs <= 0) { beginRace(); return; }
+    state.countdownActive = true;
+    state.countdownEnd = performance.now() + state.countdownSecs * 1000;
+    state.lastCountdownValue = null;
+    setStatus('Countdown …');
+  }
+
+  function beginRace() {
+    state.countdownActive = false;
     state.raceActive = true;
     state.raceStart = performance.now();
     state.currentLapStart = state.raceStart;
-    state.lastTrigger = 0;
+    state.raceElapsed = 0;
+    state.frozenLap = 0;
     state.machine = 0;
-    renderLaps();
-    els.lastLap.textContent = '--';
+    state.lastTrigger = 0;
+    state.goFlashUntil = performance.now() + 800;
+    soundGo();
     setStatus('Rennen läuft');
-  });
-  els.btnRaceStop.addEventListener('click', () => {
+  }
+
+  function stopRace() {
+    if (state.countdownActive) {
+      state.countdownActive = false;
+      setStatus('Countdown abgebrochen');
+      return;
+    }
+    if (!state.raceActive) return;
+    const now = performance.now();
+    state.raceElapsed = now - state.raceStart;
+    state.frozenLap = now - state.currentLapStart;
     state.raceActive = false;
+    soundStop();
     setStatus('Rennen gestoppt');
-  });
+  }
+
+  function updateCountdown(now) {
+    if (!state.countdownActive) return;
+    const remaining = state.countdownEnd - now;
+    if (remaining <= 0) { beginRace(); return; }
+    const value = Math.ceil(remaining / 1000);
+    if (value !== state.lastCountdownValue) {
+      state.lastCountdownValue = value;
+      soundCountdownTick();
+    }
+  }
+
+  els.btnRaceStart.addEventListener('click', startCountdown);
+  els.btnRaceStop.addEventListener('click', stopRace);
   els.btnReset.addEventListener('click', () => {
     state.raceActive = false;
+    state.countdownActive = false;
     state.laps = [];
     state.raceStart = 0;
     state.currentLapStart = 0;
+    state.raceElapsed = 0;
+    state.frozenLap = 0;
     state.machine = 0;
+    state.goFlashUntil = 0;
     renderLaps();
+    updateBest();
     els.raceTime.textContent = '00:00.000';
     els.currentLap.textContent = '00:00.000';
     els.lastLap.textContent = '--';
-    els.bestLap.textContent = '--';
     setStatus('Zurückgesetzt');
   });
   els.armedToggle.addEventListener('change', e => {
     state.armed = e.target.checked;
     state.machine = 0;
-    saveSettings(); // not strictly
   });
 
   function updateTimers() {
-    if (!state.raceActive) {
-      if (state.raceStart) {
-        els.raceTime.textContent = fmt(performance.now() - state.raceStart);
-      }
+    const now = performance.now();
+    if (state.countdownActive) {
+      els.raceTime.textContent = fmt(Math.max(0, state.countdownEnd - now));
+      els.currentLap.textContent = '00:00.000';
       return;
     }
-    const now = performance.now();
-    els.raceTime.textContent = fmt(now - state.raceStart);
-    els.currentLap.textContent = fmt(now - state.currentLapStart);
-    if (state.laps.length) {
-      els.lastLap.textContent = fmt(state.laps[state.laps.length-1].duration);
+    if (state.raceActive) {
+      els.raceTime.textContent = fmt(now - state.raceStart);
+      els.currentLap.textContent = fmt(now - state.currentLapStart);
+      if (state.laps.length) els.lastLap.textContent = fmt(state.laps[state.laps.length-1].duration);
+      return;
     }
+    // stopped / frozen
+    els.raceTime.textContent = fmt(state.raceElapsed);
+    els.currentLap.textContent = fmt(state.frozenLap);
   }
 
   function renderLaps() {
@@ -526,13 +684,15 @@
   function drawOverlay() {
     const w = els.overlay.width, h = els.overlay.height;
     if (!w || !h) return;
-    const scaleX = w / state.procW, scaleY = h / state.procH;
+    const v = state.view || { dx: 0, dy: 0, sx: w / state.procW, sy: h / state.procH };
+    const X = x => v.dx + x * v.sx;
+    const Y = y => v.dy + y * v.sy;
     const r = state.roi;
 
     if (r) {
       // ROI hint fill
       overlayCtx.fillStyle = 'rgba(255,122,26,0.10)';
-      overlayCtx.fillRect(r.x * scaleX, r.y * scaleY, r.w * scaleX, r.h * scaleY);
+      overlayCtx.fillRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
     }
 
     // Motion mask (where pixels differ from the background)
@@ -543,24 +703,22 @@
       overlayCtx.drawImage(
         maskCanvas,
         Math.floor(r.x), Math.floor(r.y), Math.ceil(r.w), Math.ceil(r.h),
-        Math.floor(r.x) * scaleX, Math.floor(r.y) * scaleY,
-        Math.ceil(r.w) * scaleX, Math.ceil(r.h) * scaleY
+        X(Math.floor(r.x)), Y(Math.floor(r.y)),
+        Math.ceil(r.w) * v.sx, Math.ceil(r.h) * v.sy
       );
       overlayCtx.imageSmoothingEnabled = true;
 
       // Bounding box of detected motion
-      const bw = (box.maxX - box.minX + 1) * scaleX;
-      const bh = (box.maxY - box.minY + 1) * scaleY;
       overlayCtx.strokeStyle = '#00ff88';
       overlayCtx.lineWidth = 2;
       overlayCtx.setLineDash([6, 4]);
-      overlayCtx.strokeRect(box.minX * scaleX, box.minY * scaleY, bw, bh);
+      overlayCtx.strokeRect(X(box.minX), Y(box.minY), (box.maxX - box.minX + 1) * v.sx, (box.maxY - box.minY + 1) * v.sy);
       overlayCtx.setLineDash([]);
 
       // Centroid marker
       overlayCtx.fillStyle = '#00ff88';
       overlayCtx.beginPath();
-      overlayCtx.arc(box.cx * scaleX, box.cy * scaleY, 5, 0, Math.PI * 2);
+      overlayCtx.arc(X(box.cx), Y(box.cy), 5, 0, Math.PI * 2);
       overlayCtx.fill();
       overlayCtx.strokeStyle = '#003322';
       overlayCtx.lineWidth = 1.5;
@@ -571,7 +729,31 @@
       // ROI border on top
       overlayCtx.strokeStyle = '#ff7a1a';
       overlayCtx.lineWidth = 2;
-      overlayCtx.strokeRect(r.x * scaleX, r.y * scaleY, r.w * scaleX, r.h * scaleY);
+      overlayCtx.strokeRect(X(r.x), Y(r.y), r.w * v.sx, r.h * v.sy);
+    }
+
+    // Countdown / GO overlay
+    const nowp = performance.now();
+    if (state.countdownActive) {
+      const remaining = Math.max(0, state.countdownEnd - nowp);
+      const num = Math.ceil(remaining / 1000);
+      overlayCtx.fillStyle = 'rgba(0,0,0,0.35)';
+      overlayCtx.fillRect(0, 0, w, h);
+      overlayCtx.fillStyle = '#ff7a1a';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.textBaseline = 'middle';
+      overlayCtx.font = 'bold ' + Math.round(h * 0.38) + 'px sans-serif';
+      overlayCtx.fillText(String(num), w / 2, h / 2);
+      overlayCtx.textAlign = 'left';
+      overlayCtx.textBaseline = 'alphabetic';
+    } else if (state.goFlashUntil && nowp < state.goFlashUntil) {
+      overlayCtx.fillStyle = '#4ade80';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.textBaseline = 'middle';
+      overlayCtx.font = 'bold ' + Math.round(h * 0.32) + 'px sans-serif';
+      overlayCtx.fillText('GO!', w / 2, h / 2);
+      overlayCtx.textAlign = 'left';
+      overlayCtx.textBaseline = 'alphabetic';
     }
   }
 

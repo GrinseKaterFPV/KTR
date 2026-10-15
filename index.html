@@ -90,20 +90,32 @@
     </section>
 
     <section class="settings-card">
-      <h2>Einstellungen</h2>
-      <div class="settings-grid">
-        <label>Diff-Schwelle <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
-        <label>Enter (px) <input type="range" id="enterThresh" min="20" max="5000" value="120" /><span id="enterThreshVal">120</span></label>
-        <label>Exit (px) <input type="range" id="exitThresh" min="0" max="2000" value="60" /><span id="exitThreshVal">60</span></label>
-        <label>Cooldown (ms) <input type="range" id="cooldown" min="500" max="8000" value="2000" step="100" /><span id="cooldownVal">2000</span></label>
-        <label>Verarbeitungsauflösung
-          <select id="procRes">
-            <option value="320x240">320 x 240 (schnell)</option>
-            <option value="480x360">480 x 360</option>
-          </select>
-        </label>
-      </div>
-      <p class="hint">Tipp: ROI möglichst eng über Tor stellen. Hintergrund bei leerem Tor kalibrieren. Drone/Crossing erzeugt Bewegungsspitze; eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt.</p>
+      <details open>
+        <summary><span class="settings-title">Einstellungen</span></summary>
+        <div class="settings-group">
+          <h3>Erkennung</h3>
+          <div class="settings-grid">
+            <label>Diff-Schwelle <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
+            <label>Enter (px) <input type="range" id="enterThresh" min="20" max="5000" value="120" /><span id="enterThreshVal">120</span></label>
+            <label>Exit (px) <input type="range" id="exitThresh" min="0" max="2000" value="60" /><span id="exitThreshVal">60</span></label>
+            <label>Cooldown (ms) <input type="range" id="cooldown" min="500" max="8000" value="2000" step="100" /><span id="cooldownVal">2000</span></label>
+            <label>Verarbeitungsauflösung
+              <select id="procRes">
+                <option value="320x240">320 x 240 (schnell)</option>
+                <option value="480x360">480 x 360</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>Rennen &amp; Audio</h3>
+          <div class="settings-grid">
+            <label>Vorbereitungszeit (s) <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
+            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> Audio-Feedback (Countdown, Runden)</label>
+          </div>
+        </div>
+        <p class="hint">Tipp: ROI möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt.</p>
+      </details>
     </section>
   </main>
 

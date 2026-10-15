@@ -11,12 +11,19 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 3. Auf Android: Chrome öffnen, URL aufrufen, Menü → „Zum Startbildschirm hinzufügen“.
 
 ## Bedienung
-1. Kamera starten, ggf. Kamera auswählen.
+1. Kamera starten (Button toggelt: läuft die Kamera, stoppt derselbe Button sie wieder).
 2. Mit der Maus/Touch einen Rahmen über die Start/Ziel-Zone zeichnen.
-3. Bei leerem Tor „Hintergrund kalibrieren“ drücken.
-4. „Start“ drückt das Rennen, „Erkennung aktiv“ einschalten.
+3. Der Hintergrund wird automatisch nach dem Kamerastart kalibriert (manuell über „Hintergrund kalibrieren“).
+4. „Start“ beginnt einen Countdown (Standard 5 s, einstellbar). Danach startet das Rennen automatisch.
 5. Eine Runde wird gezählt, sobald die Bewegung im Rahmen die Enter-Schwelle
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
+
+## Features
+- Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
+- Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
+- Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
+- Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
+- Einklappbare Einstellungen für Erkennung und Rennen/Audio
 
 ## Als Android-App (optional)
 Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das Projekt
