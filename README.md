@@ -25,7 +25,7 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
-- Einklappbare Einstellungen für Erkennung und Rennen/Audio
+- Einklappbare Einstellungen (Zahnrad-Symbol oben rechts), Untergruppen standardmäßig zugeklappt
 
 ## Als Android-App (optional)
 Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das Projekt

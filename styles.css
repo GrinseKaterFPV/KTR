@@ -21,6 +21,14 @@ button, input, select { font: inherit; }
   position: sticky; top: 0; z-index: 10;
 }
 .brand { display: flex; align-items: baseline; gap: 8px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.gear-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0; font-size: 18px; line-height: 1;
+  background: var(--elev); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+}
+.gear-btn:hover, .gear-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
 .logo { font-weight: 900; font-size: 22px; color: var(--accent); letter-spacing: 1px; }
 .title { font-weight: 600; font-size: 18px; }
 .version { font-size: 11px; color: var(--muted); background: var(--elev); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
@@ -100,12 +108,19 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .settings-grid label { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; font-size: 13px; }
 .settings-grid input[type=range] { grid-column: 1 / -1; width: 100%; }
 .settings-grid span { font-family: monospace; }
-.settings-card > details > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
-.settings-card > details > summary::-webkit-details-marker { display: none; }
-.settings-card > details > summary h2,
-.settings-card > details > summary .settings-title { display: inline; margin: 0; font-size: 18px; font-weight: 700; }
-.settings-card > details > summary::after { content: '▾'; color: var(--muted); font-size: 18px; }
-.settings-card > details[open] > summary::after { content: '▴'; }
+.settings-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
+.settings-overlay[hidden] { display: none; }
+.settings-modal {
+  width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 640px) {
+  .settings-overlay { align-items: center; }
+  .settings-modal { border-radius: 16px; max-height: 85vh; }
+}
+.settings-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.settings-modal-head .settings-title { margin: 0; font-size: 18px; font-weight: 700; }
 
 .settings-group { margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--elev); overflow: hidden; }
 .settings-group > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; }

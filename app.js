@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.1';
+  const APP_VERSION = '0.6.2';
 
   // ---------- State ----------
   const state = {
@@ -93,6 +93,9 @@
     announceRateVal: document.getElementById('announceRateVal'),
     btnTestVoice: document.getElementById('btnTestVoice'),
     btnDirection: document.getElementById('btnDirection'),
+    btnSettings: document.getElementById('btnSettings'),
+    btnSettingsClose: document.getElementById('btnSettingsClose'),
+    settingsOverlay: document.getElementById('settingsOverlay'),
     versionBadge: document.getElementById('versionBadge'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
@@ -288,6 +291,26 @@
       setStatus('Richtung: ' + DIRECTION_TEXT[state.direction]);
     });
   }
+
+  // ---------- settings panel ----------
+  function openSettings() {
+    if (!els.settingsOverlay) return;
+    els.settingsOverlay.hidden = false;
+  }
+  function closeSettings() {
+    if (!els.settingsOverlay) return;
+    els.settingsOverlay.hidden = true;
+  }
+  if (els.btnSettings) els.btnSettings.addEventListener('click', openSettings);
+  if (els.btnSettingsClose) els.btnSettingsClose.addEventListener('click', closeSettings);
+  if (els.settingsOverlay) {
+    els.settingsOverlay.addEventListener('click', e => {
+      if (e.target === els.settingsOverlay) closeSettings();
+    });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && els.settingsOverlay && !els.settingsOverlay.hidden) closeSettings();
+  });
 
   // ---------- audio feedback ----------
   let audioCtx = null;

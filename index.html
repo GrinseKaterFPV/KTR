@@ -18,7 +18,10 @@
       <span class="title">Racing Timer</span>
       <span class="version" id="versionBadge">v?</span>
     </div>
-    <div class="status" id="status">Kamera: nicht gestartet</div>
+    <div class="topbar-right">
+      <div class="status" id="status">Kamera: nicht gestartet</div>
+      <button id="btnSettings" class="gear-btn" type="button" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+    </div>
   </header>
 
   <main class="layout">
@@ -91,10 +94,13 @@
       </table>
     </section>
 
-    <section class="settings-card">
-      <details open>
-        <summary><span class="settings-title">Einstellungen</span></summary>
-        <details class="settings-group" open>
+    <div class="settings-overlay" id="settingsOverlay" hidden>
+      <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Einstellungen">
+        <div class="settings-modal-head">
+          <h2 class="settings-title">Einstellungen</h2>
+          <button id="btnSettingsClose" class="gear-btn" type="button" title="Schließen" aria-label="Schließen">✕</button>
+        </div>
+        <details class="settings-group">
           <summary><h3>Erkennung</h3></summary>
           <div class="settings-grid">
             <label>Diff-Schwelle <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
@@ -109,7 +115,7 @@
             </label>
           </div>
         </details>
-        <details class="settings-group" open>
+        <details class="settings-group">
           <summary><h3>Rennen &amp; Audio</h3></summary>
           <div class="settings-grid">
             <label>Vorbereitungszeit (s) <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
@@ -126,14 +132,14 @@
           </div>
         </details>
         <p class="hint">Tipp: ROI möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt.</p>
-        <details class="settings-group" open>
+        <details class="settings-group">
           <summary><h3>App</h3></summary>
           <div class="settings-grid">
             <button id="btnForceUpdate" type="button">App aktualisieren (Cache leeren)</button>
           </div>
         </details>
-      </details>
-    </section>
+      </div>
+    </div>
   </main>
 
   <script src="app.js"></script>
