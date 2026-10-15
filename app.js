@@ -1424,7 +1424,16 @@
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const name = `fpv-backup-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+    const ts = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+    const parts = ['fpv'];
+    if (data.settings) parts.push('settings');
+    if (data.sets?.length) parts.push('sets');
+    if (data.laps?.length) parts.push('laps');
+    if (data.kwad?.players?.length) parts.push('kwad-players');
+    if (data.kwad?.categories) parts.push('kwad-cats');
+    if (data.kwad?.stats) parts.push('kwad-stats');
+    if (data.kwad?.customTricks?.length) parts.push('kwad-custom');
+    const name = `${parts.join('-')}-${ts}.json`;
     a.href = url;
     a.download = name;
     a.click();
