@@ -168,6 +168,17 @@ check('B3: the arrow SVG is flex-centred in the shared button',
   /\.gear-btn \{[^}]*align-items: center; justify-content: center;/.test(css)
   && /\.back-arrow \{ display: block; width: 18px; height: 18px; \}/.test(css));
 
+// --- 11) narrow input rows stay inside their card ------------------------------
+check('W1: the pilot name input can shrink inside its row',
+  /\.pilot-row input \{ flex: 1 1 9rem; min-width: 0;/.test(css));
+check('W2: the pilot row wraps instead of overflowing',
+  /\.pilot-row \{ display: flex; flex-wrap: wrap; gap: 8px; \}/.test(css));
+check('W3: the "Pilot speichern" button stays on one line and shrinks last',
+  /\.pilot-row button \{ flex: 0 1 auto; white-space: nowrap; \}/.test(css));
+check('W4: the K.W.A.D add row gets the same treatment (min-width: 0 + wrap)',
+  /\.kwad-add \{ display: flex; flex-wrap: wrap; gap: 8px; \}/.test(css)
+  && /\.kwad-add input \{ flex: 1 1 9rem; min-width: 0;/.test(css));
+
 // --- cache / version bookkeeping ---------------------------------------------
 check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
 check('V2: app version was bumped', /APP_VERSION = '0\.16\.0'/.test(app));
