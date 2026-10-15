@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.0';
+  const APP_VERSION = '0.13.1';
 
   // ---------- i18n ----------
   const I18N = {
@@ -157,6 +157,8 @@
       no_sets_for_pilot: 'Keine Sätze für diesen Piloten.',
       pilot_compare_title: 'Piloten-Vergleich',
       th_sets: 'Sätze',
+      storage_trimmed: 'Speicher fast voll – ältere Sätze wurden entfernt, damit neue gespeichert werden können.',
+      storage_full: 'Speicher voll – Speichern fehlgeschlagen. Bitte ältere Sätze löschen.',
     },
     en: {
       title: 'KTR FPV APP',
@@ -310,6 +312,8 @@
       no_sets_for_pilot: 'No sets for this pilot.',
       pilot_compare_title: 'Pilot comparison',
       th_sets: 'Sets',
+      storage_trimmed: 'Storage almost full – older sets were removed to make room for new ones.',
+      storage_full: 'Storage full – saving failed. Please delete older sets.',
     },
   };
 
@@ -319,6 +323,11 @@
     return I18N.de[key] !== undefined ? I18N.de[key] : key;
   }
   function dirText(dir) { return t('dir_text_' + dir); }
+
+  // Valid announcement modes (guarded against stale/invalid stored values).
+  const ANN_MODES = ['aus', 'jede', 'best'];
+  // Storage guards: keep the sets list bounded so localStorage cannot overflow.
+  const MAX_SETS = 400;
 
   // ---------- State ----------
   const state = {
@@ -462,6 +471,7 @@
     tileTimer: document.getElementById('tileTimer'),
     tileSettings: document.getElementById('tileSettings'),
     versionBadge: document.getElementById('versionBadge'),
+    toast: document.getElementById('toast'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
 
@@ -486,7 +496,7 @@
     try { return JSON.parse(localStorage.getItem('fpv_settings') || '{}'); } catch { return {}; }
   }
   function saveSettings() {
-    localStorage.setItem('fpv_settings', JSON.stringify({
+    const data = JSON.stringify({
       diffThreshold: state.diffThreshold,
       enterThreshold: state.enterThreshold,
       exitThreshold: state.exitThreshold,
@@ -513,13 +523,60 @@
       sections: state.sections,
       lang: state.lang,
       voiceURI: state.voiceURI,
-    }));
+    });
+    try {
+      localStorage.setItem('fpv_settings', data);
+      return true;
+    } catch (e) {
+      // Storage is full (usually because of the sets list): free space by
+      // dropping the oldest sets, then retry this write once.
+      if (trimSetsToFit() > 0) {
+        toast(t('storage_trimmed'));
+        try { localStorage.setItem('fpv_settings', data); return true; } catch (e2) { /* fall through */ }
+      }
+      storageError();
+      return false;
+    }
   }
   function loadSets() {
     try { return JSON.parse(localStorage.getItem('fpv_sets') || '[]'); } catch { return []; }
   }
+  function rawSaveSets() {
+    try { localStorage.setItem('fpv_sets', JSON.stringify(state.sets)); return true; }
+    catch (e) { return false; }
+  }
+  // Drop the oldest sets until the data fits again (keeps at least one).
+  function trimSetsToFit() {
+    let dropped = 0;
+    while (state.sets.length > 1) {
+      const keep = Math.max(1, Math.floor(state.sets.length / 2));
+      dropped += state.sets.length - keep;
+      state.sets = state.sets.slice(-keep);
+      if (rawSaveSets()) return dropped;
+    }
+    return dropped;
+  }
   function saveSets() {
-    try { localStorage.setItem('fpv_sets', JSON.stringify(state.sets)); } catch (e) { /* storage full */ }
+    let capped = 0;
+    if (Array.isArray(state.sets) && state.sets.length > MAX_SETS) {
+      capped = state.sets.length - MAX_SETS;
+      state.sets = state.sets.slice(-MAX_SETS);
+    }
+    if (rawSaveSets()) {
+      if (capped > 0) {
+        toast(t('storage_trimmed'));
+        try { if (els.setsList) renderSets(); } catch (e) { /* not ready yet */ }
+      }
+      return true;
+    }
+    const dropped = trimSetsToFit();
+    if (dropped > 0) {
+      toast(t('storage_trimmed'));
+      try { if (els.setsList) renderSets(); } catch (e) { /* not ready yet */ }
+      return true;
+    }
+    storageError();
+    return false;
   }
   function formatAutoLaps(n) {
     return (n === 0 || n === '0') ? '∞' : String(n);
@@ -533,6 +590,17 @@
   }
   function setStatus(txt) { els.status.textContent = txt; }
   function haptic() { if (navigator.vibrate) navigator.vibrate(30); }
+
+  // Small transient message at the bottom of the screen (warnings, hints).
+  let toastTimer = 0;
+  function toast(msg, ms = 6000) {
+    if (!els.toast || !msg) return;
+    els.toast.textContent = msg;
+    els.toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { if (els.toast) els.toast.hidden = true; }, ms);
+  }
+  function storageError() { toast(t('storage_full')); }
 
   // ---------- settings wiring ----------
   function initSettings() {
@@ -560,7 +628,7 @@
     state.audioEnabled = s.audioEnabled ?? true;
     if (els.audioEnabled) els.audioEnabled.checked = state.audioEnabled;
     state.countdownSecs = s.countdownSecs ?? 5;
-    state.announceMode = s.announceMode ?? 'jede';
+    state.announceMode = ANN_MODES.includes(s.announceMode) ? s.announceMode : 'jede';
     if (els.announceMode) els.announceMode.value = state.announceMode;
     state.announceRate = s.announceRate ?? 1;
     if (els.announceRate) { els.announceRate.value = state.announceRate; els.announceRateVal.textContent = (+state.announceRate).toFixed(2); }
@@ -658,7 +726,11 @@
     els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; ensureAudio(); saveSettings(); });
   }
   if (els.announceMode) {
-    els.announceMode.addEventListener('change', e => { state.announceMode = e.target.value; saveSettings(); });
+    els.announceMode.addEventListener('change', e => {
+      state.announceMode = ANN_MODES.includes(e.target.value) ? e.target.value : 'jede';
+      els.announceMode.value = state.announceMode;
+      saveSettings();
+    });
   }
   if (els.announceRate) {
     els.announceRate.addEventListener('input', e => { state.announceRate = +e.target.value; els.announceRateVal.textContent = state.announceRate.toFixed(2); saveSettings(); });

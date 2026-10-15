@@ -38,6 +38,18 @@ button, input, select { font: inherit; }
 .version { font-size: 11px; color: var(--muted); background: var(--elev); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
 .status { font-size: 13px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ---- transient toast / warning ---- */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 90; max-width: min(92vw, 520px);
+  background: #2a1414; color: #ffdede; border: 1px solid var(--danger);
+  border-radius: 12px; padding: 10px 14px; font-size: 13px; line-height: 1.35;
+  text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  animation: toast-in 0.18s ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
 /* ---- home screen ---- */
 .home-screen {
   position: fixed; inset: 0; z-index: 60; overflow-y: auto;
