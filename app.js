@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.4.1';
+  const APP_VERSION = '0.5.0';
 
   // ---------- State ----------
   const state = {
@@ -40,6 +40,8 @@
     goFlashUntil: 0,
     audioEnabled: true,
     countdownSecs: 5,
+    announceMode: 'jede',
+    announceRate: 1,
     rafId: null,
     frameCount: 0,
   };
@@ -83,6 +85,9 @@
     countdownSecs: document.getElementById('countdownSecs'),
     countdownSecsVal: document.getElementById('countdownSecsVal'),
     audioEnabled: document.getElementById('audioEnabled'),
+    announceMode: document.getElementById('announceMode'),
+    announceRate: document.getElementById('announceRate'),
+    announceRateVal: document.getElementById('announceRateVal'),
     versionBadge: document.getElementById('versionBadge'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
@@ -120,6 +125,8 @@
       showMotion: state.showMotion,
       audioEnabled: state.audioEnabled,
       countdownSecs: state.countdownSecs,
+      announceMode: state.announceMode,
+      announceRate: state.announceRate,
     }));
   }
   function fmt(ms) {
@@ -154,6 +161,10 @@
     if (els.audioEnabled) els.audioEnabled.checked = state.audioEnabled;
     state.countdownSecs = s.countdownSecs ?? 5;
     if (els.countdownSecs) { els.countdownSecs.value = state.countdownSecs; els.countdownSecsVal.textContent = state.countdownSecs; }
+    state.announceMode = s.announceMode ?? 'jede';
+    if (els.announceMode) els.announceMode.value = state.announceMode;
+    state.announceRate = s.announceRate ?? 1;
+    if (els.announceRate) { els.announceRate.value = state.announceRate; els.announceRateVal.textContent = (+state.announceRate).toFixed(2); }
     applyProcRes();
     renderPilots();
   }
@@ -187,6 +198,56 @@
   }
   if (els.audioEnabled) {
     els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; ensureAudio(); saveSettings(); });
+  }
+  if (els.announceMode) {
+    els.announceMode.addEventListener('change', e => { state.announceMode = e.target.value; saveSettings(); });
+  }
+  if (els.announceRate) {
+    els.announceRate.addEventListener('input', e => { state.announceRate = +e.target.value; els.announceRateVal.textContent = state.announceRate.toFixed(2); saveSettings(); });
+  }
+
+  // ---------- speech announcements (Text-to-Speech) ----------
+  let ttsVoices = [];
+  function loadVoices() {
+    if (!('speechSynthesis' in window)) return;
+    ttsVoices = window.speechSynthesis.getVoices() || [];
+  }
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+  }
+  function speak(text) {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'de-DE';
+      u.rate = state.announceRate || 1;
+      u.pitch = 1;
+      u.volume = 1;
+      const de = ttsVoices.find(v => /^de/i.test(v.lang)) || ttsVoices.find(v => /de/i.test(v.name));
+      if (de) u.voice = de;
+      // small delay after cancel avoids the utterance being dropped on some Android browsers
+      setTimeout(() => { try { synth.speak(u); } catch (e) { /* ignore */ } }, 60);
+    } catch (e) { /* ignore */ }
+  }
+  function primeSpeech() {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* ignore */ }
+  }
+  function secondsToSpeech(ms) {
+    const totalSec = ms / 1000;
+    if (totalSec < 60) {
+      return totalSec.toFixed(2).replace('.', ',') + ' Sekunden';
+    }
+    const min = Math.floor(totalSec / 60);
+    const sec = (totalSec - min * 60).toFixed(2).replace('.', ',');
+    return min + (min === 1 ? ' Minute ' : ' Minuten ') + sec + ' Sekunden';
   }
 
   // ---------- audio feedback ----------
@@ -524,8 +585,10 @@
     const duration = triggerTime - state.currentLapStart;
     if (duration < 300) return; // ignore tiny
     const prevBest = state.laps.length ? Math.min(...state.laps.map(l => l.duration)) : Infinity;
+    const lapNumber = state.laps.length + 1;
+    const isBest = duration < prevBest;
     state.laps.push({
-      idx: state.laps.length + 1,
+      idx: lapNumber,
       pilot: state.currentPilot,
       duration,
       total: triggerTime - state.raceStart,
@@ -534,7 +597,16 @@
     state.currentLapStart = triggerTime;
     renderLaps();
     updateBest();
-    if (duration < prevBest) soundBest(); else soundLap();
+    if (isBest) soundBest(); else soundLap();
+    announceLap(lapNumber, duration, isBest);
+  }
+
+  function announceLap(lapNumber, duration, isBest) {
+    if (state.announceMode === 'aus') return;
+    if (state.announceMode === 'best' && !isBest) return;
+    const time = secondsToSpeech(duration);
+    const text = (isBest ? 'Neue Bestzeit! ' : '') + 'Runde ' + lapNumber + ': ' + time;
+    speak(text);
   }
 
   els.btnLapManual.addEventListener('click', () => {
@@ -548,6 +620,7 @@
     if (!state.stream) { setStatus('Erst Kamera starten'); return; }
     if (state.countdownActive || state.raceActive) return;
     ensureAudio();
+    primeSpeech();
     state.laps = [];
     renderLaps();
     updateBest();
@@ -576,6 +649,7 @@
     state.lastTrigger = 0;
     state.goFlashUntil = performance.now() + 800;
     soundGo();
+    if (state.announceMode !== 'aus') speak('Los');
     setStatus('Rennen läuft');
   }
 
@@ -592,6 +666,7 @@
     state.raceActive = false;
     soundStop();
     setStatus('Rennen gestoppt');
+    if (state.announceMode !== 'aus') speak('Stopp. Gesamtzeit ' + secondsToSpeech(state.raceElapsed));
   }
 
   function updateCountdown(now) {

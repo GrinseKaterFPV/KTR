@@ -113,6 +113,14 @@
           <div class="settings-grid">
             <label>Vorbereitungszeit (s) <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
             <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> Audio-Feedback (Countdown, Runden)</label>
+            <label>Sprachansage
+              <select id="announceMode">
+                <option value="aus">Aus</option>
+                <option value="jede" selected>Jede Runde</option>
+                <option value="best">Nur beste Runde</option>
+              </select>
+            </label>
+            <label>Sprechtempo <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
           </div>
         </div>
         <p class="hint">Tipp: ROI möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt.</p>
