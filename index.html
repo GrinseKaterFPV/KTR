@@ -20,7 +20,7 @@
     </div>
     <div class="topbar-right">
       <div class="status" id="status">Kamera: nicht gestartet</div>
-      <button id="btnSettings" class="gear-btn" type="button" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+      <button id="btnSettings" class="gear-btn" type="button" data-i18n-title="settings" data-i18n-aria="settings" title="Einstellungen" aria-label="Einstellungen">⚙</button>
     </div>
   </header>
 
@@ -29,123 +29,138 @@
       <div class="video-wrap" id="videoWrap">
         <video id="video" playsinline muted autoplay></video>
         <canvas id="overlay"></canvas>
-        <div class="zone-hint" id="zoneHint">Ziehe einen Rahmen über den Start/Ziel-Bereich</div>
+        <div class="zone-hint" id="zoneHint" data-i18n="zone_hint">Ziehe einen Rahmen über den Start/Ziel-Bereich</div>
       </div>
       <div class="video-actions">
-        <button id="btnStartCam" class=" primary">Kamera starten</button>
-        <select id="camSelect" aria-label="Kamera"></select>
-        <button id="btnCalibrate">Hintergrund kalibrieren</button>
-        <button id="btnDirection" class="dir-btn" title="Erwartete Durchflug-Richtung – antippen zum Ändern">↔ aus</button>
+        <button id="btnStartCam" class=" primary" data-i18n="start_camera">Kamera starten</button>
+        <select id="camSelect" data-i18n-aria="camera" aria-label="Kamera"></select>
+        <button id="btnCalibrate" data-i18n="calibrate">Hintergrund kalibrieren</button>
+        <button id="btnDirection" class="dir-btn" data-i18n-title="direction_btn_title" title="Erwartete Durchflug-Richtung – antippen zum Ändern">↔ aus</button>
       </div>
       <div class="metric">
-        <div class="metric-label">Bewegung im Tor</div>
+        <div class="metric-label" data-i18n="motion_in_gate">Bewegung im Tor</div>
         <div class="meter"><div id="meterFill" class="meter-fill"></div></div>
         <div class="metric-value" id="metricValue">0 px</div>
         <div class="metric-state" id="metricState">Status: idle</div>
         <label class="toggle">
           <input type="checkbox" id="showMotion" checked />
-          <span>Bewegung hervorheben (gelbe Pixel = erkannt, grüner Rahmen = Bereich)</span>
+          <span data-i18n="show_motion">Bewegung hervorheben (gelbe Pixel = erkannt, grüner Rahmen = Bereich)</span>
         </label>
       </div>
     </section>
 
     <section class="timer-card">
-      <div class="timer-label">Rennen-Zeit</div>
+      <div class="timer-label" data-i18n="race_time">Rennen-Zeit</div>
       <div class="timer-time" id="raceTime">00:00.000</div>
       <div class="timer-row">
         <div>
-          <div class="small-label">Aktuelle Runde</div>
+          <div class="small-label" data-i18n="current_lap">Aktuelle Runde</div>
           <div class="current-lap" id="currentLap">00:00.000</div>
         </div>
         <div>
-          <div class="small-label">Letzte Runde</div>
+          <div class="small-label" data-i18n="last_lap">Letzte Runde</div>
           <div class="last-lap" id="lastLap">--</div>
         </div>
         <div>
-          <div class="small-label">Beste Runde</div>
+          <div class="small-label" data-i18n="best_lap">Beste Runde</div>
           <div class="best-lap" id="bestLap">--</div>
         </div>
       </div>
       <div class="controls">
-        <button id="btnRaceStart" class="btn btn-start">Start</button>
-        <button id="btnRaceStop" class="btn btn-stop">Stop</button>
-        <button id="btnLapManual" class="btn">Manuelle Runde</button>
-        <button id="btnReset" class="btn btn-danger">Reset</button>
+        <button id="btnRaceStart" class="btn btn-start" data-i18n="start">Start</button>
+        <button id="btnRaceStop" class="btn btn-stop" data-i18n="stop">Stop</button>
+        <button id="btnLapManual" class="btn" data-i18n="manual_lap">Manuelle Runde</button>
+        <button id="btnReset" class="btn btn-danger" data-i18n="reset">Reset</button>
       </div>
       <label class="toggle">
         <input type="checkbox" id="armedToggle" />
-        <span>Erkennung aktiv (Auto-Runden)</span>
+        <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span>
       </label>
       <div class="pilot-row">
-        <input id="pilotName" type="text" placeholder="Pilotenname" />
-        <button id="btnAddPilot">Pilot speichern</button>
+        <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
+        <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
       </div>
       <div class="pilots" id="pilots"></div>
     </section>
 
     <section class="laps-card">
       <div class="laps-head">
-        <h2>Rundenlog</h2>
-        <button id="btnExport">CSV exportieren</button>
+        <h2 data-i18n="lap_log">Rundenlog</h2>
+        <button id="btnExport" data-i18n="export_csv">CSV exportieren</button>
       </div>
       <table id="lapTable">
-        <thead><tr><th>#</th><th>Pilot</th><th>Rundenzeit</th><th>Gesamt</th><th>Zwischen</th></tr></thead>
+        <thead><tr><th data-i18n="th_index">#</th><th data-i18n="th_pilot">Pilot</th><th data-i18n="th_lap">Rundenzeit</th><th data-i18n="th_total">Gesamt</th><th data-i18n="th_between">Zwischen</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
 
     <div class="settings-overlay" id="settingsOverlay" hidden>
-      <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Einstellungen">
+      <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings" aria-label="Einstellungen">
         <div class="settings-modal-head">
-          <h2 class="settings-title">Einstellungen</h2>
-          <button id="btnSettingsClose" class="gear-btn" type="button" title="Schließen" aria-label="Schließen">✕</button>
+          <h2 class="settings-title" data-i18n="settings">Einstellungen</h2>
+          <button id="btnSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
         </div>
         <details class="settings-group">
-          <summary><h3>Erkennung</h3></summary>
+          <summary><h3 data-i18n="g_detection">Erkennung</h3></summary>
           <div class="settings-grid">
-            <label>Diff-Schwelle <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
-            <label>Enter (px) <input type="range" id="enterThresh" min="20" max="5000" value="120" /><span id="enterThreshVal">120</span></label>
-            <label>Exit (px) <input type="range" id="exitThresh" min="0" max="2000" value="60" /><span id="exitThreshVal">60</span></label>
-            <label>Cooldown (ms) <input type="range" id="cooldown" min="500" max="8000" value="2000" step="100" /><span id="cooldownVal">2000</span></label>
-            <label>Verarbeitungsauflösung
+            <label><span data-i18n="diff_thresh">Diff-Schwelle</span> <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
+            <label><span data-i18n="enter_px">Enter (px)</span> <input type="range" id="enterThresh" min="20" max="5000" value="120" /><span id="enterThreshVal">120</span></label>
+            <label><span data-i18n="exit_px">Exit (px)</span> <input type="range" id="exitThresh" min="0" max="2000" value="60" /><span id="exitThreshVal">60</span></label>
+            <label><span data-i18n="cooldown_ms">Cooldown (ms)</span> <input type="range" id="cooldown" min="500" max="8000" value="2000" step="100" /><span id="cooldownVal">2000</span></label>
+            <label><span data-i18n="proc_res">Verarbeitungsauflösung</span>
               <select id="procRes">
-                <option value="320x240">320 x 240 (schnell)</option>
+                <option value="320x240" data-i18n="proc_fast">320 x 240 (schnell)</option>
                 <option value="480x360">480 x 360</option>
               </select>
             </label>
-            <label>Erwartete Richtung
+            <label><span data-i18n="expected_direction">Erwartete Richtung</span>
               <select id="directionSelect">
-                <option value="aus">Aus (keine Prüfung)</option>
-                <option value="lr">Links → Rechts</option>
-                <option value="rl">Rechts → Links</option>
-                <option value="tb">Oben → Unten</option>
-                <option value="bt">Unten → Oben</option>
+                <option value="aus" data-i18n="dir_off">Aus (keine Prüfung)</option>
+                <option value="lr" data-i18n="dir_lr">Links → Rechts</option>
+                <option value="rl" data-i18n="dir_rl">Rechts → Links</option>
+                <option value="tb" data-i18n="dir_tb">Oben → Unten</option>
+                <option value="bt" data-i18n="dir_bt">Unten → Oben</option>
               </select>
             </label>
-            <label class="check-row"><input type="checkbox" id="driftComp" checked /> Autofokus-/Belichtungsdrift ausgleichen (empfohlen)</label>
+            <label class="check-row"><input type="checkbox" id="driftComp" checked /> <span data-i18n="drift_comp">Autofokus-/Belichtungsdrift ausgleichen (empfohlen)</span></label>
+            <label class="check-row"><input type="checkbox" id="camLock" /> <span data-i18n="cam_lock">Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt</span></label>
           </div>
-          <p class="hint">Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.</p>
+          <p class="hint" data-i18n="hint_detection">Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.</p>
         </details>
         <details class="settings-group">
-          <summary><h3>Rennen &amp; Audio</h3></summary>
+          <summary><h3 data-i18n="g_race_audio">Rennen &amp; Audio</h3></summary>
           <div class="settings-grid">
-            <label>Vorbereitungszeit (s) <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
-            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> Audio-Feedback (Countdown, Runden)</label>
-            <label>Sprachansage
+            <label><span data-i18n="prep_time">Vorbereitungszeit (s)</span> <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
+            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
+            <label><span data-i18n="speech_announce">Sprachansage</span>
               <select id="announceMode">
-                <option value="aus">Aus</option>
-                <option value="jede" selected>Jede Runde</option>
-                <option value="best">Nur beste Runde</option>
+                <option value="aus" data-i18n="ann_off">Aus</option>
+                <option value="jede" selected data-i18n="ann_every">Jede Runde</option>
+                <option value="best" data-i18n="ann_best">Nur beste Runde</option>
               </select>
             </label>
-            <label>Sprechtempo <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
-            <button id="btnTestVoice" type="button">Stimme testen</button>
+            <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
+            <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
           </div>
         </details>
         <details class="settings-group">
-          <summary><h3>App</h3></summary>
+          <summary><h3 data-i18n="g_language">Sprache &amp; Stimme</h3></summary>
           <div class="settings-grid">
-            <button id="btnForceUpdate" type="button">App aktualisieren (Cache leeren)</button>
+            <label><span data-i18n="ui_language">App-Sprache</span>
+              <select id="langSelect">
+                <option value="de" data-i18n="lang_de">Deutsch</option>
+                <option value="en" data-i18n="lang_en">English</option>
+              </select>
+            </label>
+            <label><span data-i18n="voice">Sprachstimme</span>
+              <select id="voiceSelect"></select>
+            </label>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_app">App</h3></summary>
+          <div class="settings-grid">
+            <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
           </div>
         </details>
       </div>

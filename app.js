@@ -1,7 +1,226 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.7.0';
+  const APP_VERSION = '0.8.0';
+
+  // ---------- i18n ----------
+  const I18N = {
+    de: {
+      title: 'FPV Racing Timer',
+      settings: 'Einstellungen',
+      close: 'Schließen',
+      camera: 'Kamera',
+      start_camera: 'Kamera starten',
+      stop_camera: 'Kamera stoppen',
+      calibrate: 'Hintergrund kalibrieren',
+      zone_hint: 'Ziehe einen Rahmen über den Start/Ziel-Bereich',
+      direction_btn_title: 'Erwartete Durchflug-Richtung – antippen zum Ändern',
+      motion_in_gate: 'Bewegung im Tor',
+      show_motion: 'Bewegung hervorheben (gelbe Pixel = erkannt, grüner Rahmen = Bereich)',
+      race_time: 'Rennen-Zeit',
+      current_lap: 'Aktuelle Runde',
+      last_lap: 'Letzte Runde',
+      best_lap: 'Beste Runde',
+      start: 'Start',
+      stop: 'Stop',
+      manual_lap: 'Manuelle Runde',
+      reset: 'Reset',
+      armed: 'Erkennung aktiv (Auto-Runden)',
+      pilot_name: 'Pilotenname',
+      save_pilot: 'Pilot speichern',
+      lap_log: 'Rundenlog',
+      export_csv: 'CSV exportieren',
+      th_index: '#',
+      th_pilot: 'Pilot',
+      th_lap: 'Rundenzeit',
+      th_total: 'Gesamt',
+      th_between: 'Zwischen',
+      g_detection: 'Erkennung',
+      diff_thresh: 'Diff-Schwelle',
+      enter_px: 'Enter (px)',
+      exit_px: 'Exit (px)',
+      cooldown_ms: 'Cooldown (ms)',
+      proc_res: 'Verarbeitungsauflösung',
+      proc_fast: '320 x 240 (schnell)',
+      expected_direction: 'Erwartete Richtung',
+      dir_off: 'Aus (keine Prüfung)',
+      dir_lr: 'Links → Rechts',
+      dir_rl: 'Rechts → Links',
+      dir_tb: 'Oben → Unten',
+      dir_bt: 'Unten → Oben',
+      drift_comp: 'Autofokus-/Belichtungsdrift ausgleichen (empfohlen)',
+      cam_lock: 'Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt',
+      hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
+      g_race_audio: 'Rennen & Audio',
+      prep_time: 'Vorbereitungszeit (s)',
+      audio_feedback: 'Audio-Feedback (Countdown, Runden)',
+      speech_announce: 'Sprachansage',
+      ann_off: 'Aus',
+      ann_every: 'Jede Runde',
+      ann_best: 'Nur beste Runde',
+      speech_rate: 'Sprechtempo',
+      test_voice: 'Stimme testen',
+      g_language: 'Sprache & Stimme',
+      ui_language: 'App-Sprache',
+      lang_de: 'Deutsch',
+      lang_en: 'English',
+      voice: 'Sprachstimme',
+      voice_auto: 'Automatisch',
+      g_app: 'App',
+      force_update: 'App aktualisieren (Cache leeren)',
+      status_ready: 'Bereit',
+      status_cam_not_started: 'Kamera: nicht gestartet',
+      cam_running: 'Kamera läuft',
+      cam_stopped: 'Kamera gestoppt',
+      bg_calibrated: 'Hintergrund kalibriert',
+      no_video: 'Kein Videobild',
+      cam_unavailable: 'Kamera nicht verfügbar: diese Seite läuft nicht über HTTPS/sicheren Kontext. Bitte per HTTPS öffnen.',
+      cam_error: 'Kamera-Fehler: ',
+      starting_cam: 'Kamera startet …',
+      calibrating_bg: 'Hintergrund wird kalibriert …',
+      status_prefix: 'Status: ',
+      idle: 'idle',
+      gate_free: 'frei',
+      gate_busy: 'belegt',
+      armed_suffix: ' · scharf',
+      global_change: 'globale Änderung (AF/Licht) ignoriert',
+      countdown: 'Countdown …',
+      race_running: 'Rennen läuft',
+      race_stopped: 'Rennen gestoppt',
+      countdown_cancelled: 'Countdown abgebrochen',
+      reset_done: 'Zurückgesetzt',
+      start_camera_first: 'Erst Kamera starten',
+      updating: 'Aktualisiere …',
+      direction_prefix: 'Richtung: ',
+      dir_text_aus: 'keine Richtungsprüfung',
+      dir_text_lr: 'links → rechts',
+      dir_text_rl: 'rechts → links',
+      dir_text_tb: 'oben → unten',
+      dir_text_bt: 'unten → oben',
+      wrong_direction: 'Bewegung erkannt, aber falsche Richtung',
+      go: 'Los',
+      best_time: 'Neue Bestzeit!',
+      lap_word: 'Runde',
+      stop_total: 'Stopp. Gesamtzeit ',
+      voice_test: 'Runde 1: 12,45 Sekunden',
+      seconds_word: 'Sekunden',
+      minute_word: 'Minute',
+      minutes_word: 'Minuten',
+      camera_n: 'Kamera ',
+      decimal_sep: ',',
+    },
+    en: {
+      title: 'FPV Racing Timer',
+      settings: 'Settings',
+      close: 'Close',
+      camera: 'Camera',
+      start_camera: 'Start camera',
+      stop_camera: 'Stop camera',
+      calibrate: 'Calibrate background',
+      zone_hint: 'Drag a box over the start/finish area',
+      direction_btn_title: 'Expected crossing direction – tap to change',
+      motion_in_gate: 'Motion in gate',
+      show_motion: 'Highlight motion (yellow pixels = detected, green box = area)',
+      race_time: 'Race time',
+      current_lap: 'Current lap',
+      last_lap: 'Last lap',
+      best_lap: 'Best lap',
+      start: 'Start',
+      stop: 'Stop',
+      manual_lap: 'Manual lap',
+      reset: 'Reset',
+      armed: 'Detection active (auto laps)',
+      pilot_name: 'Pilot name',
+      save_pilot: 'Save pilot',
+      lap_log: 'Lap log',
+      export_csv: 'Export CSV',
+      th_index: '#',
+      th_pilot: 'Pilot',
+      th_lap: 'Lap time',
+      th_total: 'Total',
+      th_between: 'Split',
+      g_detection: 'Detection',
+      diff_thresh: 'Diff threshold',
+      enter_px: 'Enter (px)',
+      exit_px: 'Exit (px)',
+      cooldown_ms: 'Cooldown (ms)',
+      proc_res: 'Processing resolution',
+      proc_fast: '320 x 240 (fast)',
+      expected_direction: 'Expected direction',
+      dir_off: 'Off (no check)',
+      dir_lr: 'Left → Right',
+      dir_rl: 'Right → Left',
+      dir_tb: 'Top → Bottom',
+      dir_bt: 'Bottom → Top',
+      drift_comp: 'Compensate autofocus/exposure drift (recommended)',
+      cam_lock: 'Lock camera (manual focus/exposure) – only enable if the image stays reliably bright',
+      hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
+      g_race_audio: 'Race & Audio',
+      prep_time: 'Preparation time (s)',
+      audio_feedback: 'Audio feedback (countdown, laps)',
+      speech_announce: 'Voice announcement',
+      ann_off: 'Off',
+      ann_every: 'Every lap',
+      ann_best: 'Best lap only',
+      speech_rate: 'Speech rate',
+      test_voice: 'Test voice',
+      g_language: 'Language & voice',
+      ui_language: 'App language',
+      lang_de: 'Deutsch',
+      lang_en: 'English',
+      voice: 'Voice',
+      voice_auto: 'Automatic',
+      g_app: 'App',
+      force_update: 'Update app (clear cache)',
+      status_ready: 'Ready',
+      status_cam_not_started: 'Camera: not started',
+      cam_running: 'Camera running',
+      cam_stopped: 'Camera stopped',
+      bg_calibrated: 'Background calibrated',
+      no_video: 'No video image',
+      cam_unavailable: 'Camera unavailable: this page is not running in a secure context (HTTPS). Please open it via HTTPS.',
+      cam_error: 'Camera error: ',
+      starting_cam: 'Camera starting …',
+      calibrating_bg: 'Calibrating background …',
+      status_prefix: 'Status: ',
+      idle: 'idle',
+      gate_free: 'clear',
+      gate_busy: 'occupied',
+      armed_suffix: ' · armed',
+      global_change: 'global change (AF/light) ignored',
+      countdown: 'Countdown …',
+      race_running: 'Race running',
+      race_stopped: 'Race stopped',
+      countdown_cancelled: 'Countdown cancelled',
+      reset_done: 'Reset',
+      start_camera_first: 'Start the camera first',
+      updating: 'Updating …',
+      direction_prefix: 'Direction: ',
+      dir_text_aus: 'no direction check',
+      dir_text_lr: 'left → right',
+      dir_text_rl: 'right → left',
+      dir_text_tb: 'top → bottom',
+      dir_text_bt: 'bottom → top',
+      wrong_direction: 'Motion detected, but wrong direction',
+      go: 'Go',
+      best_time: 'New best time!',
+      lap_word: 'Lap',
+      stop_total: 'Stop. Total time ',
+      voice_test: 'Lap 1: 12.45 seconds',
+      seconds_word: 'seconds',
+      minute_word: 'minute',
+      minutes_word: 'minutes',
+      camera_n: 'Camera ',
+      decimal_sep: '.',
+    },
+  };
+
+  function t(key) {
+    const dict = I18N[state.lang] || I18N.de;
+    if (key in dict) return dict[key];
+    return I18N.de[key] !== undefined ? I18N.de[key] : key;
+  }
+  function dirText(dir) { return t('dir_text_' + dir); }
 
   // ---------- State ----------
   const state = {
@@ -49,6 +268,9 @@
     wrongFlashUntil: 0,
     directionToastUntil: 0,
     driftComp: true,
+    camLock: false,
+    lang: 'de',
+    voiceURI: '',
     rafId: null,
     frameCount: 0,
   };
@@ -99,6 +321,9 @@
     btnDirection: document.getElementById('btnDirection'),
     directionSelect: document.getElementById('directionSelect'),
     driftComp: document.getElementById('driftComp'),
+    camLock: document.getElementById('camLock'),
+    langSelect: document.getElementById('langSelect'),
+    voiceSelect: document.getElementById('voiceSelect'),
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
@@ -143,6 +368,9 @@
       announceRate: state.announceRate,
       direction: state.direction,
       driftComp: state.driftComp,
+      camLock: state.camLock,
+      lang: state.lang,
+      voiceURI: state.voiceURI,
     }));
   }
   function fmt(ms) {
@@ -185,8 +413,49 @@
     updateDirectionButton();
     state.driftComp = s.driftComp ?? true;
     if (els.driftComp) els.driftComp.checked = state.driftComp;
+    state.camLock = s.camLock ?? false;
+    if (els.camLock) els.camLock.checked = state.camLock;
+    state.lang = (s.lang === 'en') ? 'en' : 'de';
+    if (els.langSelect) els.langSelect.value = state.lang;
+    state.voiceURI = s.voiceURI || '';
     applyProcRes();
     renderPilots();
+  }
+
+  // ---------- language / i18n ----------
+  function applyLanguage() {
+    document.documentElement.lang = state.lang;
+    const dict = I18N[state.lang] || I18N.de;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.getAttribute('data-i18n');
+      if (k in dict) el.textContent = dict[k];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const k = el.getAttribute('data-i18n-ph');
+      if (k in dict) el.setAttribute('placeholder', dict[k]);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      const k = el.getAttribute('data-i18n-title');
+      if (k in dict) el.setAttribute('title', dict[k]);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      const k = el.getAttribute('data-i18n-aria');
+      if (k in dict) el.setAttribute('aria-label', dict[k]);
+    });
+    document.title = t('title');
+    updateDirectionButton();
+    updateCamButtonText();
+    populateVoices();
+    renderPilots();
+    renderLaps();
+    if (!state.stream && !state.raceActive && !state.countdownActive) {
+      setStatus(t('status_ready') + ' (v' + APP_VERSION + ') – ' + t('start_camera'));
+    }
+  }
+
+  function updateCamButtonText() {
+    if (!els.btnStartCam) return;
+    els.btnStartCam.textContent = state.stream ? t('stop_camera') : t('start_camera');
   }
 
   function applyProcRes() {
@@ -231,10 +500,40 @@
   function loadVoices() {
     if (!('speechSynthesis' in window)) return;
     ttsVoices = window.speechSynthesis.getVoices() || [];
+    populateVoices();
+  }
+  function voicesForLang() {
+    const pref = state.lang === 'en' ? /^en/i : /^de/i;
+    const list = ttsVoices.filter(v => pref.test(v.lang));
+    return list.length ? list : ttsVoices;
+  }
+  function populateVoices() {
+    if (!els.voiceSelect) return;
+    const list = voicesForLang();
+    els.voiceSelect.innerHTML = '';
+    const auto = document.createElement('option');
+    auto.value = '';
+    auto.textContent = t('voice_auto');
+    els.voiceSelect.appendChild(auto);
+    list.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.voiceURI || v.name;
+      opt.textContent = v.name + (v.lang ? ' (' + v.lang + ')' : '');
+      els.voiceSelect.appendChild(opt);
+    });
+    els.voiceSelect.value = state.voiceURI || '';
   }
   if ('speechSynthesis' in window) {
     loadVoices();
     window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+  }
+  function pickVoice() {
+    if (state.voiceURI) {
+      const v = ttsVoices.find(v => (v.voiceURI || v.name) === state.voiceURI);
+      if (v) return v;
+    }
+    const pref = state.lang === 'en' ? /^en/i : /^de/i;
+    return ttsVoices.find(v => pref.test(v.lang)) || ttsVoices.find(v => pref.test(v.name)) || null;
   }
   function speak(text) {
     if (!('speechSynthesis' in window)) return;
@@ -242,12 +541,12 @@
       const synth = window.speechSynthesis;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'de-DE';
+      u.lang = state.lang === 'en' ? 'en-US' : 'de-DE';
       u.rate = state.announceRate || 1;
       u.pitch = 1;
       u.volume = 1;
-      const de = ttsVoices.find(v => /^de/i.test(v.lang)) || ttsVoices.find(v => /de/i.test(v.name));
-      if (de) u.voice = de;
+      const v = pickVoice();
+      if (v) u.voice = v;
       // small delay after cancel avoids the utterance being dropped on some Android browsers
       setTimeout(() => { try { synth.speak(u); } catch (e) { /* ignore */ } }, 60);
     } catch (e) { /* ignore */ }
@@ -261,35 +560,29 @@
     } catch (e) { /* ignore */ }
   }
   function secondsToSpeech(ms) {
+    const sep = t('decimal_sep');
     const totalSec = ms / 1000;
     if (totalSec < 60) {
-      return totalSec.toFixed(2).replace('.', ',') + ' Sekunden';
+      return totalSec.toFixed(2).replace('.', sep) + ' ' + t('seconds_word');
     }
     const min = Math.floor(totalSec / 60);
-    const sec = (totalSec - min * 60).toFixed(2).replace('.', ',');
-    return min + (min === 1 ? ' Minute ' : ' Minuten ') + sec + ' Sekunden';
+    const sec = (totalSec - min * 60).toFixed(2).replace('.', sep);
+    return min + ' ' + (min === 1 ? t('minute_word') : t('minutes_word')) + ' ' + sec + ' ' + t('seconds_word');
   }
   if (els.btnTestVoice) {
     els.btnTestVoice.addEventListener('click', () => {
       primeSpeech();
-      speak('Runde 1: 12,45 Sekunden');
+      speak(t('voice_test'));
     });
   }
 
   // ---------- direction control ----------
   const DIRECTION_ORDER = ['aus', 'lr', 'rl', 'tb', 'bt'];
   const DIRECTION_LABEL = { aus: '↔ aus', lr: '→', rl: '←', tb: '↓', bt: '↑' };
-  const DIRECTION_TEXT = {
-    aus: 'keine Richtungsprüfung',
-    lr: 'links → rechts',
-    rl: 'rechts → links',
-    tb: 'oben → unten',
-    bt: 'unten → oben',
-  };
   function updateDirectionButton() {
     if (els.btnDirection) {
       els.btnDirection.textContent = DIRECTION_LABEL[state.direction] || '↔ aus';
-      els.btnDirection.title = 'Erwartete Richtung: ' + (DIRECTION_TEXT[state.direction] || 'aus') + ' – antippen zum Ändern';
+      els.btnDirection.title = t('direction_btn_title') + ' (' + dirText(state.direction) + ')';
     }
     if (els.directionSelect) els.directionSelect.value = state.direction;
   }
@@ -297,7 +590,7 @@
     state.direction = dir;
     updateDirectionButton();
     saveSettings();
-    setStatus('Richtung: ' + DIRECTION_TEXT[state.direction]);
+    setStatus(t('direction_prefix') + dirText(state.direction));
     if (showToast) state.directionToastUntil = performance.now() + 1400;
   }
   if (els.btnDirection) {
@@ -311,6 +604,26 @@
   }
   if (els.driftComp) {
     els.driftComp.addEventListener('change', e => { state.driftComp = e.target.checked; saveSettings(); });
+  }
+  if (els.camLock) {
+    els.camLock.addEventListener('change', e => {
+      state.camLock = e.target.checked;
+      saveSettings();
+      if (state.stream) applyCameraLock();
+    });
+  }
+  if (els.langSelect) {
+    els.langSelect.addEventListener('change', e => {
+      state.lang = (e.target.value === 'en') ? 'en' : 'de';
+      saveSettings();
+      applyLanguage();
+    });
+  }
+  if (els.voiceSelect) {
+    els.voiceSelect.addEventListener('change', e => {
+      state.voiceURI = e.target.value || '';
+      saveSettings();
+    });
   }
 
   // ---------- settings panel ----------
@@ -366,7 +679,7 @@
 
   // ---------- force update ----------
   async function forceUpdate() {
-    setStatus('Aktualisiere …');
+    setStatus(t('updating'));
     try {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
@@ -391,15 +704,39 @@
       state.devices.forEach((d, i) => {
         const opt = document.createElement('option');
         opt.value = d.deviceId;
-        opt.textContent = d.label || `Kamera ${i+1}`;
+        opt.textContent = d.label || (t('camera_n') + (i+1));
         els.camSelect.appendChild(opt);
       });
     } catch (e) { console.error(e); }
   }
 
+  // Best-effort: stop the camera from constantly hunting focus / exposure. This is
+  // OPT-IN (state.camLock) because forcing manual exposure can freeze a dark image
+  // on some phones. Applied ~1.5 s after start so auto-exposure can settle first.
+  function applyCameraLock() {
+    const track = state.stream && state.stream.getVideoTracks()[0];
+    if (!track || !track.applyConstraints) return;
+    if (!state.camLock) {
+      // restore auto modes if possible
+      const auto = [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }, { whiteBalanceMode: 'continuous' }];
+      try { track.applyConstraints({ advanced: auto }); } catch (e) { /* ignore */ }
+      return;
+    }
+    setTimeout(() => {
+      if (!state.camLock || !state.stream) return;
+      const tr = state.stream.getVideoTracks()[0];
+      if (!tr || !tr.applyConstraints) return;
+      (async () => {
+        for (const adv of [{ focusMode: 'manual' }, { focusMode: 'none' }, { exposureMode: 'manual' }, { whiteBalanceMode: 'manual' }]) {
+          try { await tr.applyConstraints({ advanced: [adv] }); } catch (e) { /* not supported */ }
+        }
+      })().catch(() => {});
+    }, 1500);
+  }
+
   async function startCamera(deviceId) {
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
-      setStatus('Kamera nicht verfügbar: diese Seite läuft nicht über HTTPS/sicheren Kontext. Bitte per HTTPS öffnen (z. B. Netlify Drop).');
+      setStatus(t('cam_unavailable'));
       return;
     }
     if (state.stream) {
@@ -416,32 +753,20 @@
       };
       state.stream = await navigator.mediaDevices.getUserMedia(constraints);
       els.video.srcObject = state.stream;
-      // Try to stop the camera from constantly hunting focus / exposure, which
-      // otherwise shows up as "motion" everywhere in the frame. Best effort:
-      // unsupported modes are simply ignored by the browser.
-      try {
-        const track = state.stream.getVideoTracks()[0];
-        if (track && track.applyConstraints) {
-          (async () => {
-            for (const adv of [{ focusMode: 'manual' }, { focusMode: 'none' }, { exposureMode: 'manual' }, { whiteBalanceMode: 'manual' }]) {
-              try { await track.applyConstraints({ advanced: [adv] }); } catch (e) { /* not supported */ }
-            }
-          })().catch(() => {});
-        }
-      } catch (e) { /* ignore */ }
+      applyCameraLock();
       await els.video.play();
       await enumerateCameras();
       if (deviceId) els.camSelect.value = deviceId;
-      setStatus('Kamera läuft');
+      setStatus(t('cam_running'));
       els.zoneHint.style.display = 'block';
-      els.btnStartCam.textContent = 'Kamera stoppen';
+      updateCamButtonText();
       els.btnStartCam.classList.remove('primary');
       startLoop();
       // Auto-calibrate the background once video is running, so detection works right away.
       setTimeout(() => { if (!state.background && state.stream) calibrateBackground(); }, 1200);
     } catch (e) {
       console.error(e);
-      setStatus('Kamera-Fehler: ' + (e.message || e));
+      setStatus(t('cam_error') + (e.message || e));
     }
   }
 
@@ -456,10 +781,10 @@
     state.view = null;
     state.motionBox = null;
     overlayCtx.clearRect(0, 0, els.overlay.width, els.overlay.height);
-    els.btnStartCam.textContent = 'Kamera starten';
+    updateCamButtonText();
     els.btnStartCam.classList.add('primary');
     els.zoneHint.style.display = 'block';
-    setStatus('Kamera gestoppt');
+    setStatus(t('cam_stopped'));
   }
 
   els.btnStartCam.addEventListener('click', () => {
@@ -530,7 +855,7 @@
   }
 
   function calibrateBackground() {
-    if (!els.video.videoWidth) { setStatus('Kein Videobild'); return; }
+    if (!els.video.videoWidth) { setStatus(t('no_video')); return; }
     const n = 8;
     const acc = new Float32Array(state.procW * state.procH);
     let done = 0;
@@ -538,7 +863,7 @@
       if (done >= n) {
         for (let i = 0; i < acc.length; i++) acc[i] /= n;
         state.background = acc;
-        setStatus('Hintergrund kalibriert');
+        setStatus(t('bg_calibrated'));
         haptic();
         return;
       }
@@ -580,7 +905,7 @@
         overlayCtx.fillStyle = '#ff7a1a';
         overlayCtx.font = 'bold 15px sans-serif';
         overlayCtx.textAlign = 'center';
-        overlayCtx.fillText('Kamera startet …', w / 2, h - 12);
+        overlayCtx.fillText(t('starting_cam'), w / 2, h - 12);
         overlayCtx.textAlign = 'left';
       }
       return;
@@ -602,13 +927,13 @@
     updateCountdown(now);
 
     if (!state.background) {
-      els.metricState.textContent = 'Status: Hintergrund kalibrieren… (v' + APP_VERSION + ')';
+      els.metricState.textContent = t('status_prefix') + t('calibrating_bg') + ' (v' + APP_VERSION + ')';
       overlayCtx.fillStyle = 'rgba(0,0,0,0.55)';
       overlayCtx.fillRect(0, h - 34, w, 34);
       overlayCtx.fillStyle = '#ff7a1a';
       overlayCtx.font = 'bold 15px sans-serif';
       overlayCtx.textAlign = 'center';
-      overlayCtx.fillText('Hintergrund wird kalibriert …', w / 2, h - 12);
+      overlayCtx.fillText(t('calibrating_bg'), w / 2, h - 12);
       overlayCtx.textAlign = 'left';
       drawOverlay();
       return;
@@ -726,8 +1051,8 @@
     els.meterFill.style.width = pct + '%';
     els.metricValue.textContent = changed + ' px';
     els.metricState.textContent = globalChange
-      ? 'Status: globale Änderung (AF/Licht) ignoriert'
-      : ('Status: ' + (state.machine === 1 ? 'belegt' : 'frei') + (state.armed ? ' · armed' : ''));
+      ? (t('status_prefix') + t('global_change'))
+      : (t('status_prefix') + (state.machine === 1 ? t('gate_busy') : t('gate_free')) + (state.armed ? t('armed_suffix') : ''));
 
     drawOverlay();
     updateTimers();
@@ -764,7 +1089,7 @@
       tryTriggerLap(p.t);
     } else {
       state.wrongFlashUntil = now + 600;
-      setStatus('Bewegung erkannt, aber falsche Richtung (' + DIRECTION_TEXT[dir] + ')');
+      setStatus(t('wrong_direction') + ' (' + dirText(dir) + ')');
     }
   }
 
@@ -795,7 +1120,7 @@
     if (state.announceMode === 'aus') return;
     if (state.announceMode === 'best' && !isBest) return;
     const time = secondsToSpeech(duration);
-    const text = (isBest ? 'Neue Bestzeit! ' : '') + 'Runde ' + lapNumber + ': ' + time;
+    const text = (isBest ? t('best_time') + ' ' : '') + t('lap_word') + ' ' + lapNumber + ': ' + time;
     speak(text);
   }
 
@@ -807,7 +1132,7 @@
 
   // ---------- race control ----------
   function startCountdown() {
-    if (!state.stream) { setStatus('Erst Kamera starten'); return; }
+    if (!state.stream) { setStatus(t('start_camera_first')); return; }
     if (state.countdownActive || state.raceActive) return;
     ensureAudio();
     primeSpeech();
@@ -831,7 +1156,7 @@
     state.countdownActive = true;
     state.countdownEnd = performance.now() + state.countdownSecs * 1000;
     state.lastCountdownValue = null;
-    setStatus('Countdown …');
+    setStatus(t('countdown'));
   }
 
   function beginRace() {
@@ -851,14 +1176,14 @@
     state.lastTrigger = 0;
     state.goFlashUntil = performance.now() + 800;
     soundGo();
-    if (state.announceMode !== 'aus') speak('Los');
-    setStatus('Rennen läuft');
+    if (state.announceMode !== 'aus') speak(t('go'));
+    setStatus(t('race_running'));
   }
 
   function stopRace() {
     if (state.countdownActive) {
       state.countdownActive = false;
-      setStatus('Countdown abgebrochen');
+      setStatus(t('countdown_cancelled'));
       return;
     }
     if (!state.raceActive) return;
@@ -867,8 +1192,8 @@
     state.frozenLap = now - state.currentLapStart;
     state.raceActive = false;
     soundStop();
-    setStatus('Rennen gestoppt');
-    if (state.announceMode !== 'aus') speak('Stopp. Gesamtzeit ' + secondsToSpeech(state.raceElapsed));
+    setStatus(t('race_stopped'));
+    if (state.announceMode !== 'aus') speak(t('stop_total') + secondsToSpeech(state.raceElapsed));
   }
 
   function updateCountdown(now) {
@@ -904,7 +1229,7 @@
     els.raceTime.textContent = '00:00.000';
     els.currentLap.textContent = '00:00.000';
     els.lastLap.textContent = '--';
-    setStatus('Zurückgesetzt');
+    setStatus(t('reset_done'));
   });
   els.armedToggle.addEventListener('change', e => {
     state.armed = e.target.checked;
@@ -1071,7 +1396,7 @@
 
     // Direction-change toast (short feedback when tapping the direction button)
     if (state.directionToastUntil && nowp < state.directionToastUntil) {
-      const label = (DIRECTION_LABEL[state.direction] || '') + '  ' + (DIRECTION_TEXT[state.direction] || '');
+      const label = (DIRECTION_LABEL[state.direction] || '') + '  ' + dirText(state.direction);
       overlayCtx.save();
       overlayCtx.font = 'bold ' + Math.round(h * 0.075) + 'px sans-serif';
       overlayCtx.textAlign = 'center';
@@ -1118,8 +1443,8 @@
     els.overlay.width = Math.round(r.width) || 320;
     els.overlay.height = Math.round(r.height) || 240;
     if (els.versionBadge) els.versionBadge.textContent = 'v' + APP_VERSION;
+    applyLanguage();
     saveSettings();
-    setStatus('Bereit (v' + APP_VERSION + ') – Kamera starten');
   }
 
   window.addEventListener('resize', () => { drawOverlay(); });
