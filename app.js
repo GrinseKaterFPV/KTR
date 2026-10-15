@@ -534,6 +534,7 @@
     kwadPlayers: document.getElementById('kwadPlayers'),
     kwadResult: document.getElementById('kwadResult'),
     kwadName: document.getElementById('kwadName'),
+    kwadPilotSelect: document.getElementById('kwadPilotSelect'),
     btnKwadNewTrick: document.getElementById('btnKwadNewTrick'),
     btnKwadDone: document.getElementById('btnKwadDone'),
     btnKwadFail: document.getElementById('btnKwadFail'),
@@ -2751,7 +2752,7 @@
     } catch { list = []; }
     kwadPlayers = list
       .filter(p => p && typeof p.name === 'string' && p.name.trim())
-      .map(p => ({ name: p.name.trim(), letters: kwadNormalizeLetters(p.letters) }));
+      .map(p => ({ name: p.name.trim(), letters: kwadNormalizeLetters(p.letters), color: p.color || (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[p.name.trim()]) }));
     const first = kwadPlayers.findIndex(p => !kwadIsOut(p.letters));
     kwadTurnIdx = first === -1 ? 0 : first;
   }
@@ -2776,6 +2777,18 @@
 
   function renderKwad() {
     if (!els.kwadScreen) return;
+    // Populate pilot select from main pilots list
+    if (els.kwadPilotSelect) {
+      const current = els.kwadPilotSelect.value;
+      els.kwadPilotSelect.innerHTML = '<option value="">– Piloten aus App übernehmen –</option>';
+      state.pilots.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        els.kwadPilotSelect.appendChild(opt);
+      });
+      els.kwadPilotSelect.value = current || '';
+    }
     const loser = kwadLoserIndex(kwadPlayers);
     if (loser === -1) {
       const active = kwadActiveFrom(kwadTurnIdx);
@@ -2794,8 +2807,13 @@
         if (i === active) row.classList.add('is-turn');
         if (kwadIsOut(p.letters)) row.classList.add('is-out');
 
+        const color = p.color || (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[p.name]) || (typeof PILOT_PALETTE !== 'undefined' ? PILOT_PALETTE[i % PILOT_PALETTE.length] : '#20c4c4');
         const name = document.createElement('span');
         name.className = 'kwad-name';
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        if (dot.style) dot.style.background = color;
+        name.appendChild(dot);
         name.textContent = p.name;
 
         const letters = document.createElement('span');
@@ -2879,14 +2897,16 @@
     renderKwad();
   }
 
-  function kwadAddPlayer() {
-    if (!els.kwadName) return;
-    const name = (els.kwadName.value || '').trim();
+  function kwadAddPlayer(name) {
+    if (!name && els.kwadName) name = (els.kwadName.value || '').trim();
     if (!name) return;
-    els.kwadName.value = '';
+    if (els.kwadName) els.kwadName.value = '';
     if (kwadPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
-    kwadPlayers.push({ name, letters: '' });
+    // Use pilot color from main app if available
+    const color = (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[name]) || (typeof PILOT_PALETTE !== 'undefined' ? PILOT_PALETTE[kwadPlayers.length % PILOT_PALETTE.length] : '#20c4c4');
+    kwadPlayers.push({ name, letters: '', color });
     kwadSave();
+    if (els.kwadPilotSelect) els.kwadPilotSelect.value = '';
     renderKwad();
   }
   function kwadRemovePlayer(idx) {
@@ -2923,8 +2943,9 @@
   if (els.btnKwadNewTrick) els.btnKwadNewTrick.addEventListener('click', kwadNewTrick);
   if (els.btnKwadDone) els.btnKwadDone.addEventListener('click', () => kwadRound(true));
   if (els.btnKwadFail) els.btnKwadFail.addEventListener('click', () => kwadRound(false));
-  if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', kwadAddPlayer);
+  if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', () => kwadAddPlayer());
   if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
+  if (els.kwadPilotSelect) els.kwadPilotSelect.addEventListener('change', e => { if (e.target.value) kwadAddPlayer(e.target.value); });
   if (els.btnKwadReset) els.btnKwadReset.addEventListener('click', kwadResetGame);
   kwadLoad();
 

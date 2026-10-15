@@ -91,7 +91,7 @@ button, input, select { font: inherit; }
 .kwad-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 8px 0 2px; }
 .kwad-brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
 .kwad-card { display: flex; flex-direction: column; gap: 8px; }
-.kwad-trick { font-size: 30px; font-weight: 800; line-height: 1.15; color: var(--accent); word-break: break-word; }
+.kwad-trick { font-size: 30px; font-weight: 800; line-height: 1.15; color: var(--accent); word-break: break-word; text-align: center; }
 .kwad-turn { font-size: 20px; font-weight: 700; }
 .kwad-actions { display: flex; gap: 8px; }
 .kwad-actions .btn { flex: 1; }
@@ -122,6 +122,10 @@ button, input, select { font: inherit; }
 }
 .kwad-remove:hover { color: var(--danger); border-color: var(--danger); }
 .kwad-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.kwad-import { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; flex-wrap: wrap; min-width: 0; }
+.kwad-import label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.kwad-import select { flex: 1; min-width: 180px; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.kwad-manual { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; }
 .kwad-add input { flex: 1 1 9rem; min-width: 0; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
 .kwad-add button { flex: 0 1 auto; white-space: nowrap; }
 
