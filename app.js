@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.11.2';
+  const APP_VERSION = '0.11.3';
 
   // ---------- i18n ----------
   const I18N = {
@@ -28,6 +28,7 @@
       armed: 'Erkennung aktiv (Auto-Runden)',
       pilot_name: 'Pilotenname',
       save_pilot: 'Pilot speichern',
+      pilot_color: 'Pilotfarbe',
       lap_log: 'Rundenlog',
       export_csv: 'CSV exportieren',
       th_index: '#',
@@ -53,6 +54,7 @@
       hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
       g_race_audio: 'Rennen & Audio',
       prep_time: 'Vorbereitungszeit (s)',
+      cd_row: 'Countdown',
       audio_feedback: 'Audio-Feedback (Countdown, Runden)',
       speech_announce: 'Sprachansage',
       ann_off: 'Aus',
@@ -169,6 +171,7 @@
       armed: 'Detection active (auto laps)',
       pilot_name: 'Pilot name',
       save_pilot: 'Save pilot',
+      pilot_color: 'Pilot colour',
       lap_log: 'Lap log',
       export_csv: 'Export CSV',
       th_index: '#',
@@ -194,6 +197,7 @@
       hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
       g_race_audio: 'Race & Audio',
       prep_time: 'Preparation time (s)',
+      cd_row: 'Countdown',
       audio_feedback: 'Audio feedback (countdown, laps)',
       speech_announce: 'Voice announcement',
       ann_off: 'Off',
@@ -315,6 +319,7 @@
     laps: [],
     pilots: [],
     currentPilot: null,
+    pilotColors: {},
     settings: loadSettings(),
     procW: 320,
     procH: 240,
@@ -394,8 +399,6 @@
     procRes: document.getElementById('procRes'),
     zoneHint: document.getElementById('zoneHint'),
     showMotion: document.getElementById('showMotion'),
-    countdownSecs: document.getElementById('countdownSecs'),
-    countdownSecsVal: document.getElementById('countdownSecsVal'),
     audioEnabled: document.getElementById('audioEnabled'),
     announceMode: document.getElementById('announceMode'),
     announceRate: document.getElementById('announceRate'),
@@ -414,6 +417,13 @@
     lapsPlus: document.getElementById('lapsPlus'),
     autoLaps: document.getElementById('autoLaps'),
     autoLapsVal: document.getElementById('autoLapsVal'),
+    countdownBadge: document.getElementById('countdownBadge'),
+    countdownPop: document.getElementById('countdownPop'),
+    cdPopVal: document.getElementById('cdPopVal'),
+    cdMinus: document.getElementById('cdMinus'),
+    cdPlus: document.getElementById('cdPlus'),
+    pilotColor: document.getElementById('pilotColor'),
+    chartLegend: document.getElementById('chartLegend'),
     setsList: document.getElementById('setsList'),
     chartBlock: document.getElementById('chartBlock'),
     setsChart: document.getElementById('setsChart'),
@@ -463,6 +473,7 @@
       roi: state.roi,
       pilots: state.pilots,
       currentPilot: state.currentPilot,
+      pilotColors: state.pilotColors,
       showMotion: state.showMotion,
       audioEnabled: state.audioEnabled,
       countdownSecs: state.countdownSecs,
@@ -509,6 +520,11 @@
     state.cooldownMs = s.cooldownMs ?? 2000;
     state.pilots = s.pilots ?? [];
     state.currentPilot = s.currentPilot ?? null;
+    state.pilotColors = (s.pilotColors && typeof s.pilotColors === 'object') ? s.pilotColors : {};
+    // Backfill a colour for pilots created before colours existed.
+    state.pilots.forEach((p, i) => {
+      if (!state.pilotColors[p]) state.pilotColors[p] = PILOT_PALETTE[i % PILOT_PALETTE.length];
+    });
     state.roi = s.roi ?? null;
     if (s.procRes) els.procRes.value = s.procRes;
 
@@ -521,7 +537,6 @@
     state.audioEnabled = s.audioEnabled ?? true;
     if (els.audioEnabled) els.audioEnabled.checked = state.audioEnabled;
     state.countdownSecs = s.countdownSecs ?? 5;
-    if (els.countdownSecs) { els.countdownSecs.value = state.countdownSecs; els.countdownSecsVal.textContent = state.countdownSecs; }
     state.announceMode = s.announceMode ?? 'jede';
     if (els.announceMode) els.announceMode.value = state.announceMode;
     state.announceRate = s.announceRate ?? 1;
@@ -538,6 +553,7 @@
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     state.autoLaps = s.autoLaps ?? 0;
     renderAutoLaps();
+    renderCountdown();
     state.setFilter = s.setFilter || '';
     state.sections = (s.sections && typeof s.sections === 'object') ? s.sections : {};
     state.accent = s.accent || '#ff7a1a';
@@ -611,9 +627,6 @@
   els.procRes.addEventListener('change', () => { applyProcRes(); saveSettings(); });
   if (els.showMotion) {
     els.showMotion.addEventListener('change', e => { state.showMotion = e.target.checked; saveSettings(); });
-  }
-  if (els.countdownSecs) {
-    els.countdownSecs.addEventListener('input', e => { state.countdownSecs = +e.target.value; els.countdownSecsVal.textContent = state.countdownSecs; saveSettings(); });
   }
   if (els.audioEnabled) {
     els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; ensureAudio(); saveSettings(); });
@@ -773,7 +786,29 @@
   function toggleLapsPop(show) {
     if (!els.lapsPop) return;
     const willShow = (typeof show === 'boolean') ? show : els.lapsPop.hidden;
+    closePops(els.lapsPop);
     els.lapsPop.hidden = !willShow;
+  }
+  // ---------- countdown badge (prep time) ----------
+  function renderCountdown() {
+    const v = String(state.countdownSecs) + 's';
+    if (els.countdownBadge) els.countdownBadge.textContent = v;
+    if (els.cdPopVal) els.cdPopVal.textContent = v;
+  }
+  function setCountdown(v) {
+    v = Math.max(0, Math.min(15, Math.round(Number(v) || 0)));
+    state.countdownSecs = v;
+    renderCountdown();
+    saveSettings();
+  }
+  function toggleCountdownPop(show) {
+    if (!els.countdownPop) return;
+    const willShow = (typeof show === 'boolean') ? show : els.countdownPop.hidden;
+    closePops(els.countdownPop);
+    els.countdownPop.hidden = !willShow;
+  }
+  function closePops(except) {
+    [els.lapsPop, els.countdownPop].forEach(p => { if (p && p !== except) p.hidden = true; });
   }
   if (els.autoStart) {
     els.autoStart.addEventListener('change', e => setAutoStart(e.target.checked));
@@ -806,11 +841,32 @@
       });
     });
   }
+  if (els.countdownBadge) {
+    els.countdownBadge.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleCountdownPop();
+    });
+  }
+  if (els.cdMinus) els.cdMinus.addEventListener('click', e => { e.stopPropagation(); setCountdown(state.countdownSecs - 1); });
+  if (els.cdPlus) els.cdPlus.addEventListener('click', e => { e.stopPropagation(); setCountdown(state.countdownSecs + 1); });
+  if (els.countdownPop) {
+    els.countdownPop.querySelectorAll('[data-cd]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        setCountdown(+btn.getAttribute('data-cd'));
+        toggleCountdownPop(false);
+      });
+    });
+  }
   document.addEventListener('click', e => {
-    if (!els.lapsPop || els.lapsPop.hidden) return;
-    if (els.lapsPop.contains(e.target)) return;
-    if (els.autoLapsBadge && els.autoLapsBadge.contains(e.target)) return;
-    toggleLapsPop(false);
+    const pops = [[els.lapsPop, els.autoLapsBadge], [els.countdownPop, els.countdownBadge]];
+    pops.forEach(([pop, badge]) => {
+      if (!pop || pop.hidden) return;
+      if (pop.contains(e.target)) return;
+      if (badge && badge.contains(e.target)) return;
+      pop.hidden = true;
+    });
   });
   if (els.langSelect) {
     els.langSelect.addEventListener('change', e => {
@@ -1760,7 +1816,7 @@
       `<tr><th>${t('th_pilot')}</th><th>${t('th_sets')}</th><th>${t('set_laps_word')}</th>` +
       `<th>${t('set_best_word')}</th><th>${t('avg_word')}</th><th>${t('th_total')}</th></tr>`;
     const body = rows.map(r =>
-      `<tr><td>${esc(pilotLabel(r.p))}</td>` +
+      `<tr><td><i class="dot" style="background:${pilotColor(r.p)}"></i>${esc(pilotLabel(r.p))}</td>` +
       `<td class="num">${r.count}</td><td class="num">${r.laps}</td>` +
       `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
       `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
@@ -1794,7 +1850,7 @@
       head.innerHTML =
         `<span class="set-name">${t('set_word')} ${set.n}</span>` +
         `<span class="set-meta">` +
-          `<span>${esc(pilotLabel(set.pilot))}</span>` +
+          `<span><i class="dot" style="background:${pilotColor(set.pilot)}"></i>${esc(pilotLabel(set.pilot))}</span>` +
           `<span>${timeLabel(set.at)}</span>` +
           `<span><b>${set.laps.length}</b> ${t('set_laps_word')}</span>` +
           `<span>${t('set_best_word')} <b>${fmt(set.bestMs)}</b></span>` +
@@ -1937,18 +1993,26 @@
     ctx.textBaseline = 'bottom';
     ctx.fillText(t('set_best_word') + ' ' + fmtSec(overallBest), padLeft + plotW - 2, bestY - 3);
 
-    // one line per set
+    // one line per set — colour by pilot when comparing several pilots
+    const pilotSeen = {};
+    const pilotTotal = {};
+    shown.forEach(s => { const k = s.pilot || ''; pilotTotal[k] = (pilotTotal[k] || 0) + 1; });
     shown.forEach((s, si) => {
-      const color = CHART_COLORS[si % CHART_COLORS.length];
+      const key = s.pilot || '';
+      const color = multiPilot ? pilotColor(key) : CHART_COLORS[si % CHART_COLORS.length];
+      pilotSeen[key] = (pilotSeen[key] || 0) + 1;
+      const dashed = multiPilot && pilotTotal[key] > 1 && pilotSeen[key] > 1;
       if (s.laps.length > 1) {
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
+        ctx.setLineDash(dashed ? [6, 4] : []);
         ctx.beginPath();
         s.laps.forEach((l, i) => {
           const x = X(l.idx), y = Y(l.duration);
           if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         });
         ctx.stroke();
+        ctx.setLineDash([]);
       }
       s.laps.forEach(l => {
         const isBest = l.duration === s.bestMs;
@@ -1968,6 +2032,18 @@
     });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
+
+    // legend (only meaningful when several pilots share the chart)
+    if (els.chartLegend) {
+      if (multiPilot) {
+        const names = [...new Set(shown.map(s => s.pilot || ''))];
+        els.chartLegend.innerHTML = names.map(p =>
+          `<span class="legend-item"><i style="background:${pilotColor(p)}"></i>${esc(pilotLabel(p))}</span>`
+        ).join('');
+      } else {
+        els.chartLegend.innerHTML = '';
+      }
+    }
   }
 
   if (els.btnClearSets) {
@@ -1991,20 +2067,41 @@
   }
 
   // ---------- pilots ----------
+  const PILOT_PALETTE = ['#20c4c4', '#ff7a1a', '#4ade80', '#60a5fa', '#a78bfa', '#ff4d8d', '#ffd23c', '#fb923c'];
+  function pilotColor(p) {
+    const key = p || '';
+    if (state.pilotColors && state.pilotColors[key]) return state.pilotColors[key];
+    return key === '' ? '#9aa7b4' : '#ff7a1a';
+  }
+  function nextPilotColor() {
+    const used = state.pilots.map(p => state.pilotColors[p]);
+    for (const c of PILOT_PALETTE) if (!used.includes(c)) return c;
+    return PILOT_PALETTE[state.pilots.length % PILOT_PALETTE.length];
+  }
   function renderPilots() {
+    if (els.pilotColor) els.pilotColor.value = state.currentPilot && state.pilotColors[state.currentPilot]
+      ? state.pilotColors[state.currentPilot]
+      : nextPilotColor();
     els.pilots.innerHTML = '';
     state.pilots.forEach(name => {
       const chip = document.createElement('div');
-      chip.className = 'pilot-chip' + (state.currentPilot === name ? ' active' : '');
+      const active = state.currentPilot === name;
+      const col = pilotColor(name);
+      chip.className = 'pilot-chip' + (active ? ' active' : '');
       chip.textContent = name;
+      chip.style.borderColor = col;
+      chip.style.color = active ? '#0b0f14' : col;
+      if (active) chip.style.background = col;
       chip.addEventListener('click', () => { state.currentPilot = name; renderPilots(); saveSettings(); });
       els.pilots.appendChild(chip);
     });
+    renderSets();
   }
   els.btnAddPilot.addEventListener('click', () => {
     const name = els.pilotName.value.trim();
     if (!name) return;
     if (!state.pilots.includes(name)) state.pilots.push(name);
+    if (els.pilotColor) state.pilotColors[name] = els.pilotColor.value;
     state.currentPilot = name;
     els.pilotName.value = '';
     renderPilots();

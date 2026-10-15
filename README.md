@@ -30,6 +30,8 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 - Akzentfarbe frei wählbar (Einstellungen → „Aussehen“): Presets oder eigene Farbe per Farbwähler
 - Einklappbare Hauptbereiche: Kamera, Timer, Rundenlog und Sätze lassen sich am Titel antippen ein-/ausklappen (Zustand wird gespeichert; Timer zeigt im eingeklappten Kopf die laufende Zeit)
 - Auto-Start auch direkt in der Timer-Karte (Schnellschalter; das Badge daneben antippen → Stepper/Presets für die Rundenzahl pro Satz)
+- Countdown direkt in der Timer-Karte einstellbar (Badge antippen → Stepper/Presets)
+- Pilotfarben: beim Anlegen eines Piloten eine Farbe wählen – der Pilot wird im Chart und in der Vergleichstabelle in seiner Farbe dargestellt (Legende im Chart)
 - Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
@@ -52,6 +54,8 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 - Cooldown: Mindestabstand zwischen zwei Runden
 - Auflösung: Verarbeitungsauflösung (niedriger = schneller)
 - Auto-Start direkt in der Timer-Karte: Schalter „Auto-Start“ und das Badge daneben (Rundenzahl pro Satz, 0 = unbegrenzt)
+- Countdown (Vorbereitungszeit) direkt in der Timer-Karte: Badge antippen → 0–15 s (nicht mehr im Zahnrad-Menü)
+- Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 
 ## Roadmap für native Kotlin-App

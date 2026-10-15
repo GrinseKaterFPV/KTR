@@ -115,12 +115,14 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
 .pilot-row { display: flex; gap: 8px; }
 .pilot-row input { flex: 1; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.pilot-row input[type="color"] { flex: 0 0 46px; width: 46px; padding: 2px; cursor: pointer; }
 .pilots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pilot-chip {
   padding: 4px 10px; border-radius: 999px; background: var(--elev); border: 1px solid var(--border);
   font-size: 13px; cursor: pointer;
 }
 .pilot-chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 
 .sets-list { display: flex; flex-direction: column; gap: 8px; }
 .sets-filter { margin-bottom: 10px; }
@@ -192,6 +194,7 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .auto-quick input:checked + span { color: var(--accent); }
 .auto-row { position: relative; display: flex; align-items: center; gap: 8px; }
 .auto-row .toggle { flex: 1; }
+.auto-row .row-label { flex: 1; font-size: 13px; }
 .quick-badge {
   font-family: monospace; font-size: 13px; font-weight: 700;
   background: var(--elev); border: 1px solid var(--border); border-radius: 999px;
@@ -214,6 +217,10 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 /* ---- sets comparison chart ---- */
 .chart-block { margin: 4px 0 12px; }
 .chart-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.chart-legend:empty { display: none; }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-item i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .sets-chart { width: 100%; height: 190px; display: block; background: var(--elev); border: 1px solid var(--border); border-radius: 10px; }
 
 /* ---- landscape / horizontal mode ----

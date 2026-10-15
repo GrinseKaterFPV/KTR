@@ -100,8 +100,25 @@
           </div>
         </div>
       </div>
+      <div class="auto-row">
+        <span class="row-label" data-i18n="cd_row">Countdown</span>
+        <button type="button" class="quick-badge" id="countdownBadge" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)">5s</button>
+        <div class="laps-pop" id="countdownPop" hidden>
+          <div class="laps-pop-title" data-i18n="prep_time">Vorbereitungszeit (s)</div>
+          <button type="button" class="laps-step" id="cdMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
+          <span class="laps-pop-val" id="cdPopVal">5s</span>
+          <button type="button" class="laps-step" id="cdPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
+          <div class="laps-presets">
+            <button type="button" data-cd="0">0s</button>
+            <button type="button" data-cd="3">3s</button>
+            <button type="button" data-cd="5">5s</button>
+            <button type="button" data-cd="10">10s</button>
+          </div>
+        </div>
+      </div>
       <div class="pilot-row">
         <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
+        <input type="color" id="pilotColor" class="pilot-color" value="#20c4c4" data-i18n-title="pilot_color" data-i18n-aria="pilot_color" title="Pilotfarbe" aria-label="Pilotfarbe" />
         <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>
       </div>
       <div class="pilots" id="pilots"></div>
@@ -137,6 +154,7 @@
       </div>
       <div class="chart-block" id="chartBlock">
         <div class="chart-title" data-i18n="chart_title">Rundenverlauf</div>
+        <div class="chart-legend" id="chartLegend"></div>
         <canvas id="setsChart" class="sets-chart"></canvas>
       </div>
       <div class="pilot-compare" id="pilotCompare"></div>
@@ -180,7 +198,6 @@
         <details class="settings-group">
           <summary><h3 data-i18n="g_race_audio">Rennen &amp; Audio</h3></summary>
           <div class="settings-grid">
-            <label><span data-i18n="prep_time">Vorbereitungszeit (s)</span> <input type="range" id="countdownSecs" min="0" max="15" value="5" /><span id="countdownSecsVal">5</span></label>
             <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
             <label><span data-i18n="speech_announce">Sprachansage</span>
               <select id="announceMode">
