@@ -1117,7 +1117,7 @@
     allSettingsOverlays.forEach(o => { o.hidden = true; });
   }
   function settingsOpen() { return allSettingsOverlays.some(o => !o.hidden); }
-  if (els.btnSettings) els.btnSettings.addEventListener('click', () => openSettings('app'));
+  if (els.btnSettings) els.btnSettings.addEventListener('click', () => { openSettings('app'); rememberHomeTile('tileSettings'); });
   if (els.btnSettingsClose) els.btnSettingsClose.addEventListener('click', closeSettings);
   if (els.tileSettings) els.tileSettings.addEventListener('click', () => openSettings('app'));
   if (els.btnTimerSettings) els.btnTimerSettings.addEventListener('click', () => openSettings('timer'));
@@ -1167,10 +1167,11 @@
   function highlightHomeTile(id) {
     homeTiles.forEach(t => t.classList.toggle('is-primary', t.id === id));
   }
-  homeTiles.forEach(t => t.addEventListener('click', () => {
-    highlightHomeTile(t.id);
-    try { localStorage.setItem('lastHomeTile', t.id); } catch (e) { /* ignore */ }
-  }));
+  function rememberHomeTile(id) {
+    highlightHomeTile(id);
+    try { localStorage.setItem('lastHomeTile', id); } catch (e) { /* ignore */ }
+  }
+  homeTiles.forEach(t => t.addEventListener('click', () => rememberHomeTile(t.id)));
   (function restoreHomeTile() {
     let id = 'tileTimer';
     try { id = localStorage.getItem('lastHomeTile') || id; } catch (e) { /* ignore */ }
