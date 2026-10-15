@@ -77,7 +77,7 @@
     </details>
 
     <details class="timer-card card-collapsible" data-sec="timer" open>
-      <summary class="card-summary"><h2 data-i18n="sec_timer">Timer</h2><span class="summary-value" id="timerSummary">00:00.000</span></summary>
+      <summary class="card-summary"><h2 data-i18n="sec_timer">Timer</h2><span class="summary-value" id="timerSummary">00:00.000</span><button id="btnTimerSettings" class="gear-btn" type="button" data-i18n-title="settings_timer" data-i18n-aria="settings_timer" title="Timer-Einstellungen" aria-label="Timer-Einstellungen">⚙</button></summary>
       <div class="card-body">
       <div class="timer-header">
         <div class="timer-main">
@@ -205,6 +205,67 @@
           <button id="btnSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
         </div>
         <details class="settings-group">
+          <summary><h3 data-i18n="g_language">Sprache &amp; Stimme</h3></summary>
+          <div class="settings-grid">
+            <label><span data-i18n="ui_language">App-Sprache</span>
+              <select id="langSelect">
+                <option value="de" data-i18n="lang_de">Deutsch</option>
+                <option value="en" data-i18n="lang_en">English</option>
+              </select>
+            </label>
+            <label><span data-i18n="voice">Sprachstimme</span>
+              <select id="voiceSelect"></select>
+            </label>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_audio">Audio &amp; Ansagen</h3></summary>
+          <div class="settings-grid">
+            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
+            <label><span data-i18n="speech_announce">Sprachansage</span>
+              <select id="announceMode">
+                <option value="aus" data-i18n="ann_off">Aus</option>
+                <option value="jede" selected data-i18n="ann_every">Jede Runde</option>
+                <option value="best" data-i18n="ann_best">Nur beste Runde</option>
+              </select>
+            </label>
+            <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
+            <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_look">Aussehen</h3></summary>
+          <div class="settings-grid">
+            <label><span data-i18n="accent_color">Akzentfarbe</span></label>
+            <div class="swatches" id="accentSwatches">
+              <button type="button" data-color="#ff7a1a" style="--sw:#ff7a1a" aria-label="#ff7a1a"></button>
+              <button type="button" data-color="#20c4c4" style="--sw:#20c4c4" aria-label="#20c4c4"></button>
+              <button type="button" data-color="#4ade80" style="--sw:#4ade80" aria-label="#4ade80"></button>
+              <button type="button" data-color="#60a5fa" style="--sw:#60a5fa" aria-label="#60a5fa"></button>
+              <button type="button" data-color="#a78bfa" style="--sw:#a78bfa" aria-label="#a78bfa"></button>
+              <button type="button" data-color="#ff4d8d" style="--sw:#ff4d8d" aria-label="#ff4d8d"></button>
+              <button type="button" data-color="#ffd23c" style="--sw:#ffd23c" aria-label="#ffd23c"></button>
+              <button type="button" data-color="#4dd6a0" style="--sw:#4dd6a0" aria-label="#4dd6a0"></button>
+            </div>
+            <label><span data-i18n="accent_custom">Eigene Farbe</span> <input type="color" id="accentCustom" value="#ff7a1a" /></label>
+          </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_app">App</h3></summary>
+          <div class="settings-grid">
+            <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="settings-overlay" id="timerSettingsOverlay" hidden>
+      <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings_timer" aria-label="Timer-Einstellungen">
+        <div class="settings-modal-head">
+          <h2 class="settings-title" data-i18n="settings_timer">Timer-Einstellungen</h2>
+          <button id="btnTimerSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+        </div>
+        <details class="settings-group">
           <summary><h3 data-i18n="g_detection">Erkennung</h3></summary>
           <div class="settings-grid">
             <label><span data-i18n="diff_thresh">Diff-Schwelle</span> <input type="range" id="diffThresh" min="5" max="120" value="35" /><span id="diffThreshVal">35</span></label>
@@ -232,55 +293,11 @@
           <p class="hint" data-i18n="hint_detection">Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.</p>
         </details>
         <details class="settings-group">
-          <summary><h3 data-i18n="g_race_audio">Rennen &amp; Audio</h3></summary>
+          <summary><h3 data-i18n="g_autostart">Auto-Start &amp; Rennen</h3></summary>
           <div class="settings-grid">
-            <label class="check-row"><input type="checkbox" id="audioEnabled" checked /> <span data-i18n="audio_feedback">Audio-Feedback (Countdown, Runden)</span></label>
-            <label><span data-i18n="speech_announce">Sprachansage</span>
-              <select id="announceMode">
-                <option value="aus" data-i18n="ann_off">Aus</option>
-                <option value="jede" selected data-i18n="ann_every">Jede Runde</option>
-                <option value="best" data-i18n="ann_best">Nur beste Runde</option>
-              </select>
-            </label>
-            <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
-            <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_language">Sprache &amp; Stimme</h3></summary>
-          <div class="settings-grid">
-            <label><span data-i18n="ui_language">App-Sprache</span>
-              <select id="langSelect">
-                <option value="de" data-i18n="lang_de">Deutsch</option>
-                <option value="en" data-i18n="lang_en">English</option>
-              </select>
-            </label>
-            <label><span data-i18n="voice">Sprachstimme</span>
-              <select id="voiceSelect"></select>
-            </label>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_look">Aussehen</h3></summary>
-          <div class="settings-grid">
-            <label><span data-i18n="accent_color">Akzentfarbe</span></label>
-            <div class="swatches" id="accentSwatches">
-              <button type="button" data-color="#ff7a1a" style="--sw:#ff7a1a" aria-label="#ff7a1a"></button>
-              <button type="button" data-color="#20c4c4" style="--sw:#20c4c4" aria-label="#20c4c4"></button>
-              <button type="button" data-color="#4ade80" style="--sw:#4ade80" aria-label="#4ade80"></button>
-              <button type="button" data-color="#60a5fa" style="--sw:#60a5fa" aria-label="#60a5fa"></button>
-              <button type="button" data-color="#a78bfa" style="--sw:#a78bfa" aria-label="#a78bfa"></button>
-              <button type="button" data-color="#ff4d8d" style="--sw:#ff4d8d" aria-label="#ff4d8d"></button>
-              <button type="button" data-color="#ffd23c" style="--sw:#ffd23c" aria-label="#ffd23c"></button>
-              <button type="button" data-color="#4dd6a0" style="--sw:#4dd6a0" aria-label="#4dd6a0"></button>
-            </div>
-            <label><span data-i18n="accent_custom">Eigene Farbe</span> <input type="color" id="accentCustom" value="#ff7a1a" /></label>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_app">App</h3></summary>
-          <div class="settings-grid">
-            <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
+            <label class="check-row"><input type="checkbox" id="autoStart" /> <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span></label>
+            <label><span data-i18n="laps_short">Runden/Satz</span> <input type="number" id="autoLaps" min="0" max="30" step="1" value="0" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)" /></label>
+            <label><span data-i18n="cd_row">Countdown</span> <input type="number" id="countdownInput" min="0" max="15" step="1" value="5" data-i18n-title="prep_time" data-i18n-aria="prep_time" title="Vorbereitungszeit (s)" aria-label="Vorbereitungszeit (s)" /></label>
           </div>
         </details>
       </div>

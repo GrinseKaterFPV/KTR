@@ -20,7 +20,7 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
-- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – z. B. **Timer** – und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
+- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – **Timer** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
 - **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
   - *Hinweis:* Nach einem Logo-Wechsel zeigt der Startbildschirm bei installierten PWAs oft noch das alte Symbol – App dort entfernen und erneut hinzufügen, um das neue zu sehen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
@@ -47,7 +47,7 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 - Zweisprachig (Deutsch/Englisch): Umschalten in den Einstellungen unter „Sprache & Stimme“; Aussprache von Ansagen passt sich an. Zusätzlich kann eine konkrete Sprachstimme gewählt werden
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
-- Einklappbare Einstellungen (Zahnrad-Symbol oben rechts), Untergruppen standardmäßig zugeklappt
+- Einklappbare Einstellungen mit zwei getrennten Zahnrädern: oben rechts am Homescreen → App-Einstellungen, in der Timer-Karte → Timer-Einstellungen; Untergruppen standardmäßig zugeklappt
 
 ## Als Android-App (optional)
 Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das Projekt
@@ -55,13 +55,12 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 `npm i @capacitor/core @capacitor/cli @capacitor/android && npx cap init && npx cap add android && npx cap sync`.
 
 ## Einstellungen
-- Diff-Schwelle: Pixel-Differenz (0–255) zum Hintergrund
-- Enter (px): Mindestanzahl veränderter Pixel für „belegt“
-- Exit (px): Schwellwert für „frei“
-- Cooldown: Mindestabstand zwischen zwei Runden
-- Auflösung: Verarbeitungsauflösung (niedriger = schneller)
-- Auto-Start direkt in der Timer-Karte: Schalter „Auto-Start“ und das Badge daneben (Rundenzahl pro Satz, 0 = unbegrenzt)
-- Countdown (Vorbereitungszeit) direkt in der Timer-Karte: Badge antippen → 0–15 s (nicht mehr im Zahnrad-Menü)
+Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
+- **App-Einstellungen** (Zahnrad oben rechts am Homescreen bzw. Kachel „Einstellungen“): Sprache & Stimme, Audio & Ansagen (Audio-Feedback, Sprachansage aus/jede/beste, Sprechtempo, Stimme testen), Aussehen (Akzentfarbe), App (Update/Cache leeren)
+- **Timer-Einstellungen** (Zahnrad in der Timer-Karte):
+  - Erkennung: Diff-Schwelle (Pixel-Differenz 0–255 zum Hintergrund), Enter (px), Exit (px), Cooldown (Mindestabstand), Verarbeitungsauflösung (niedriger = schneller), erwartete Richtung, Driftausgleich, Kamera fixieren
+  - Auto-Start & Rennen: Auto-Start an/aus, Runden pro Satz (0 = unbegrenzt), Countdown/Vorbereitungszeit (0–15 s)
+- Die Schnellregler in der Timer-Karte bleiben erhalten (Auto-Start-Schalter, Badge „Runden/Satz“, Countdown-Badge) und sind mit den Feldern im Timer-Menü synchron
 - Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 

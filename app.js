@@ -1,13 +1,14 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.5';
+  const APP_VERSION = '0.13.6';
 
   // ---------- i18n ----------
   const I18N = {
     de: {
       title: 'KTR FPV APP',
       settings: 'Einstellungen',
+      settings_timer: 'Timer-Einstellungen',
       close: 'Schließen',
       home: 'Startseite',
       home_sub: 'FPV Racing Toolkit',
@@ -58,7 +59,8 @@
       drift_comp: 'Autofokus-/Belichtungsdrift ausgleichen (empfohlen)',
       cam_lock: 'Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt',
       hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
-      g_race_audio: 'Rennen & Audio',
+      g_autostart: 'Auto-Start & Rennen',
+      g_audio: 'Audio & Ansagen',
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio-Feedback (Countdown, Runden)',
@@ -160,6 +162,7 @@
     en: {
       title: 'KTR FPV APP',
       settings: 'Settings',
+      settings_timer: 'Timer settings',
       close: 'Close',
       home: 'Home',
       home_sub: 'FPV Racing Toolkit',
@@ -210,7 +213,8 @@
       drift_comp: 'Compensate autofocus/exposure drift (recommended)',
       cam_lock: 'Lock camera (manual focus/exposure) – only enable if the image stays reliably bright',
       hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
-      g_race_audio: 'Race & Audio',
+      g_autostart: 'Auto-start & race',
+      g_audio: 'Audio & announcements',
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio feedback (countdown, laps)',
@@ -431,8 +435,11 @@
     directionSelect: document.getElementById('directionSelect'),
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
+    autoStart: document.getElementById('autoStart'),
     autoStartQuick: document.getElementById('autoStartQuick'),
+    autoLaps: document.getElementById('autoLaps'),
     autoLapsBadge: document.getElementById('autoLapsBadge'),
+    countdownInput: document.getElementById('countdownInput'),
     lapsPop: document.getElementById('lapsPop'),
     lapsPopVal: document.getElementById('lapsPopVal'),
     lapsMinus: document.getElementById('lapsMinus'),
@@ -459,6 +466,9 @@
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
+    btnTimerSettings: document.getElementById('btnTimerSettings'),
+    timerSettingsOverlay: document.getElementById('timerSettingsOverlay'),
+    btnTimerSettingsClose: document.getElementById('btnTimerSettingsClose'),
     homeScreen: document.getElementById('homeScreen'),
     btnHome: document.getElementById('btnHome'),
     homeVersionBadge: document.getElementById('homeVersionBadge'),
@@ -897,6 +907,7 @@
     const v = String(state.countdownSecs) + 's';
     if (els.countdownBadge) els.countdownBadge.textContent = v;
     if (els.cdPopVal) els.cdPopVal.textContent = v;
+    if (els.countdownInput) els.countdownInput.value = state.countdownSecs;
   }
   function setCountdown(v) {
     v = Math.max(0, Math.min(15, Math.round(Number(v) || 0)));
@@ -919,12 +930,12 @@
   if (els.autoStartQuick) {
     els.autoStartQuick.addEventListener('change', e => setAutoStart(e.target.checked));
   }
+  // Same two values are also editable as plain fields in the timer settings.
   if (els.autoLaps) {
-    els.autoLaps.addEventListener('input', e => {
-      state.autoLaps = +e.target.value;
-      renderAutoLaps();
-      saveSettings();
-    });
+    els.autoLaps.addEventListener('change', e => setAutoLaps(e.target.value));
+  }
+  if (els.countdownInput) {
+    els.countdownInput.addEventListener('change', e => setCountdown(e.target.value));
   }
   if (els.autoLapsBadge) {
     els.autoLapsBadge.addEventListener('click', e => {
@@ -1032,24 +1043,31 @@
   }
 
   // ---------- settings panel ----------
-  function openSettings() {
-    if (!els.settingsOverlay) return;
-    els.settingsOverlay.hidden = false;
+  // Two contexts: app settings (home tile + topbar gear) and timer settings
+  // (gear inside the timer card). Only one overlay can be open at a time.
+  const allSettingsOverlays = [els.settingsOverlay, els.timerSettingsOverlay].filter(Boolean);
+  function openSettings(which) {
+    const target = (which === 'timer') ? els.timerSettingsOverlay : els.settingsOverlay;
+    closeSettings();
+    if (target) target.hidden = false;
   }
   function closeSettings() {
-    if (!els.settingsOverlay) return;
-    els.settingsOverlay.hidden = true;
+    allSettingsOverlays.forEach(o => { o.hidden = true; });
   }
-  if (els.btnSettings) els.btnSettings.addEventListener('click', openSettings);
+  function settingsOpen() { return allSettingsOverlays.some(o => !o.hidden); }
+  if (els.btnSettings) els.btnSettings.addEventListener('click', () => openSettings('app'));
   if (els.btnSettingsClose) els.btnSettingsClose.addEventListener('click', closeSettings);
-  if (els.settingsOverlay) {
-    els.settingsOverlay.addEventListener('click', e => {
-      if (e.target === els.settingsOverlay) closeSettings();
+  if (els.tileSettings) els.tileSettings.addEventListener('click', () => openSettings('app'));
+  if (els.btnTimerSettings) els.btnTimerSettings.addEventListener('click', () => openSettings('timer'));
+  if (els.btnTimerSettingsClose) els.btnTimerSettingsClose.addEventListener('click', closeSettings);
+  allSettingsOverlays.forEach(o => {
+    o.addEventListener('click', e => {
+      if (e.target === o) closeSettings();
     });
-  }
+  });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    if (els.settingsOverlay && !els.settingsOverlay.hidden) { closeSettings(); return; }
+    if (settingsOpen()) { closeSettings(); return; }
     if (els.homeScreen && els.homeScreen.hidden) openHome();
   });
 
@@ -1058,16 +1076,20 @@
     if (!els.homeScreen) return;
     els.homeScreen.hidden = false;
     if (els.btnHome) els.btnHome.hidden = true;
+    // The topbar gear belongs to the home screen (app settings); the timer view
+    // has its own gear inside the timer card.
+    if (els.btnSettings) els.btnSettings.hidden = false;
     els.homeScreen.scrollTop = 0;
   }
   function closeHome() {
     if (!els.homeScreen) return;
     els.homeScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = false;
+    if (els.btnSettings) els.btnSettings.hidden = true;
+    closeSettings();
   }
   if (els.btnHome) els.btnHome.addEventListener('click', openHome);
   if (els.tileTimer) els.tileTimer.addEventListener('click', closeHome);
-  if (els.tileSettings) els.tileSettings.addEventListener('click', openSettings);
 
   // ---------- audio feedback ----------
   // WebAudio only produces sound after a user gesture on Safari and on

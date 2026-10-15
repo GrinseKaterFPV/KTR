@@ -128,6 +128,8 @@ button, input, select { font: inherit; }
 .summary-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .summary-actions button { padding: 6px 10px; font-size: 12px; }
 .summary-value { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+/* Context gear inside a card header (e.g. timer card → timer settings) */
+.card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; }
 
 .video-wrap {
   position: relative; width: 100%; aspect-ratio: 4/3; background: #000;
@@ -224,6 +226,7 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .swatches button { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--sw); border: 2px solid var(--border); cursor: pointer; }
 .swatches button.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .settings-grid input[type=color] { grid-column: 2; width: 52px; height: 32px; padding: 2px; background: var(--elev); border: 1px solid var(--border); border-radius: 8px; }
+.settings-grid input[type=number] { grid-column: 2; width: 78px; padding: 7px 8px; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; text-align: right; font-family: monospace; }
 .settings-overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
 .settings-overlay[hidden] { display: none; }
 .settings-modal {
