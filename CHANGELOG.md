@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.16.3] - 2025-10-15
+## [0.17.0] - 2025-10-16
+### Added
+- Game of K.W.A.D: 5 trick categories (Basics 🟢, Intermediate 🟡, Advanced 🟠, Pro 🔴, Custom ⭐) with difficulty levels
+- Game of K.W.A.D: Custom tricks – add/remove own tricks with name + description
+- Game of K.W.A.D: 3 draw modes – Random (difficulty-weighted), Sequential, Category Round-Robin
+- Game of K.W.A.D: Trick statistics – attempted/succeeded/rate per trick
+- Game of K.W.A.D: Dedicated settings overlay (gear icon in KWAD screen) for categories, mode, custom tricks, stats
+- Game of K.W.A.D: Sound effects – penalty (fail), new trick (ready), game over (loser)
+- Game of K.W.A.D: Undo button for last penalty letter (anti-cheat: only last, cleared on new trick/success)
+
+### Changed
+- KWAD draw logic now uses weighted random by difficulty (easier tricks more frequent)
+- KWAD trick pool dynamically built from enabled categories
+
+### Fixed
+- KWAD undo button disabled when no action to undo
 ### Added
 - Game of K.W.A.D: Undo button (removes last penalty letter, anti-cheat: only last, cleared on new trick/success)
 - Game of K.W.A.D: Sound effects – penalty (fail), new trick (ready), game over (loser)
