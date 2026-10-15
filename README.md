@@ -13,14 +13,13 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 
 ## Öffentliche URL (`/KTR`)
 Veröffentlicht wird über GitHub Pages (Branch `main`). Der öffentliche Titel ist **KTR**;
-angestrebt ist die kurze URL `https://grinsekaterfpv.github.io/KTR/`.
+die URL lautet **`https://grinsekaterfpv.github.io/KTR/`**.
 
-Dafür muss das GitHub-Repository einmalig von `Timer` in `KTR` umbenannt werden
-(GitHub → Repository → *Settings* → *Repository name*). Alle Pfade in der App sind
+Das Repository heißt dafür `KTR` (früher `Timer`). Alle Pfade in der App sind
 relativ (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `icon-ktr.svg`,
-`sw.js`), deshalb funktioniert die App danach unverändert unter dem neuen Pfad.
+`sw.js`), deshalb funktioniert die App unter dem neuen Pfad unverändert.
 
-> **Reset-Hinweis:** Nach der Umbenennung antwortet die alte URL `…/Timer/` mit 404.
+> **Reset-Hinweis:** Die alte URL `…/Timer/` antwortet inzwischen mit 404.
 > Bereits installierte PWA-Kurzbefehle und Lesezeichen müssen einmal neu angelegt werden
 > (Chrome → Menü → „Zum Startbildschirm hinzufügen“). In der App hilft zusätzlich
 > *Einstellungen → App → „App aktualisieren (Cache leeren)“*, damit der neue
@@ -38,7 +37,7 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
-- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen mit großem Logo und dem Namen **„Katers FPV Toolkit“**. Dort wählt man das Feature – **Timer** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
+- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen mit großem Logo und dem Namen **„Katers FPV Toolkit“**. Dort wählt man das Feature – **Timer**, **Game of K.W.A.D** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
 - **Logo:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen
   - *Hinweis:* Nach einem Logo-Wechsel zeigt der Startbildschirm bei installierten PWAs oft noch das alte Symbol – App dort entfernen und erneut hinzufügen, um das neue zu sehen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
@@ -66,6 +65,7 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
 - Einklappbare Einstellungen mit zwei getrennten Zahnrädern: oben rechts am Homescreen → App-Einstellungen, in der Timer-Karte → Timer-Einstellungen; Untergruppen standardmäßig zugeklappt
+- **Game of K.W.A.D** (eigener Modus, komplett lokal ohne Server): Game of SKATE für FPV-Freestyle. Eigene Spielerliste (bleibt gespeichert), zufälliger Trick aus einem Pool („Neuer Trick“), der aktive Spieler wird reihum hervorgehoben. **Geschafft** gibt keinen Buchstaben, **Nicht geschafft** kostet einen Strafbuchstaben in der Reihenfolge **K → W → A → D**; wer zuerst alle vier hat, **verliert** (Buchstaben werden zurückgesetzt für eine Revanche). Sobald alle aktiven Spieler einen Trick versucht haben, kommt automatisch ein neuer. Die Bewertung liegt bei der Gruppe – die App ist Ansager, kein Schiedsrichter
 
 ## Als Android-App (optional)
 Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das Projekt
@@ -76,8 +76,10 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 `npm test` führt die Prüfskripte aus `tests/` aus (reines Node, keine Abhängigkeiten):
 - `tests/autostart_test.js` – Auto-Start-Erstlauf: der erste Durchflug startet das Rennen, zählt aber keine Runde; erst der zweite Durchflug ergibt Runde 1
 - `tests/roi_math_test.js` – ROI-Mathematik: eine gezeichnete Bildschirmfläche bleibt beim Wechsel der Verarbeitungsauflösung, bei unterschiedlichen Seitenverhältnissen (Hoch-/Querformat) und vor dem ersten verarbeiteten Frame an derselben Stelle
+- `tests/kwad_test.js` – Game of K.W.A.D: Strafbuchstaben laufen **K → W → A → D** und stoppen danach, der erste Spieler mit vier Buchstaben verliert, ein Trick wiederholt sich nie direkt, und die Buchstaben-Tafel wird korrekt gerendert (mit einem minimalen DOM-Stub)
+- `tests/persist_test.js` – Auto-Lap-Persistenz: `state.armed` wird von `saveSettings` geschrieben, beim Start wiederhergestellt und beim Umschalten sofort gespeichert (Regressionsschutz)
 
-Beide Skripte extrahieren den echten Code aus `app.js` und prüfen ihn – sie testen also das ausgelieferte Verhalten, keine Nachbildung.
+Die Skripte extrahieren den echten Code aus `app.js` und prüfen ihn – sie testen also das ausgelieferte Verhalten, keine Nachbildung.
 
 ## Einstellungen
 Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
@@ -90,8 +92,9 @@ Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
 - Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 
-## Geplante Modi
-- **Game of K.W.A.D** (in Planung, noch kein Code): Game of SKATE für FPV-Freestyle — eine Runde zieht einen zufälligen Trick, ein Fehlversuch kostet einen Strafbuchstaben, wer zuerst K, W, A und D hat, verliert. Konzept/Pflichtenheft: [`docs/game-of-kwad.md`](docs/game-of-kwad.md)
+## Game of K.W.A.D
+- **Umgesetzt (v1, rein manuell/lokal):** eigene Kachel auf dem Homescreen, Spielerliste (`localStorage: kwad_players`), zufälliger Trick mit „Neuer Trick“, reihum der aktive Spieler, **Geschafft** / **Nicht geschafft**, Strafbuchstaben **K → W → A → D**, Verlierer-Ansage, Revanche. Die Gruppe bewertet – die App erkennt (noch) nicht automatisch, ob ein Trick wirklich geflogen wurde
+- **Konzept/Pflichtenheft für die Ausbaustufen** (Zeitfenster, Tor-Erkennung als automatischer Erfolg, Sprachansage der Tricks, Richtungs-Tricks, Modus „Vorgeben“, CSV-Export): [`docs/game-of-kwad.md`](docs/game-of-kwad.md)
 
 ## Roadmap für native Kotlin-App
 - CameraX-Vorschau + Analyse-Thread

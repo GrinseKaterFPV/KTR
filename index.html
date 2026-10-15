@@ -37,6 +37,11 @@
           <span class="home-tile-label" data-i18n="m_timer">Timer</span>
           <span class="home-tile-desc" data-i18n="m_timer_desc">Runden, Sätze &amp; Vergleich</span>
         </button>
+        <button class="home-tile" id="tileKwad" type="button">
+          <span class="home-tile-icon">🛹</span>
+          <span class="home-tile-label" data-i18n="m_kwad">Game of K.W.A.D</span>
+          <span class="home-tile-desc" data-i18n="m_kwad_desc">Freestyle-Tricks, Strafbuchstaben</span>
+        </button>
         <button class="home-tile" id="tileSettings" type="button">
           <span class="home-tile-icon">⚙</span>
           <span class="home-tile-label" data-i18n="settings">Einstellungen</span>
@@ -44,6 +49,42 @@
         </button>
       </div>
       <p class="home-note" data-i18n="m_note">Mehr Funktionen kommen schrittweise dazu.</p>
+    </div>
+  </div>
+
+  <div class="home-screen kwad-screen" id="kwadScreen" hidden>
+    <div class="home-inner">
+      <div class="kwad-hero">
+        <img class="home-logo" src="icon-ktr.svg" alt="KTR" width="72" height="72" />
+        <div class="kwad-brand" data-i18n="m_kwad">Game of K.W.A.D</div>
+        <p class="home-note" data-i18n="kwad_hint">Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.</p>
+      </div>
+
+      <div class="card kwad-card">
+        <div class="small-label" data-i18n="kwad_trick">Trick</div>
+        <div class="kwad-trick" id="kwadTrick">—</div>
+        <button id="btnKwadNewTrick" class="btn" type="button" data-i18n="kwad_new_trick">Neuer Trick</button>
+      </div>
+
+      <div class="card kwad-card" id="kwadTurnCard">
+        <div class="small-label" data-i18n="kwad_turn">Am Zug</div>
+        <div class="kwad-turn" id="kwadTurn">—</div>
+        <div class="kwad-actions">
+          <button id="btnKwadDone" class="btn btn-start" type="button" data-i18n="kwad_done">Geschafft</button>
+          <button id="btnKwadFail" class="btn btn-danger" type="button" data-i18n="kwad_fail">Nicht geschafft</button>
+        </div>
+      </div>
+
+      <div class="kwad-result" id="kwadResult" hidden role="status" aria-live="polite"></div>
+
+      <div class="kwad-board" id="kwadPlayers"></div>
+
+      <div class="kwad-add">
+        <input id="kwadName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
+        <button id="btnKwadAdd" type="button" data-i18n="kwad_add">Spieler hinzufügen</button>
+      </div>
+
+      <button id="btnKwadReset" class="btn btn-danger" type="button" data-i18n="kwad_reset">Neues Spiel (Buchstaben zurücksetzen)</button>
     </div>
   </div>
 

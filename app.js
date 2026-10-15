@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.8';
+  const APP_VERSION = '0.13.9';
 
   // ---------- i18n ----------
   const I18N = {
@@ -15,6 +15,20 @@
       m_timer_desc: 'Runden, Sätze & Vergleich',
       m_settings_desc: 'Sprache, Farben, Sensorik',
       m_note: 'Mehr Funktionen kommen schrittweise dazu.',
+      m_kwad: 'Game of K.W.A.D',
+      m_kwad_desc: 'Freestyle-Tricks, Strafbuchstaben',
+      kwad_hint: 'Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.',
+      kwad_trick: 'Trick',
+      kwad_new_trick: 'Neuer Trick',
+      kwad_turn: 'Am Zug',
+      kwad_done: 'Geschafft',
+      kwad_fail: 'Nicht geschafft',
+      kwad_add: 'Spieler hinzufügen',
+      kwad_reset: 'Neues Spiel (Buchstaben zurücksetzen)',
+      kwad_remove: 'Spieler entfernen',
+      kwad_loses: 'verliert!',
+      kwad_no_players: 'Mindestens 2 Spieler hinzufügen.',
+      kwad_round_done: 'Alle dran – neuer Trick.',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -168,6 +182,20 @@
       m_timer_desc: 'Laps, sets & comparison',
       m_settings_desc: 'Language, colours, sensors',
       m_note: 'More features will be added gradually.',
+      m_kwad: 'Game of K.W.A.D',
+      m_kwad_desc: 'Freestyle tricks, penalty letters',
+      kwad_hint: 'Call a trick – whoever cannot fly it collects a letter. The first to hold K, W, A and D loses.',
+      kwad_trick: 'Trick',
+      kwad_new_trick: 'New trick',
+      kwad_turn: 'Up next',
+      kwad_done: 'Made it',
+      kwad_fail: 'Did not make it',
+      kwad_add: 'Add player',
+      kwad_reset: 'New game (reset letters)',
+      kwad_remove: 'Remove player',
+      kwad_loses: 'loses!',
+      kwad_no_players: 'Add at least 2 players.',
+      kwad_round_done: 'Everyone had a go – new trick.',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -472,6 +500,19 @@
     homeVersionBadge: document.getElementById('homeVersionBadge'),
     tileTimer: document.getElementById('tileTimer'),
     tileSettings: document.getElementById('tileSettings'),
+    tileKwad: document.getElementById('tileKwad'),
+    kwadScreen: document.getElementById('kwadScreen'),
+    kwadTrick: document.getElementById('kwadTrick'),
+    kwadTurn: document.getElementById('kwadTurn'),
+    kwadTurnCard: document.getElementById('kwadTurnCard'),
+    kwadPlayers: document.getElementById('kwadPlayers'),
+    kwadResult: document.getElementById('kwadResult'),
+    kwadName: document.getElementById('kwadName'),
+    btnKwadNewTrick: document.getElementById('btnKwadNewTrick'),
+    btnKwadDone: document.getElementById('btnKwadDone'),
+    btnKwadFail: document.getElementById('btnKwadFail'),
+    btnKwadAdd: document.getElementById('btnKwadAdd'),
+    btnKwadReset: document.getElementById('btnKwadReset'),
     versionBadge: document.getElementById('versionBadge'),
     toast: document.getElementById('toast'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
@@ -1073,6 +1114,7 @@
   function openHome() {
     if (!els.homeScreen) return;
     els.homeScreen.hidden = false;
+    if (els.kwadScreen) els.kwadScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = true;
     // The topbar gear belongs to the home screen (app settings); the timer view
     // has its own gear inside the timer card.
@@ -1082,6 +1124,7 @@
   function closeHome() {
     if (!els.homeScreen) return;
     els.homeScreen.hidden = true;
+    if (els.kwadScreen) els.kwadScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = false;
     if (els.btnSettings) els.btnSettings.hidden = true;
     closeSettings();
@@ -2506,6 +2549,231 @@
       overlayCtx.textBaseline = 'alphabetic';
     }
   }
+
+  // ---------- Game of K.W.A.D (local party mode) ----------
+  // Game of SKATE for FPV freestyle: a random trick is called out and the group
+  // judges it. Whoever cannot fly it collects one penalty letter (K → W → A → D);
+  // the first pilot holding all four letters loses. Deliberately local and manual —
+  // no server, no camera. Players live in their own storage key (`kwad_players`),
+  // so a problem in the game can never touch the timer settings or the lap sets.
+  const KWAD_LETTERS = 'KWAD';
+  const KWAD_TRICKS = [
+    'Power Loop', 'Split-S', 'Matty Flip', 'Juicy Flick', 'Dive', 'Punch Out',
+    'Gate Roll', 'Yaw Spin', 'Orbit', 'Trippy Spin', 'Wall Scrape',
+    'Inverted Pass', 'Backwards Pass',
+  ];
+  let kwadPlayers = [];   // [{ name, letters }] — persisted in `kwad_players`
+  let kwadTurnIdx = 0;
+  let kwadTrick = '';
+  let kwadTried = [];     // names that already had a go at the current trick
+  let kwadLastTrick = -1;
+
+  // -- pure helpers (unit-tested in tests/kwad_test.js) --
+  function kwadNormalizeLetters(value) {
+    return String(value == null ? '' : value).toUpperCase().replace(/[^KWAD]/g, '').slice(0, KWAD_LETTERS.length);
+  }
+  function kwadIsOut(letters) {
+    return kwadNormalizeLetters(letters).length >= KWAD_LETTERS.length;
+  }
+  function kwadNextLetter(letters) {
+    const n = kwadNormalizeLetters(letters).length;
+    return n < KWAD_LETTERS.length ? KWAD_LETTERS.charAt(n) : '';
+  }
+  function kwadDrawIndex(prevIdx, count) {
+    if (count < 2) return 0;
+    let idx = prevIdx;
+    while (idx === prevIdx) idx = Math.floor(Math.random() * count);
+    return idx;
+  }
+  function kwadLoserIndex(players) {
+    for (let i = 0; i < players.length; i++) if (kwadIsOut(players[i].letters)) return i;
+    return -1;
+  }
+
+  // -- persistence (own key; guarded against corrupt JSON / quota errors) --
+  function kwadLoad() {
+    let list = [];
+    try {
+      const raw = JSON.parse(localStorage.getItem('kwad_players') || '[]');
+      if (Array.isArray(raw)) list = raw;
+    } catch { list = []; }
+    kwadPlayers = list
+      .filter(p => p && typeof p.name === 'string' && p.name.trim())
+      .map(p => ({ name: p.name.trim(), letters: kwadNormalizeLetters(p.letters) }));
+    const first = kwadPlayers.findIndex(p => !kwadIsOut(p.letters));
+    kwadTurnIdx = first === -1 ? 0 : first;
+  }
+  function kwadSave() {
+    try { localStorage.setItem('kwad_players', JSON.stringify(kwadPlayers)); }
+    catch { storageError(); }
+  }
+
+  // Next player (cyclically from `start`) who is still in the game, or -1.
+  function kwadActiveFrom(start) {
+    const n = kwadPlayers.length;
+    if (!n) return -1;
+    for (let k = 0; k < n; k++) {
+      const i = ((start + k) % n + n) % n;
+      if (!kwadIsOut(kwadPlayers[i].letters)) return i;
+    }
+    return -1;
+  }
+  function kwadActiveCount() {
+    return kwadPlayers.filter(p => !kwadIsOut(p.letters)).length;
+  }
+
+  function renderKwad() {
+    if (!els.kwadScreen) return;
+    const loser = kwadLoserIndex(kwadPlayers);
+    if (loser === -1) {
+      const active = kwadActiveFrom(kwadTurnIdx);
+      if (active !== -1) kwadTurnIdx = active;
+    }
+    const active = loser === -1 ? kwadActiveFrom(kwadTurnIdx) : -1;
+    const canPlay = loser === -1 && kwadActiveCount() >= 2;
+
+    if (els.kwadTrick) els.kwadTrick.textContent = kwadTrick || '—';
+
+    if (els.kwadPlayers) {
+      els.kwadPlayers.textContent = '';
+      kwadPlayers.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'kwad-player';
+        if (i === active) row.classList.add('is-turn');
+        if (kwadIsOut(p.letters)) row.classList.add('is-out');
+
+        const name = document.createElement('span');
+        name.className = 'kwad-name';
+        name.textContent = p.name;
+
+        const letters = document.createElement('span');
+        letters.className = 'kwad-letters';
+        KWAD_LETTERS.split('').forEach((ch, j) => {
+          const b = document.createElement('b');
+          b.textContent = ch;
+          if (j < kwadNormalizeLetters(p.letters).length) b.className = 'on';
+          letters.appendChild(b);
+        });
+
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'kwad-remove';
+        rm.textContent = '✕';
+        rm.title = t('kwad_remove') + ': ' + p.name;
+        rm.setAttribute('aria-label', t('kwad_remove') + ': ' + p.name);
+        rm.addEventListener('click', () => kwadRemovePlayer(i));
+
+        row.appendChild(name);
+        row.appendChild(letters);
+        row.appendChild(rm);
+        els.kwadPlayers.appendChild(row);
+      });
+    }
+
+    if (els.kwadResult) {
+      if (loser !== -1) {
+        els.kwadResult.hidden = false;
+        els.kwadResult.textContent = kwadPlayers[loser].name + ' ' + t('kwad_loses');
+      } else {
+        els.kwadResult.hidden = true;
+      }
+    }
+    if (els.kwadTurnCard) els.kwadTurnCard.hidden = kwadActiveCount() < 2;
+    if (els.kwadTurn) els.kwadTurn.textContent = active !== -1 ? kwadPlayers[active].name : t('kwad_no_players');
+    if (els.btnKwadDone) els.btnKwadDone.disabled = !canPlay;
+    if (els.btnKwadFail) els.btnKwadFail.disabled = !canPlay;
+  }
+
+  function kwadNewTrick() {
+    if (kwadLoserIndex(kwadPlayers) !== -1) return;
+    kwadLastTrick = kwadDrawIndex(kwadLastTrick, KWAD_TRICKS.length);
+    kwadTrick = KWAD_TRICKS[kwadLastTrick];
+    kwadTried = [];
+    const active = kwadActiveFrom(kwadTurnIdx);
+    if (active !== -1) kwadTurnIdx = active;
+    renderKwad();
+  }
+
+  // One attempt turned in by the current player. `ok === false` adds a letter.
+  function kwadRound(ok) {
+    if (kwadLoserIndex(kwadPlayers) !== -1) return;
+    const active = kwadActiveFrom(kwadTurnIdx);
+    if (active === -1) return;
+    const p = kwadPlayers[active];
+    if (!ok) {
+      const letter = kwadNextLetter(p.letters);
+      if (letter) p.letters = kwadNormalizeLetters(p.letters) + letter;
+      kwadSave();
+      if (kwadIsOut(p.letters)) { renderKwad(); return; }   // that player has lost
+    }
+    if (kwadTried.indexOf(p.name) === -1) kwadTried.push(p.name);
+    const n = kwadPlayers.length;
+    let next = -1;
+    for (let k = 1; k <= n; k++) {
+      const i = (active + k) % n;
+      if (kwadIsOut(kwadPlayers[i].letters)) continue;
+      if (kwadTried.indexOf(kwadPlayers[i].name) !== -1) continue;
+      next = i;
+      break;
+    }
+    if (next === -1) {
+      // Everyone still in the game had a go at this trick → call a fresh one.
+      kwadTurnIdx = (active + 1) % n;
+      kwadNewTrick();
+      toast(t('kwad_round_done'), 2000);
+      return;
+    }
+    kwadTurnIdx = next;
+    renderKwad();
+  }
+
+  function kwadAddPlayer() {
+    if (!els.kwadName) return;
+    const name = (els.kwadName.value || '').trim();
+    if (!name) return;
+    els.kwadName.value = '';
+    if (kwadPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
+    kwadPlayers.push({ name, letters: '' });
+    kwadSave();
+    renderKwad();
+  }
+  function kwadRemovePlayer(idx) {
+    if (idx < 0 || idx >= kwadPlayers.length) return;
+    const gone = kwadPlayers[idx].name;
+    kwadPlayers.splice(idx, 1);
+    kwadTried = kwadTried.filter(nm => nm !== gone);
+    if (kwadTurnIdx >= kwadPlayers.length) kwadTurnIdx = 0;
+    kwadSave();
+    renderKwad();
+  }
+  function kwadResetGame() {
+    kwadPlayers.forEach(p => { p.letters = ''; });
+    kwadTurnIdx = 0;
+    kwadTried = [];
+    kwadTrick = '';
+    kwadSave();
+    kwadNewTrick();
+  }
+
+  function openKwad() {
+    if (!els.kwadScreen) return;
+    if (els.homeScreen) els.homeScreen.hidden = true;
+    els.kwadScreen.hidden = false;
+    if (els.btnHome) els.btnHome.hidden = false;
+    // The topbar gear is the app-settings gear; the timer view owns its own.
+    if (els.btnSettings) els.btnSettings.hidden = true;
+    els.kwadScreen.scrollTop = 0;
+    if (!kwadTrick) kwadNewTrick();
+    renderKwad();
+  }
+  if (els.tileKwad) els.tileKwad.addEventListener('click', openKwad);
+  if (els.btnKwadNewTrick) els.btnKwadNewTrick.addEventListener('click', kwadNewTrick);
+  if (els.btnKwadDone) els.btnKwadDone.addEventListener('click', () => kwadRound(true));
+  if (els.btnKwadFail) els.btnKwadFail.addEventListener('click', () => kwadRound(false));
+  if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', kwadAddPlayer);
+  if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
+  if (els.btnKwadReset) els.btnKwadReset.addEventListener('click', kwadResetGame);
+  kwadLoad();
 
   // ---------- init ----------
   function init() {

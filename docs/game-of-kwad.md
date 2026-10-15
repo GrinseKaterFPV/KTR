@@ -1,8 +1,9 @@
 # Game of K.W.A.D — Konzept & Pflichtenheft
 
-> Status: **Konzept / Planung** — bewusst noch **kein Code**. Dieses Dokument beschreibt,
-> was das Spiel sein soll, wie es sich verhält und in welchen Scheiben es umgesetzt werden könnte.
-> Es ändert **nichts** am bestehenden Timer, an der Erkennung oder an den Einstellungen.
+> Status: **v1 umgesetzt** (rein manuell/lokal, siehe § 12 Phase 1), Rest **Konzept**.
+> Diese Datei beschreibt weiterhin, was das Spiel werden soll und in welchen Scheiben
+> die Ausbaustufen umgesetzt werden. Die v1 ändert **nichts** am bestehenden Timer, an
+> der Erkennung oder an den Einstellungen — sie ist ein eigener, lokaler Modus.
 
 ## 1. Idee in einem Satz
 
