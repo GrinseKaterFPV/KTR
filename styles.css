@@ -210,7 +210,20 @@ button, input, select { font: inherit; }
   white-space: nowrap;
 }
 .card-collapsible > .card-summary::-webkit-details-marker,
-.card-collapsible > .card-header > .card-summary::-webkit-details-marker { display: none; }
+.card-collapsible > .card-header > .card-summary::-webkit-details-marker,
+.card-collapsible > .card-summary::marker,
+.card-collapsible > .card-header > .card-summary::marker {
+  display: none;
+}
+summary.card-summary {
+  list-style: none;
+}
+summary.card-summary::-webkit-details-marker {
+  display: none;
+}
+summary.card-summary::marker {
+  display: none;
+}
 .card-collapsible > .card-summary::after,
 .card-collapsible > .card-header > .card-summary::after { content: '▾'; color: var(--muted); font-size: 14px; flex-shrink: 0; }
 .card-collapsible[open] > .card-summary::after,
