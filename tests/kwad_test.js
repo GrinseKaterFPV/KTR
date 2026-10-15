@@ -6,6 +6,95 @@ const fs = require('fs');
 const path = require('path');
 const src = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 
+// Test constants (matching app.js)
+const KWAD_LETTERS = 'KWAD';
+const PILOT_PALETTE = ['#20c4c4', '#ff7a1a'];
+const KWAD_CATEGORIES = {
+  basics: {
+    id: 'basics', label: 'Basics', emoji: '🟢', difficulty: 1, enabled: true,
+    tricks: [
+      { name: 'Dive', desc: 'Steiler Sturzflug' },
+      { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub' },
+      { name: 'Gate Roll', desc: 'Eine Rolle im Tor' },
+    ]
+  },
+  intermediate: {
+    id: 'intermediate', label: 'Intermediate', emoji: '🟡', difficulty: 2, enabled: true,
+    tricks: [
+      { name: 'Power Loop', desc: 'Looping über das Tor' },
+      { name: 'Split-S', desc: 'Halber Loop nach unten' },
+    ]
+  },
+  advanced: {
+    id: 'advanced', label: 'Advanced', emoji: '🟠', difficulty: 3, enabled: true,
+    tricks: [
+      { name: 'Matty Flip', desc: 'Rückwärts-Flip mit Yaw' },
+    ]
+  },
+  pro: {
+    id: 'pro', label: 'Pro', emoji: '🔴', difficulty: 4, enabled: false,
+    tricks: [
+      { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander' },
+    ]
+  },
+  custom: {
+    id: 'custom', label: 'Eigene Tricks', emoji: '⭐', difficulty: 0, enabled: true, tricks: []
+  }
+};
+
+function kwadBuildTrickPool() {
+  const pool = [];
+  Object.values(KWAD_CATEGORIES).forEach(cat => {
+    if (cat.enabled && cat.tricks.length) {
+      cat.tricks.forEach(t => pool.push({ ...t, category: cat.id }));
+    }
+  });
+  return pool;
+}
+
+const body = [
+  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadLastPenalty = null;',
+  'let newTrickCalls = 0;',
+  'const KWAD_CATEGORIES = ' + JSON.stringify(KWAD_CATEGORIES) + ';',
+  'function kwadBuildTrickPool() { const pool = []; Object.values(KWAD_CATEGORIES).forEach(cat => { if (cat.enabled && cat.tricks.length) { cat.tricks.forEach(t => pool.push({ ...t, category: cat.id })); } }); return pool; }',
+  'kwadTrickPool = kwadBuildTrickPool();',
+  extract('kwadNormalizeLetters'),
+  extract('kwadIsOut'),
+  extract('kwadNextLetter'),
+  extract('kwadDrawIndex'),
+  extract('kwadLoserIndex'),
+  extract('kwadActiveFrom'),
+  extract('kwadActiveCount'),
+  extract('kwadBuildTrickPool'),
+  extract('kwadRecordStat'),
+  extract('kwadSaveStats'),
+  extract('kwadNewTrick').replace('function kwadNewTrick(', 'function kwadNewTrickImpl('),
+  'function kwadNewTrick() { newTrickCalls++; return kwadNewTrickImpl(); }',
+  extract('renderKwad'),
+  extract('kwadRound'),
+  [
+    'var apiObj = {};',
+    'apiObj.kwadNormalizeLetters = kwadNormalizeLetters;',
+    'apiObj.kwadIsOut = kwadIsOut;',
+    'apiObj.kwadNextLetter = kwadNextLetter;',
+    'apiObj.kwadDrawIndex = kwadDrawIndex;',
+    'apiObj.kwadLoserIndex = kwadLoserIndex;',
+    'apiObj.kwadActiveFrom = kwadActiveFrom;',
+    'apiObj.kwadBuildTrickPool = kwadBuildTrickPool;',
+    'apiObj.kwadRecordStat = kwadRecordStat;',
+    'apiObj.kwadSaveStats = kwadSaveStats;',
+    'apiObj.renderKwad = renderKwad;',
+    'apiObj.kwadRound = kwadRound;',
+    'apiObj.kwadNewTrick = kwadNewTrick;',
+    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickPool = kwadBuildTrickPool(); };',
+    'apiObj.players = function() { return kwadPlayers; };',
+    'apiObj.turn = function() { return kwadTurnIdx; };',
+    'apiObj.tried = function() { return kwadTried; };',
+    'apiObj.newTrickCalls = function() { return newTrickCalls; };',
+    'return apiObj;',
+  ].join('\n'),
+].join('\n');
+
 function extract(name) {
   const key = 'function ' + name + '(';
   const start = src.indexOf(key);
@@ -19,33 +108,6 @@ function extract(name) {
   throw new Error('unbalanced: ' + name);
 }
 
-const body = [
-  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1;',
-  'let newTrickCalls = 0;',
-  extract('kwadNormalizeLetters'),
-  extract('kwadIsOut'),
-  extract('kwadNextLetter'),
-  extract('kwadDrawIndex'),
-  extract('kwadLoserIndex'),
-  extract('kwadActiveFrom'),
-  extract('kwadActiveCount'),
-  extract('kwadNewTrick').replace('function kwadNewTrick(', 'function kwadNewTrickImpl('),
-  'function kwadNewTrick() { newTrickCalls++; return kwadNewTrickImpl(); }',
-  extract('renderKwad'),
-  extract('kwadRound'),
-  [
-    'return {',
-    '  kwadNormalizeLetters, kwadIsOut, kwadNextLetter, kwadDrawIndex, kwadLoserIndex, kwadActiveFrom, renderKwad, kwadRound,',
-    '  kwadNewTrick,',
-    '  setGame(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; },',
-    '  players() { return kwadPlayers; },',
-    '  turn() { return kwadTurnIdx; },',
-    '  tried() { return kwadTried; },',
-    '  newTrickCalls() { return newTrickCalls; },',
-    '};',
-  ].join('\n'),
-].join('\n');
-
 // ---- minimal DOM stub ------------------------------------------------------
 function makeEl(tag) {
   const el = {
@@ -58,7 +120,7 @@ function makeEl(tag) {
   };
   Object.defineProperty(el, 'textContent', {
     get() { return el._text; },
-    set(v) { el._text = String(v); if (v === '') el.children = []; },   // mirrors "clear" semantics
+    set(v) { el._text = String(v); if (v === '') el.children = []; },
   });
   return el;
 }
@@ -74,8 +136,8 @@ const els = {
 };
 const documentStub = { createElement: makeEl };
 
-const factory = new Function('kwadSave', 'document', 'els', 'toast', 't', 'KWAD_LETTERS', 'KWAD_TRICKS', body);
-const api = factory(() => {}, documentStub, els, () => {}, k => k, 'KWAD', ['Power Loop', 'Split-S', 'Dive']);
+const factory = new Function('kwadSave', 'document', 'els', 'toast', 't', 'KWAD_LETTERS', 'KWAD_TRICKS', 'PILOT_PALETTE', body);
+const api = factory(() => {}, documentStub, els, () => {}, k => k, 'KWAD', ['Power Loop', 'Split-S', 'Dive'], ['#20c4c4', '#ff7a1a']);
 
 let pass = 0, fail = 0;
 const check = (n, c) => { c ? pass++ : fail++; console.log((c ? 'PASS ' : 'FAIL ') + n); };
@@ -151,7 +213,7 @@ check('G9: Max ends with KWAD', api.players()[0].letters === 'KWAD');
 check('G10: Max is the loser', api.kwadLoserIndex(api.players()) === 0);
 check('G11: the game is over (no further new trick)', api.newTrickCalls() === 3);
 check('G12: the result banner names the loser', els.kwadResult.hidden === false && els.kwadResult.textContent.indexOf('Max') === 0);
-check('G13: the loser row is marked', els.kwadPlayers.children[0].classList.contains('is-out'));
+check('G12: the loser row is marked', els.kwadPlayers.children[0].classList.contains('is-out'));
 check('G14: the play buttons are disabled after the game', els.btnKwadDone.disabled === true && els.btnKwadFail.disabled === true);
 check('G15: the turn card is hidden once only one player is left', els.kwadTurnCard.hidden === true);
 api.kwadRound(false);                                    // must be ignored now

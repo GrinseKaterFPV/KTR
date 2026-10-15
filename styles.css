@@ -129,6 +129,42 @@ button, input, select { font: inherit; }
 .kwad-add input { flex: 1 1 9rem; min-width: 0; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
 .kwad-add button { flex: 0 1 auto; white-space: nowrap; }
 
+/* ---- KWAD Settings ---- */
+.kwad-category-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; background: var(--elev); border: 1px solid var(--border); border-radius: 10px;
+}
+.kwad-category-item .cat-emoji { font-size: 20px; }
+.kwad-category-item .cat-info { flex: 1; min-width: 0; }
+.kwad-category-item .cat-label { font-weight: 700; font-size: 14px; }
+.kwad-category-item .cat-diff { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.kwad-category-item .cat-count { font-size: 12px; color: var(--accent); font-weight: 700; }
+.kwad-category-item .cat-toggle { display: flex; align-items: center; gap: 6px; }
+
+.kwad-custom-trick {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px; background: var(--elev); border: 1px solid var(--border); border-radius: 8px;
+}
+.kwad-custom-trick .custom-name { flex: 1; min-width: 120px; font-weight: 700; }
+.kwad-custom-trick .custom-desc { flex: 1; min-width: 120px; font-size: 12px; color: var(--muted); }
+.kwad-custom-trick .custom-cat { font-size: 11px; color: var(--accent); }
+.kwad-custom-trick .custom-del { width: 28px; height: 28px; padding: 0; font-size: 14px; }
+
+.kwad-stat-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center;
+  padding: 8px 10px; background: var(--elev); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px;
+}
+.kwad-stat-row.header { font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; background: transparent; border: none; }
+.kwad-stat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kwad-stat-num { text-align: right; font-family: monospace; }
+.kwad-stat-rate { text-align: right; color: var(--accent); font-weight: 700; }
+
+/* Trick description tooltip */
+.kwad-trick-desc {
+  font-size: 12px; color: var(--muted); margin-top: 4px; text-align: center; line-height: 1.4;
+}
+
 /* ---- Piloten screen ---- */
 .pilots-screen .home-inner { max-width: 560px; }
 .pilots-screen .pilot-chip { display: inline-flex; align-items: center; }

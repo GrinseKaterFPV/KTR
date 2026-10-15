@@ -37,6 +37,32 @@
       kwad_loses: 'verliert!',
       kwad_no_players: 'Mindestens 2 Spieler hinzufügen.',
       kwad_round_done: 'Alle dran – neuer Trick.',
+      kwad_undo: 'Rückgängig',
+      kwad_undone: 'Rückgängig: {letter} entfernt bei {name}',
+      kwad_settings: 'KWAD Einstellungen',
+      kwad_categories: 'Trick-Kategorien',
+      kwad_mode: 'Zieh-Modus',
+      kwad_mode_random: 'Zufällig (gewichtet)',
+      kwad_mode_sequential: 'Sequentiell (Reihenfolge)',
+      kwad_mode_roundrobin: 'Kategorien-Runden',
+      kwad_custom_tricks: 'Eigene Tricks',
+      kwad_add_custom: 'Eigenen Trick hinzufügen',
+      kwad_custom_name: 'Trick-Name',
+      kwad_custom_desc: 'Beschreibung',
+      kwad_custom_save: 'Speichern',
+      kwad_custom_delete: 'Löschen',
+      kwad_stats: 'Trick-Statistiken',
+      kwad_stats_attempted: 'Versucht',
+      kwad_stats_succeeded: 'Geschafft',
+      kwad_stats_rate: 'Quote',
+      kwad_category_basics: 'Basics',
+      kwad_category_intermediate: 'Intermediate',
+      kwad_category_advanced: 'Advanced',
+      kwad_category_pro: 'Pro',
+      kwad_category_custom: 'Eigene',
+      kwad_difficulty: 'Schwierigkeit',
+      kwad_desc: 'Beschreibung',
+      kwad_enabled: 'Aktiv',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -211,6 +237,32 @@
       kwad_loses: 'loses!',
       kwad_no_players: 'Add at least 2 players.',
       kwad_round_done: 'Everyone had a go – new trick.',
+      kwad_undo: 'Undo',
+      kwad_undone: 'Undone: {letter} removed for {name}',
+      kwad_settings: 'KWAD Settings',
+      kwad_categories: 'Trick Categories',
+      kwad_mode: 'Draw Mode',
+      kwad_mode_random: 'Random (weighted)',
+      kwad_mode_sequential: 'Sequential (in order)',
+      kwad_mode_roundrobin: 'Category Round-Robin',
+      kwad_custom_tricks: 'Custom Tricks',
+      kwad_add_custom: 'Add Custom Trick',
+      kwad_custom_name: 'Trick Name',
+      kwad_custom_desc: 'Description',
+      kwad_custom_save: 'Save',
+      kwad_custom_delete: 'Delete',
+      kwad_stats: 'Trick Statistics',
+      kwad_stats_attempted: 'Attempted',
+      kwad_stats_succeeded: 'Succeeded',
+      kwad_stats_rate: 'Rate',
+      kwad_category_basics: 'Basics',
+      kwad_category_intermediate: 'Intermediate',
+      kwad_category_advanced: 'Advanced',
+      kwad_category_pro: 'Pro',
+      kwad_category_custom: 'Custom',
+      kwad_difficulty: 'Difficulty',
+      kwad_desc: 'Description',
+      kwad_enabled: 'Enabled',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -528,6 +580,7 @@
     btnPilotsHome: document.getElementById('btnPilotsHome'),
     kwadScreen: document.getElementById('kwadScreen'),
     btnKwadHome: document.getElementById('btnKwadHome'),
+    btnKwadSettings: document.getElementById('btnKwadSettings'),
     kwadTrick: document.getElementById('kwadTrick'),
     kwadTurn: document.getElementById('kwadTurn'),
     kwadTurnCard: document.getElementById('kwadTurnCard'),
@@ -540,6 +593,16 @@
     btnKwadFail: document.getElementById('btnKwadFail'),
     btnKwadAdd: document.getElementById('btnKwadAdd'),
     btnKwadReset: document.getElementById('btnKwadReset'),
+    btnKwadSettings: document.getElementById('btnKwadSettings'),
+    kwadSettingsOverlay: document.getElementById('kwadSettingsOverlay'),
+    btnKwadSettingsClose: document.getElementById('btnKwadSettingsClose'),
+    kwadCategoryGrid: document.getElementById('kwadCategoryGrid'),
+    kwadModeSelect: document.getElementById('kwadModeSelect'),
+    kwadCustomTricksList: document.getElementById('kwadCustomTricksList'),
+    kwadCustomName: document.getElementById('kwadCustomName'),
+    kwadCustomDesc: document.getElementById('kwadCustomDesc'),
+    btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
+    kwadStatsGrid: document.getElementById('kwadStatsGrid'),
     versionBadge: document.getElementById('versionBadge'),
     toast: document.getElementById('toast'),
     btnForceUpdate: document.getElementById('btnForceUpdate'),
@@ -2715,16 +2778,101 @@
   // no server, no camera. Players live in their own storage key (`kwad_players`),
   // so a problem in the game can never touch the timer settings or the lap sets.
   const KWAD_LETTERS = 'KWAD';
-  const KWAD_TRICKS = [
-    'Power Loop', 'Split-S', 'Matty Flip', 'Juicy Flick', 'Dive', 'Punch Out',
-    'Gate Roll', 'Yaw Spin', 'Orbit', 'Trippy Spin', 'Wall Scrape',
-    'Inverted Pass', 'Backwards Pass',
-  ];
-  let kwadPlayers = [];   // [{ name, letters }] — persisted in `kwad_players`
+
+  // --- Trick Categories with difficulty (1-5), descriptions, and default enabled state ---
+  const KWAD_CATEGORIES = {
+    basics: {
+      id: 'basics',
+      label: 'Basics',
+      emoji: '🟢',
+      difficulty: 1,
+      enabled: true,
+      tricks: [
+        { name: 'Dive', desc: 'Steiler Sturzflug durch das Tor, dann Pull-up' },
+        { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub durch das Tor' },
+        { name: 'Gate Roll', desc: 'Eine Rolle (Roll) genau im Tor' },
+        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Tor' },
+        { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen' },
+      ]
+    },
+    intermediate: {
+      id: 'intermediate',
+      label: 'Intermediate',
+      emoji: '🟡',
+      difficulty: 2,
+      enabled: true,
+      tricks: [
+        { name: 'Power Loop', desc: 'Looping über das Tor (Rückwärts-Loop)' },
+        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll' },
+        { name: 'Orbit', desc: 'Kreisfahrt um einen Punkt (Flag/Tor)' },
+        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse' },
+        { name: 'Wall Scrape', desc: 'Nah am Boden/Objekt entlangschrappen' },
+        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)' },
+      ]
+    },
+    advanced: {
+      id: 'advanced',
+      label: 'Advanced',
+      emoji: '🟠',
+      difficulty: 3,
+      enabled: true,
+      tricks: [
+        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)' },
+        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)' },
+        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig' },
+        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Tor' },
+        { name: 'Backwards Pass', desc: 'Rückwärts durch das Tor fliegen' },
+        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Tor' },
+      ]
+    },
+    pro: {
+      id: 'pro',
+      label: 'Pro',
+      emoji: '🔴',
+      difficulty: 4,
+      enabled: false,
+      tricks: [
+        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw' },
+        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander' },
+        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position' },
+        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll' },
+        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation' },
+      ]
+    },
+    custom: {
+      id: 'custom',
+      label: 'Eigene Tricks',
+      emoji: '⭐',
+      difficulty: 0,
+      enabled: true,
+      tricks: [] // user-defined tricks stored in localStorage
+    }
+  };
+
+  // Build flat trick list from enabled categories (used for drawing)
+  function kwadBuildTrickPool() {
+    const pool = [];
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      if (cat.enabled && cat.tricks.length) {
+        cat.tricks.forEach(t => pool.push({ ...t, category: cat.id }));
+      }
+    });
+    return pool;
+  }
+
+  let kwadTrickPool = []; // current active pool (built from enabled categories)
+  let kwadPlayers = [];   // [{ name, letters, color }] — persisted in `kwad_players`
   let kwadTurnIdx = 0;
   let kwadTrick = '';
+  let kwadTrickObj = null; // current trick object with category, desc
   let kwadTried = [];     // names that already had a go at the current trick
   let kwadLastTrick = -1;
+  let kwadLastPenalty = null; // { playerIdx, letter } for undo
+  let kwadMode = 'random'; // 'random' | 'sequential' | 'roundRobinCategory'
+  let kwadCategoryOrder = []; // for roundRobinCategory mode
+  let kwadCategoryIdx = 0;
+  let kwadStats = {}; // { trickName: { attempted: n, succeeded: n } }
+  let kwadCategoryFilter = null; // deprecated, use category.enabled
 
   // -- pure helpers (unit-tested in tests/kwad_test.js) --
   function kwadNormalizeLetters(value) {
@@ -2750,6 +2898,7 @@
 
   // -- persistence (own key; guarded against corrupt JSON / quota errors) --
   function kwadLoad() {
+    // Load players
     let list = [];
     try {
       const raw = JSON.parse(localStorage.getItem('kwad_players') || '[]');
@@ -2760,10 +2909,72 @@
       .map(p => ({ name: p.name.trim(), letters: kwadNormalizeLetters(p.letters), color: p.color || (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[p.name.trim()]) }));
     const first = kwadPlayers.findIndex(p => !kwadIsOut(p.letters));
     kwadTurnIdx = first === -1 ? 0 : first;
+
+    // Load custom tricks
+    try {
+      const customRaw = JSON.parse(localStorage.getItem('kwad_custom_tricks') || '[]');
+      if (Array.isArray(customRaw)) {
+        KWAD_CATEGORIES.custom.tricks = customRaw.map(t => ({ name: t.name, desc: t.desc || '', custom: true }));
+      }
+    } catch { KWAD_CATEGORIES.custom.tricks = []; }
+
+    // Load category enabled states
+    try {
+      const catRaw = JSON.parse(localStorage.getItem('kwad_categories') || '{}');
+      Object.keys(catRaw).forEach(id => {
+        if (KWAD_CATEGORIES[id] && typeof catRaw[id].enabled === 'boolean') {
+          KWAD_CATEGORIES[id].enabled = catRaw[id].enabled;
+        }
+      });
+    } catch { /* ignore */ }
+
+    // Load mode
+    try {
+      const modeRaw = localStorage.getItem('kwad_mode');
+      if (['random', 'sequential', 'roundRobinCategory'].includes(modeRaw)) {
+        kwadMode = modeRaw;
+      }
+    } catch { /* ignore */ }
+
+    // Load stats
+    try {
+      const statsRaw = JSON.parse(localStorage.getItem('kwad_stats') || '{}');
+      if (statsRaw && typeof statsRaw === 'object') kwadStats = statsRaw;
+    } catch { kwadStats = {}; }
+
+    // Build initial trick pool
+    kwadTrickPool = kwadBuildTrickPool();
+    if (kwadMode === 'roundRobinCategory') {
+      kwadCategoryOrder = Object.values(KWAD_CATEGORIES)
+        .filter(c => c.enabled && c.tricks.length)
+        .map(c => c.id);
+      kwadCategoryIdx = 0;
+    }
+
+    // Build initial trick pool
+    kwadTrickPool = kwadBuildTrickPool();
   }
   function kwadSave() {
     try { localStorage.setItem('kwad_players', JSON.stringify(kwadPlayers)); }
     catch { storageError(); }
+  }
+  function kwadSaveCategories() {
+    try {
+      const data = {};
+      Object.keys(KWAD_CATEGORIES).forEach(id => { data[id] = { enabled: KWAD_CATEGORIES[id].enabled }; });
+      localStorage.setItem('kwad_categories', JSON.stringify(data));
+    } catch { storageError(); }
+  }
+  function kwadSaveCustomTricks() {
+    try {
+      localStorage.setItem('kwad_custom_tricks', JSON.stringify(KWAD_CATEGORIES.custom.tricks));
+    } catch { storageError(); }
+  }
+  function kwadSaveMode() {
+    try { localStorage.setItem('kwad_mode', kwadMode); } catch { /* ignore */ }
+  }
+  function kwadSaveStats() {
+    try { localStorage.setItem('kwad_stats', JSON.stringify(kwadStats)); } catch { /* ignore */ }
   }
 
   // Next player (cyclically from `start`) who is still in the game, or -1.
@@ -2861,8 +3072,63 @@
 
   function kwadNewTrick() {
     if (kwadLoserIndex(kwadPlayers) !== -1) return;
-    kwadLastTrick = kwadDrawIndex(kwadLastTrick, KWAD_TRICKS.length);
-    kwadTrick = KWAD_TRICKS[kwadLastTrick];
+    if (kwadTrickPool.length === 0) {
+      kwadTrick = '—';
+      kwadTrickObj = null;
+      renderKwad();
+      return;
+    }
+
+    let pickIdx;
+    if (kwadMode === 'sequential') {
+      // Sequential through pool: pick next, wrap around
+      pickIdx = (kwadLastTrick + 1) % kwadTrickPool.length;
+    } else if (kwadMode === 'roundRobinCategory') {
+      // Round-robin through categories
+      if (kwadCategoryOrder.length === 0) {
+        kwadCategoryOrder = Object.values(KWAD_CATEGORIES)
+          .filter(c => c.enabled && c.tricks.length)
+          .map(c => c.id);
+        kwadCategoryIdx = 0;
+      }
+      // Find next trick from current category
+      let attempts = 0;
+      while (attempts < kwadCategoryOrder.length) {
+        const catId = kwadCategoryOrder[kwadCategoryIdx];
+        const catTricks = KWAD_CATEGORIES[catId]?.tricks || [];
+        if (catTricks.length > 0) {
+          const catTrickIdx = catTricks.findIndex(t => t.name === kwadTrick);
+          let nextCatTrickIdx = (catTrickIdx + 1) % catTricks.length;
+          const nextTrick = catTricks[nextCatTrickIdx];
+          pickIdx = kwadTrickPool.findIndex(t => t.name === nextTrick.name && t.category === catId);
+          if (pickIdx !== -1) break;
+        }
+        kwadCategoryIdx = (kwadCategoryIdx + 1) % kwadCategoryOrder.length;
+        attempts++;
+      }
+      if (pickIdx === undefined || pickIdx === -1) {
+        // Fallback to random
+        pickIdx = kwadDrawIndex(kwadLastTrick, kwadTrickPool.length);
+      }
+    } else {
+      // Random (default): weighted by difficulty (higher = less frequent)
+      const weights = kwadTrickPool.map(t => {
+        const cat = KWAD_CATEGORIES[t.category];
+        const diff = cat?.difficulty || 1;
+        return 1 / diff; // lower difficulty = higher weight
+      });
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let r = Math.random() * totalWeight;
+      pickIdx = 0;
+      for (let i = 0; i < weights.length; i++) {
+        r -= weights[i];
+        if (r <= 0) { pickIdx = i; break; }
+      }
+    }
+
+    kwadLastTrick = pickIdx;
+    kwadTrickObj = kwadTrickPool[pickIdx];
+    kwadTrick = kwadTrickObj.name;
     kwadTried = [];
     kwadLastPenalty = null;
     const active = kwadActiveFrom(kwadTurnIdx);
@@ -2877,6 +3143,7 @@
     const active = kwadActiveFrom(kwadTurnIdx);
     if (active === -1) return;
     const p = kwadPlayers[active];
+    const currentTrickName = kwadTrickObj?.name || kwadTrick;
     if (!ok) {
       const letter = kwadNextLetter(p.letters);
       if (letter) {
@@ -2884,6 +3151,7 @@
         kwadLastPenalty = { playerIdx: active, letter };
         if (typeof soundKwadPenalty === 'function') soundKwadPenalty();
       }
+      kwadRecordStat(currentTrickName, false);
       kwadSave();
       if (kwadIsOut(p.letters)) {
         if (typeof soundKwadGameOver === 'function') soundKwadGameOver();
@@ -2892,6 +3160,7 @@
       }   // that player has lost
     } else {
       kwadLastPenalty = null; // successful attempt clears undo
+      kwadRecordStat(currentTrickName, true);
     }
     if (kwadTried.indexOf(p.name) === -1) kwadTried.push(p.name);
     const n = kwadPlayers.length;
@@ -2912,6 +3181,14 @@
     }
     kwadTurnIdx = next;
     renderKwad();
+  }
+
+  // Record stat for a trick attempt
+  function kwadRecordStat(trickName, succeeded) {
+    if (!kwadStats[trickName]) kwadStats[trickName] = { attempted: 0, succeeded: 0 };
+    kwadStats[trickName].attempted++;
+    if (succeeded) kwadStats[trickName].succeeded++;
+    kwadSaveStats();
   }
 
   function kwadAddPlayer(name) {
@@ -2944,7 +3221,134 @@
     kwadNewTrick();
   }
 
-  function openKwad() {
+  // KWAD Settings functions
+  function openKwadSettings() {
+    if (!els.kwadSettingsOverlay) return;
+    closeSettings();
+    els.kwadSettingsOverlay.hidden = false;
+  }
+  function closeKwadSettings() {
+    if (!els.kwadSettingsOverlay) return;
+    els.kwadSettingsOverlay.hidden = true;
+  }
+
+  function renderKwadCategories() {
+    if (!els.kwadCategoryGrid) return;
+    els.kwadCategoryGrid.innerHTML = '';
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      if (cat.id === 'custom') return; // handled separately
+      const item = document.createElement('div');
+      item.className = 'kwad-category-item';
+      item.innerHTML = `
+        <span class="cat-emoji">${cat.emoji}</span>
+        <div class="cat-info">
+          <div class="cat-label" data-i18n="kwad_category_${cat.id}">${t('kwad_category_' + cat.id)}</div>
+          <div class="cat-diff">${t('kwad_difficulty')}: ${'★'.repeat(cat.difficulty)}${'☆'.repeat(4 - cat.difficulty)}</div>
+        </div>
+        <span class="cat-count">${cat.tricks.length} Tricks</span>
+        <label class="cat-toggle check-row">
+          <input type="checkbox" ${cat.enabled ? 'checked' : ''} data-cat="${cat.id}" />
+          <span data-i18n="kwad_enabled">${t('kwad_enabled')}</span>
+        </label>
+      `;
+      els.kwadCategoryGrid.appendChild(item);
+    });
+    // Add checkbox listeners
+    els.kwadCategoryGrid.querySelectorAll('input[data-cat]').forEach(cb => {
+      cb.addEventListener('change', e => {
+        const catId = e.target.dataset.cat;
+        KWAD_CATEGORIES[catId].enabled = e.target.checked;
+        kwadSaveCategories();
+        kwadTrickPool = kwadBuildTrickPool();
+        if (kwadMode === 'roundRobinCategory') {
+          kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id);
+          kwadCategoryIdx = 0;
+        }
+        renderKwadCategories();
+      });
+    });
+  }
+
+  function renderKwadMode() {
+    if (!els.kwadModeSelect) return;
+    els.kwadModeSelect.value = kwadMode;
+  }
+
+  function renderKwadCustomTricks() {
+    if (!els.kwadCustomTricksList) return;
+    els.kwadCustomTricksList.innerHTML = '';
+    KWAD_CATEGORIES.custom.tricks.forEach((t, idx) => {
+      const item = document.createElement('div');
+      item.className = 'kwad-custom-trick';
+      item.innerHTML = `
+        <span class="custom-name">${t.name}</span>
+        <span class="custom-desc">${t.desc || '—'}</span>
+        <span class="custom-cat">${t.custom ? '⭐ Eigen' : ''}</span>
+        <button type="button" class="custom-del btn btn-danger" data-idx="${idx}" data-i18n-title="kwad_custom_delete" aria-label="${t('kwad_custom_delete')}">✕</button>
+      `;
+      els.kwadCustomTricksList.appendChild(item);
+    });
+    // Add delete listeners
+    els.kwadCustomTricksList.querySelectorAll('.custom-del').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        kwadRemoveCustomTrick(idx);
+      });
+    });
+  }
+
+  function kwadAddCustomTrick() {
+    if (!els.kwadCustomName || !els.kwadCustomDesc) return;
+    const name = (els.kwadCustomName.value || '').trim();
+    const desc = (els.kwadCustomDesc.value || '').trim();
+    if (!name) return;
+    if (KWAD_CATEGORIES.custom.tricks.some(t => t.name.toLowerCase() === name.toLowerCase())) return;
+    KWAD_CATEGORIES.custom.tricks.push({ name, desc, custom: true });
+    kwadSaveCustomTricks();
+    kwadTrickPool = kwadBuildTrickPool();
+    els.kwadCustomName.value = '';
+    els.kwadCustomDesc.value = '';
+    renderKwadCustomTricks();
+  }
+
+  function kwadRemoveCustomTrick(idx) {
+    if (idx < 0 || idx >= KWAD_CATEGORIES.custom.tricks.length) return;
+    KWAD_CATEGORIES.custom.tricks.splice(idx, 1);
+    kwadSaveCustomTricks();
+    kwadTrickPool = kwadBuildTrickPool();
+    renderKwadCustomTricks();
+  }
+
+  function renderKwadStats() {
+    if (!els.kwadStatsGrid) return;
+    const entries = Object.entries(kwadStats).sort((a, b) => b[1].attempted - a[1].attempted);
+    if (entries.length === 0) {
+      els.kwadStatsGrid.innerHTML = `<p class="hint" style="grid-column:1/-1;">${t('kwad_no_players')}</p>`;
+      return;
+    }
+    els.kwadStatsGrid.innerHTML = `
+      <div class="kwad-stat-row header">
+        <div class="kwad-stat-name">${t('kwad_trick')}</div>
+        <div class="kwad-stat-num">${t('kwad_stats_attempted')}</div>
+        <div class="kwad-stat-num">${t('kwad_stats_succeeded')}</div>
+        <div class="kwad-stat-rate">${t('kwad_stats_rate')}</div>
+      </div>
+    `;
+    entries.forEach(([name, s]) => {
+      const rate = s.attempted > 0 ? Math.round((s.succeeded / s.attempted) * 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'kwad-stat-row';
+      row.innerHTML = `
+        <div class="kwad-stat-name">${name}</div>
+        <div class="kwad-stat-num">${s.attempted}</div>
+        <div class="kwad-stat-num">${s.succeeded}</div>
+        <div class="kwad-stat-rate">${rate}%</div>
+      `;
+      els.kwadStatsGrid.appendChild(row);
+    });
+  }
+
+  function openKwad() {function openKwad() {
     if (!els.kwadScreen) return;
     if (els.homeScreen) els.homeScreen.hidden = true;
     if (els.pilotsScreen) els.pilotsScreen.hidden = true;
@@ -2964,6 +3368,18 @@
   if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
   if (els.kwadPilotSelect) els.kwadPilotSelect.addEventListener('change', e => { if (e.target.value) kwadAddPlayer(e.target.value); });
   if (els.btnKwadReset) els.btnKwadReset.addEventListener('click', kwadResetGame);
+  // KWAD Settings
+  if (els.btnKwadSettings) els.btnKwadSettings.addEventListener('click', () => {
+    openKwadSettings();
+    renderKwadCategories();
+    renderKwadMode();
+    renderKwadCustomTricks();
+    renderKwadStats();
+  });
+  if (els.btnKwadSettingsClose) els.btnKwadSettingsClose.addEventListener('click', closeKwadSettings);
+  if (els.kwadSettingsOverlay) els.kwadSettingsOverlay.addEventListener('click', e => { if (e.target === els.kwadSettingsOverlay) closeKwadSettings(); });
+  if (els.kwadModeSelect) els.kwadModeSelect.addEventListener('change', e => { kwadMode = e.target.value; kwadSaveMode(); if (kwadMode === 'roundRobinCategory') { kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id); kwadCategoryIdx = 0; } renderKwadMode(); });
+  if (els.btnKwadCustomSave) els.btnKwadCustomSave.addEventListener('click', kwadAddCustomTrick);
   kwadLoad();
 
   // ---------- init ----------
