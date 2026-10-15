@@ -20,6 +20,9 @@ in einer vom Nutzer definierten Zone über Start/Ziel erkannt.
 
 ## Features
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
+- Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
+- Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
+- Sätze (Vergleich): Alle abgeschlossenen Sätze werden gespeichert (Runden, beste Zeit, Ø, Gesamt) und lassen sich aufklappen, einzeln löschen oder gesammelt als CSV exportieren
 - Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
@@ -40,6 +43,7 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 - Exit (px): Schwellwert für „frei“
 - Cooldown: Mindestabstand zwischen zwei Runden
 - Auflösung: Verarbeitungsauflösung (niedriger = schneller)
+- Auto-Start & Sätze: automatischer Start beim ersten Durchflug und Rundenzahl pro Satz (0 = unbegrenzt)
 
 ## Roadmap für native Kotlin-App
 - CameraX-Vorschau + Analyse-Thread

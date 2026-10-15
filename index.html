@@ -94,6 +94,17 @@
       </table>
     </section>
 
+    <section class="sets-card">
+      <div class="laps-head">
+        <h2 data-i18n="sets_title">Sätze (Vergleich)</h2>
+        <div class="sets-head-actions">
+          <button id="btnExportAll" data-i18n="export_all">Alle exportieren</button>
+          <button id="btnClearSets" class="btn-danger" data-i18n="clear_sets">Alle löschen</button>
+        </div>
+      </div>
+      <div id="setsList" class="sets-list"></div>
+    </section>
+
     <div class="settings-overlay" id="settingsOverlay" hidden>
       <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings" aria-label="Einstellungen">
         <div class="settings-modal-head">
@@ -142,6 +153,14 @@
             <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
             <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
           </div>
+        </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_auto">Auto-Start &amp; Sätze</h3></summary>
+          <div class="settings-grid">
+            <label class="check-row"><input type="checkbox" id="autoStart" /> <span data-i18n="auto_start">Timer automatisch beim ersten Durchflug starten (ohne Handy)</span></label>
+            <label><span data-i18n="auto_laps">Runden pro Satz (0 = unbegrenzt)</span> <input type="range" id="autoLaps" min="0" max="30" value="0" /><span id="autoLapsVal">∞</span></label>
+          </div>
+          <p class="hint" data-i18n="hint_auto">Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).</p>
         </details>
         <details class="settings-group">
           <summary><h3 data-i18n="g_language">Sprache &amp; Stimme</h3></summary>

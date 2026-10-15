@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.8.1';
+  const APP_VERSION = '0.9.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -108,6 +108,24 @@
       minutes_word: 'Minuten',
       camera_n: 'Kamera ',
       decimal_sep: ',',
+      g_auto: 'Auto-Start & Sätze',
+      auto_start: 'Timer automatisch beim ersten Durchflug starten (ohne Handy)',
+      auto_laps: 'Runden pro Satz (0 = unbegrenzt)',
+      waiting_first: 'Warte auf ersten Durchflug …',
+      overlay_waiting: 'Warte auf ersten Durchflug',
+      set_word: 'Satz',
+      set_laps_word: 'Runden',
+      set_best_word: 'Beste',
+      set_done: 'Satz gespeichert',
+      set_end: 'Satz beendet. Gesamtzeit ',
+      sets_title: 'Sätze (Vergleich)',
+      export_all: 'Alle exportieren',
+      clear_sets: 'Alle löschen',
+      no_sets: 'Noch keine Sätze gespeichert.',
+      confirm_clear_sets: 'Wirklich alle Sätze löschen?',
+      delete_word: 'Löschen',
+      avg_word: 'Ø',
+      hint_auto: 'Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).',
     },
     en: {
       title: 'FPV Racing Timer',
@@ -212,6 +230,24 @@
       minutes_word: 'minutes',
       camera_n: 'Camera ',
       decimal_sep: '.',
+      g_auto: 'Auto-start & sets',
+      auto_start: 'Start timer automatically on first crossing (no phone needed)',
+      auto_laps: 'Laps per set (0 = unlimited)',
+      waiting_first: 'Waiting for first crossing …',
+      overlay_waiting: 'Waiting for first crossing',
+      set_word: 'Set',
+      set_laps_word: 'laps',
+      set_best_word: 'Best',
+      set_done: 'Set saved',
+      set_end: 'Set finished. Total time ',
+      sets_title: 'Sets (compare)',
+      export_all: 'Export all',
+      clear_sets: 'Clear all',
+      no_sets: 'No sets saved yet.',
+      confirm_clear_sets: 'Really delete all sets?',
+      delete_word: 'Delete',
+      avg_word: 'avg',
+      hint_auto: 'Auto-start: The first gate crossing starts the timer (it is not counted as a lap). After the configured number of laps the timer stops automatically, the set is saved, and the next crossing starts the next set. This lets you fly several sets and compare them at the end. 0 = unlimited (manual stop).',
     },
   };
 
@@ -270,6 +306,12 @@
     driftComp: true,
     camLock: false,
     camDeviceId: '',
+    autoStart: false,
+    autoLaps: 0,
+    awaitingStart: false,
+    sets: [],
+    setCounter: 0,
+    stintSaved: false,
     lang: 'de',
     voiceURI: '',
     rafId: null,
@@ -323,6 +365,12 @@
     directionSelect: document.getElementById('directionSelect'),
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
+    autoStart: document.getElementById('autoStart'),
+    autoLaps: document.getElementById('autoLaps'),
+    autoLapsVal: document.getElementById('autoLapsVal'),
+    setsList: document.getElementById('setsList'),
+    btnExportAll: document.getElementById('btnExportAll'),
+    btnClearSets: document.getElementById('btnClearSets'),
     langSelect: document.getElementById('langSelect'),
     voiceSelect: document.getElementById('voiceSelect'),
     btnSettings: document.getElementById('btnSettings'),
@@ -371,9 +419,20 @@
       driftComp: state.driftComp,
       camLock: state.camLock,
       camDeviceId: state.camDeviceId,
+      autoStart: state.autoStart,
+      autoLaps: state.autoLaps,
       lang: state.lang,
       voiceURI: state.voiceURI,
     }));
+  }
+  function loadSets() {
+    try { return JSON.parse(localStorage.getItem('fpv_sets') || '[]'); } catch { return []; }
+  }
+  function saveSets() {
+    try { localStorage.setItem('fpv_sets', JSON.stringify(state.sets)); } catch (e) { /* storage full */ }
+  }
+  function formatAutoLaps(n) {
+    return (n === 0 || n === '0') ? '∞' : String(n);
   }
   function fmt(ms) {
     if (!isFinite(ms) || ms < 0) ms = 0;
@@ -418,6 +477,12 @@
     state.camLock = s.camLock ?? false;
     if (els.camLock) els.camLock.checked = state.camLock;
     state.camDeviceId = s.camDeviceId || '';
+    state.autoStart = s.autoStart ?? false;
+    if (els.autoStart) els.autoStart.checked = state.autoStart;
+    state.autoLaps = s.autoLaps ?? 0;
+    if (els.autoLaps) { els.autoLaps.value = state.autoLaps; els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps); }
+    state.sets = loadSets();
+    state.setCounter = state.sets.reduce((m, x) => Math.max(m, x.n || 0), 0);
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
@@ -451,6 +516,7 @@
     populateVoices();
     renderPilots();
     renderLaps();
+    renderSets();
     if (!state.stream && !state.raceActive && !state.countdownActive) {
       setStatus(t('status_ready') + ' (v' + APP_VERSION + ') – ' + t('start_camera'));
     }
@@ -613,6 +679,24 @@
       state.camLock = e.target.checked;
       saveSettings();
       if (state.stream) applyCameraLock();
+    });
+  }
+  if (els.autoStart) {
+    els.autoStart.addEventListener('change', e => {
+      state.autoStart = e.target.checked;
+      saveSettings();
+      if (state.autoStart && state.stream && !state.raceActive && !state.countdownActive) {
+        armAutoWait();
+      } else if (!state.autoStart) {
+        state.awaitingStart = false;
+      }
+    });
+  }
+  if (els.autoLaps) {
+    els.autoLaps.addEventListener('input', e => {
+      state.autoLaps = +e.target.value;
+      els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps);
+      saveSettings();
     });
   }
   if (els.langSelect) {
@@ -896,6 +980,7 @@
         state.background = acc;
         setStatus(t('bg_calibrated'));
         haptic();
+        if (state.autoStart && !state.raceActive && !state.countdownActive) armAutoWait();
         return;
       }
       processGrayInto(acc, true);
@@ -1036,7 +1121,7 @@
       state.machine = 0;
       state.pendingLap = null;
       state.wrongFlashUntil = 0;
-    } else if (state.armed && state.raceActive && roi) {
+    } else if (state.armed && (state.raceActive || state.awaitingStart) && roi) {
       if (state.machine === 0 && changed <= state.exitThreshold) {
         // Gate really is clear again -> allow the next crossing to trigger.
         state.needsClear = false;
@@ -1049,7 +1134,11 @@
           start: (state.motionBox && state.motionBox.changed > 0) ? { x: state.motionBox.cx, y: state.motionBox.cy } : null,
           last: (state.motionBox && state.motionBox.changed > 0) ? { x: state.motionBox.cx, y: state.motionBox.cy } : null,
         };
-        if (state.direction === 'aus') {
+        if (state.awaitingStart) {
+          // First crossing starts the race; it is not counted as a lap.
+          beginRaceAt(now);
+          state.pendingLap = null;
+        } else if (state.direction === 'aus') {
           tryTriggerLap(now);
           state.pendingLap = null;
         }
@@ -1093,8 +1182,11 @@
     if (state.laps.length > 0 && now - state.lastTrigger < state.cooldownMs) return;
     if (state.laps.length === 0 && now - (state.raceStart || now) < 1000) return;
     state.lastTrigger = now;
-    recordLap(now);
+    const recorded = recordLap(now);
     haptic();
+    if (recorded && state.autoStart && state.autoLaps > 0 && state.laps.length >= state.autoLaps) {
+      finishAutoStint();
+    }
   }
 
   function evaluatePendingLap(now) {
@@ -1126,7 +1218,7 @@
 
   function recordLap(triggerTime) {
     const duration = triggerTime - state.currentLapStart;
-    if (duration < 300) return; // ignore tiny
+    if (duration < 300) return false; // ignore tiny
     const prevBest = state.laps.length ? Math.min(...state.laps.map(l => l.duration)) : Infinity;
     const lapNumber = state.laps.length + 1;
     const isBest = duration < prevBest;
@@ -1145,6 +1237,7 @@
     updateBest();
     if (isBest) soundBest(); else soundLap();
     announceLap(lapNumber, duration, isBest);
+    return true;
   }
 
   function announceLap(lapNumber, duration, isBest) {
@@ -1157,22 +1250,28 @@
 
   els.btnLapManual.addEventListener('click', () => {
     if (!state.raceActive) return;
-    recordLap(performance.now());
+    const recorded = recordLap(performance.now());
     haptic();
+    if (recorded && state.autoStart && state.autoLaps > 0 && state.laps.length >= state.autoLaps) {
+      finishAutoStint();
+    }
   });
 
   // ---------- race control ----------
   function startCountdown() {
     if (!state.stream) { setStatus(t('start_camera_first')); return; }
     if (state.countdownActive || state.raceActive) return;
+    if (state.autoStart) { armAutoWait(false); return; }
     ensureAudio();
     primeSpeech();
     state.laps = [];
+    state.stintSaved = false;
     renderLaps();
     updateBest();
     els.lastLap.textContent = '--';
     state.armed = true;
     els.armedToggle.checked = true;
+    state.awaitingStart = false;
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
@@ -1190,21 +1289,57 @@
     setStatus(t('countdown'));
   }
 
-  function beginRace() {
-    state.countdownActive = false;
-    state.raceActive = true;
-    state.raceStart = performance.now();
-    state.currentLapStart = state.raceStart;
+  // Arm the timer and wait for the first gate crossing to start the race.
+  function armAutoWait(requireClear) {
+    if (!state.stream || state.raceActive || state.countdownActive) return;
+    ensureAudio();
+    primeSpeech();
+    state.armed = true;
+    els.armedToggle.checked = true;
+    state.awaitingStart = true;
+    state.laps = [];
+    state.stintSaved = false;
+    renderLaps();
+    updateBest();
+    els.lastLap.textContent = '--';
+    state.raceStart = 0;
+    state.currentLapStart = 0;
     state.raceElapsed = 0;
     state.frozenLap = 0;
     state.machine = 0;
     state.machineEnterAt = 0;
-    state.needsClear = false;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.directionToastUntil = 0;
     state.maxChangedSeen = 0;
     state.lastTrigger = 0;
+    // After a finished stint the drone is still in the gate: require it to clear
+    // once before the next crossing may start the following set.
+    state.needsClear = !!requireClear;
+    setStatus(t('waiting_first'));
+  }
+
+  // Start the race at a given timestamp (used by auto-start on first crossing).
+  function beginRaceAt(t) {
+    beginRace(t);
+  }
+
+  function beginRace(startAt) {
+    state.countdownActive = false;
+    state.raceActive = true;
+    state.awaitingStart = false;
+    state.raceStart = (typeof startAt === 'number') ? startAt : performance.now();
+    state.currentLapStart = state.raceStart;
+    state.raceElapsed = 0;
+    state.frozenLap = 0;
+    state.machine = 1;
+    state.machineEnterAt = state.raceStart;
+    state.needsClear = true;
+    state.pendingLap = null;
+    state.wrongFlashUntil = 0;
+    state.directionToastUntil = 0;
+    state.maxChangedSeen = 0;
+    state.lastTrigger = state.raceStart;
     state.goFlashUntil = performance.now() + 800;
     soundGo();
     if (state.announceMode !== 'aus') speak(t('go'));
@@ -1217,14 +1352,63 @@
       setStatus(t('countdown_cancelled'));
       return;
     }
+    if (state.awaitingStart) {
+      state.awaitingStart = false;
+      setStatus(t('race_stopped'));
+      return;
+    }
     if (!state.raceActive) return;
     const now = performance.now();
     state.raceElapsed = now - state.raceStart;
     state.frozenLap = now - state.currentLapStart;
     state.raceActive = false;
     soundStop();
-    setStatus(t('race_stopped'));
-    if (state.announceMode !== 'aus') speak(t('stop_total') + secondsToSpeech(state.raceElapsed));
+    const set = saveStint();
+    if (state.autoStart) {
+      armAutoWait(true);
+      setStatus((set ? (t('set_done') + ' · ' + t('set_word') + ' ' + set.n) : t('race_stopped')) + ' · ' + t('waiting_first'));
+    } else {
+      setStatus(t('race_stopped'));
+      if (state.announceMode !== 'aus') speak(t('stop_total') + secondsToSpeech(state.raceElapsed));
+    }
+  }
+
+  // Automatically end a stint when the configured lap count is reached.
+  function finishAutoStint() {
+    const now = performance.now();
+    state.raceElapsed = state.laps.length ? state.laps[state.laps.length - 1].total : (now - state.raceStart);
+    state.frozenLap = state.laps.length ? state.laps[state.laps.length - 1].duration : (now - state.currentLapStart);
+    state.raceActive = false;
+    const set = saveStint();
+    soundStop();
+    if (state.announceMode !== 'aus') speak(t('set_end') + secondsToSpeech(state.raceElapsed));
+    if (state.autoStart) {
+      armAutoWait(true);
+      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : '') + ' · ' + t('waiting_first'));
+    } else {
+      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : ''));
+    }
+  }
+
+  // Store the current laps as a completed set for later comparison.
+  function saveStint() {
+    if (!state.laps.length) return null;
+    if (state.stintSaved) return null;
+    const laps = state.laps.map(l => ({ idx: l.idx, duration: l.duration, total: l.total, pilot: l.pilot || '' }));
+    state.setCounter = (state.setCounter || state.sets.length) + 1;
+    const set = {
+      n: state.setCounter,
+      at: Date.now(),
+      pilot: state.currentPilot || '',
+      laps,
+      totalMs: laps[laps.length - 1].total,
+      bestMs: Math.min(...laps.map(l => l.duration)),
+    };
+    state.sets.push(set);
+    saveSets();
+    renderSets();
+    state.stintSaved = true;
+    return set;
   }
 
   function updateCountdown(now) {
@@ -1241,9 +1425,13 @@
   els.btnRaceStart.addEventListener('click', startCountdown);
   els.btnRaceStop.addEventListener('click', stopRace);
   els.btnReset.addEventListener('click', () => {
+    // Save the current stint first so nothing is lost when resetting.
+    if (state.laps.length) saveStint();
     state.raceActive = false;
     state.countdownActive = false;
+    state.awaitingStart = false;
     state.laps = [];
+    state.stintSaved = false;
     state.raceStart = 0;
     state.currentLapStart = 0;
     state.raceElapsed = 0;
@@ -1308,6 +1496,98 @@
     if (!state.laps.length) { els.bestLap.textContent = '--'; return; }
     const best = state.laps.reduce((a,b) => a.duration < b.duration ? a : b);
     els.bestLap.textContent = fmt(best.duration);
+  }
+
+  // ---------- sets (stints) ----------
+  function timeLabel(ts) {
+    try {
+      const d = new Date(ts);
+      const p = n => String(n).padStart(2, '0');
+      return `${p(d.getHours())}:${p(d.getMinutes())}`;
+    } catch { return ''; }
+  }
+  function renderSets() {
+    if (!els.setsList) return;
+    els.setsList.innerHTML = '';
+    if (!state.sets.length) {
+      const p = document.createElement('div');
+      p.className = 'set-empty';
+      p.textContent = t('no_sets');
+      els.setsList.appendChild(p);
+      return;
+    }
+    // newest first
+    state.sets.slice().reverse().forEach(set => {
+      const item = document.createElement('div');
+      item.className = 'set-item';
+      const head = document.createElement('div');
+      head.className = 'set-summary';
+      const avg = set.laps.length ? (set.laps.reduce((a,l) => a + l.duration, 0) / set.laps.length) : 0;
+      head.innerHTML =
+        `<span class="set-name">${t('set_word')} ${set.n}</span>` +
+        `<span class="set-meta">` +
+          `<span>${timeLabel(set.at)}</span>` +
+          `<span><b>${set.laps.length}</b> ${t('set_laps_word')}</span>` +
+          `<span>${t('set_best_word')} <b>${fmt(set.bestMs)}</b></span>` +
+          `<span>${t('avg_word')} <b>${fmt(avg)}</b></span>` +
+          `<span>${t('th_total')} <b>${fmt(set.totalMs)}</b></span>` +
+        `</span>` +
+        `<span class="set-arrow">▸</span>`;
+      const del = document.createElement('button');
+      del.className = 'set-del';
+      del.type = 'button';
+      del.textContent = '🗑';
+      del.title = t('delete_word');
+      del.addEventListener('click', ev => {
+        ev.stopPropagation();
+        state.sets = state.sets.filter(s => s !== set);
+        saveSets();
+        renderSets();
+      });
+      head.appendChild(del);
+      const lapsBox = document.createElement('div');
+      lapsBox.className = 'set-laps';
+      lapsBox.hidden = true;
+      const table = document.createElement('table');
+      const bestDur = set.bestMs;
+      table.innerHTML =
+        `<thead><tr><th>${t('th_index')}</th><th>${t('th_lap')}</th><th>${t('th_total')}</th></tr></thead>` +
+        `<tbody>${set.laps.map(l =>
+          `<tr class="${l.duration === bestDur ? 'set-best-row' : ''}"><td>${l.idx}</td><td>${fmt(l.duration)}</td><td>${fmt(l.total)}</td></tr>`
+        ).join('')}</tbody>`;
+      lapsBox.appendChild(table);
+      head.addEventListener('click', () => {
+        lapsBox.hidden = !lapsBox.hidden;
+        head.querySelector('.set-arrow').textContent = lapsBox.hidden ? '▸' : '▾';
+      });
+      item.appendChild(head);
+      item.appendChild(lapsBox);
+      els.setsList.appendChild(item);
+    });
+  }
+
+  if (els.btnClearSets) {
+    els.btnClearSets.addEventListener('click', () => {
+      if (!state.sets.length) return;
+      if (!confirm(t('confirm_clear_sets'))) return;
+      state.sets = [];
+      state.setCounter = 0;
+      saveSets();
+      renderSets();
+    });
+  }
+  if (els.btnExportAll) {
+    els.btnExportAll.addEventListener('click', () => {
+      if (!state.sets.length) return;
+      const rows = [['set','pilot','index','lap_ms','total_ms']];
+      state.sets.forEach(s => s.laps.forEach(l => rows.push([s.n, l.pilot || '', l.idx, Math.round(l.duration), Math.round(l.total)])));
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'fpv-sets.csv'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
   }
 
   // ---------- pilots ----------
@@ -1461,6 +1741,25 @@
       overlayCtx.textBaseline = 'middle';
       overlayCtx.font = 'bold ' + Math.round(h * 0.32) + 'px sans-serif';
       overlayCtx.fillText('GO!', w / 2, h / 2);
+      overlayCtx.textAlign = 'left';
+      overlayCtx.textBaseline = 'alphabetic';
+    }
+
+    // Auto-start: show that we are waiting for the first crossing
+    if (state.awaitingStart && !state.countdownActive) {
+      const label = t('overlay_waiting');
+      overlayCtx.save();
+      overlayCtx.font = 'bold ' + Math.round(h * 0.062) + 'px sans-serif';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.textBaseline = 'middle';
+      const tw = overlayCtx.measureText(label).width;
+      const boxW = tw + 36;
+      const boxH = h * 0.12;
+      overlayCtx.fillStyle = 'rgba(0,0,0,0.72)';
+      overlayCtx.fillRect((w - boxW) / 2, h - boxH - 12, boxW, boxH);
+      overlayCtx.fillStyle = '#ffd23c';
+      overlayCtx.fillText(label, w / 2, h - boxH / 2 - 12);
+      overlayCtx.restore();
       overlayCtx.textAlign = 'left';
       overlayCtx.textBaseline = 'alphabetic';
     }
