@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.12.0';
+  const APP_VERSION = '0.13.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -9,9 +9,8 @@
       title: 'KTR FPV APP',
       settings: 'Einstellungen',
       close: 'Schließen',
-      menu_open: 'Hauptmenü öffnen',
-      main_menu: 'Hauptmenü',
-      menu_sub: 'FPV Racing Toolkit',
+      home: 'Startseite',
+      home_sub: 'FPV Racing Toolkit',
       m_timer: 'Timer',
       m_timer_desc: 'Runden, Sätze & Vergleich',
       m_settings_desc: 'Sprache, Farben, Sensorik',
@@ -163,9 +162,8 @@
       title: 'KTR FPV APP',
       settings: 'Settings',
       close: 'Close',
-      menu_open: 'Open main menu',
-      main_menu: 'Main menu',
-      menu_sub: 'FPV Racing Toolkit',
+      home: 'Home',
+      home_sub: 'FPV Racing Toolkit',
       m_timer: 'Timer',
       m_timer_desc: 'Laps, sets & comparison',
       m_settings_desc: 'Language, colours, sensors',
@@ -458,9 +456,9 @@
     btnSettings: document.getElementById('btnSettings'),
     btnSettingsClose: document.getElementById('btnSettingsClose'),
     settingsOverlay: document.getElementById('settingsOverlay'),
-    mainMenu: document.getElementById('mainMenu'),
-    btnMenu: document.getElementById('btnMenu'),
-    btnMenuClose: document.getElementById('btnMenuClose'),
+    homeScreen: document.getElementById('homeScreen'),
+    btnHome: document.getElementById('btnHome'),
+    homeVersionBadge: document.getElementById('homeVersionBadge'),
     tileTimer: document.getElementById('tileTimer'),
     tileSettings: document.getElementById('tileSettings'),
     versionBadge: document.getElementById('versionBadge'),
@@ -508,6 +506,7 @@
       camLock: state.camLock,
       camDeviceId: state.camDeviceId,
       autoStart: state.autoStart,
+      armed: state.armed,
       autoLaps: state.autoLaps,
       setFilter: state.setFilter,
       accent: state.accent,
@@ -575,6 +574,8 @@
     state.autoStart = s.autoStart ?? false;
     if (els.autoStart) els.autoStart.checked = state.autoStart;
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
+    state.armed = s.armed ?? false;
+    if (els.armedToggle) els.armedToggle.checked = state.armed;
     state.autoLaps = s.autoLaps ?? 0;
     renderAutoLaps();
     renderCountdown();
@@ -971,21 +972,25 @@
   }
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    if (els.mainMenu && !els.mainMenu.hidden) { closeMenu(); return; }
-    if (els.settingsOverlay && !els.settingsOverlay.hidden) closeSettings();
+    if (els.settingsOverlay && !els.settingsOverlay.hidden) { closeSettings(); return; }
+    if (els.homeScreen && els.homeScreen.hidden) openHome();
   });
 
-  // ---------- main menu ----------
-  function openMenu() { if (els.mainMenu) els.mainMenu.hidden = false; }
-  function closeMenu() { if (els.mainMenu) els.mainMenu.hidden = true; }
-  if (els.btnMenu) els.btnMenu.addEventListener('click', openMenu);
-  if (els.btnMenuClose) els.btnMenuClose.addEventListener('click', closeMenu);
-  if (els.mainMenu) {
-    // clicking the dimmed/empty backdrop area closes the menu
-    els.mainMenu.addEventListener('click', e => { if (e.target === els.mainMenu) closeMenu(); });
+  // ---------- home screen (the app's root: pick a feature) ----------
+  function openHome() {
+    if (!els.homeScreen) return;
+    els.homeScreen.hidden = false;
+    if (els.btnHome) els.btnHome.hidden = true;
+    els.homeScreen.scrollTop = 0;
   }
-  if (els.tileTimer) els.tileTimer.addEventListener('click', closeMenu);
-  if (els.tileSettings) els.tileSettings.addEventListener('click', () => { closeMenu(); openSettings(); });
+  function closeHome() {
+    if (!els.homeScreen) return;
+    els.homeScreen.hidden = true;
+    if (els.btnHome) els.btnHome.hidden = false;
+  }
+  if (els.btnHome) els.btnHome.addEventListener('click', openHome);
+  if (els.tileTimer) els.tileTimer.addEventListener('click', closeHome);
+  if (els.tileSettings) els.tileSettings.addEventListener('click', openSettings);
 
   // ---------- audio feedback ----------
   let audioCtx = null;
@@ -1724,6 +1729,7 @@
     state.wrongFlashUntil = 0;
     state.directionToastUntil = 0;
     state.maxChangedSeen = 0;
+    saveSettings();
   });
 
   function updateTimers() {
@@ -2332,10 +2338,11 @@
     els.overlay.width = Math.round(r.width) || 320;
     els.overlay.height = Math.round(r.height) || 240;
     if (els.versionBadge) els.versionBadge.textContent = 'v' + APP_VERSION;
+    if (els.homeVersionBadge) els.homeVersionBadge.textContent = 'v' + APP_VERSION;
     applyLanguage();
     saveSettings();
-    // Start in the main menu — the timer is one of several functions.
-    openMenu();
+    // Start on the home screen — the app's features (Timer, …) are opened from here.
+    openHome();
   }
 
   window.addEventListener('resize', () => { drawOverlay(); renderChart(); });

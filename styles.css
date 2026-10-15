@@ -12,6 +12,8 @@
 }
 
 * { box-sizing: border-box; }
+/* the `hidden` attribute must always win, even on elements with an explicit display */
+[hidden] { display: none !important; }
 html { height: 100%; }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
 body { min-height: 100%; }
@@ -32,50 +34,50 @@ button, input, select { font: inherit; }
   border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
 }
 .gear-btn:hover, .gear-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
-.logo-img { width: 30px; height: 30px; border-radius: 8px; display: block; flex-shrink: 0; }
-.title { font-weight: 600; font-size: 18px; }
+.logo-img { width: 32px; height: 32px; border-radius: 8px; display: block; flex-shrink: 0; }
 .version { font-size: 11px; color: var(--muted); background: var(--elev); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
 .status { font-size: 13px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ---- main menu ---- */
-.menu-overlay {
+/* ---- home screen ---- */
+.home-screen {
   position: fixed; inset: 0; z-index: 60; overflow-y: auto;
-  background: var(--bg);
-  padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: radial-gradient(130% 70% at 50% 0%, #17222e 0%, var(--bg) 62%);
+  padding: 22px 18px calc(22px + env(safe-area-inset-bottom, 0px));
 }
-.menu-overlay[hidden] { display: none; }
-.menu { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-.menu-head { display: flex; align-items: center; gap: 12px; }
-.menu-logo { width: 56px; height: 56px; border-radius: 14px; display: block; flex-shrink: 0; }
-.menu-head-text { flex: 1; min-width: 0; }
-.menu-app { font-size: 21px; font-weight: 800; letter-spacing: .5px; }
-.menu-app-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-.menu-tile {
+.home-screen[hidden] { display: none; }
+.home-inner { max-width: 660px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.home-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 16px 0 4px; }
+.home-logo { width: 104px; height: 104px; border-radius: 24px; display: block; }
+.home-app { font-size: 26px; font-weight: 800; letter-spacing: 1px; margin-top: 10px; }
+.home-sub { font-size: 13px; color: var(--muted); }
+.home-hero .version { margin-top: 8px; }
+.home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.home-tile {
   display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
-  text-align: left; padding: 14px; min-height: 104px;
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  text-align: left; padding: 16px; min-height: 108px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
   color: var(--text); cursor: pointer;
 }
-.menu-tile:hover:not(:disabled), .menu-tile:focus-visible:not(:disabled) { border-color: var(--accent); }
-.menu-tile.is-primary {
+.home-tile:hover:not(:disabled), .home-tile:focus-visible:not(:disabled) { border-color: var(--accent); }
+.home-tile.is-primary {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);
   background: var(--elev);
 }
-.menu-tile.is-primary .tile-label { color: var(--accent); }
-.menu-tile:disabled { opacity: 0.55; cursor: default; }
-.tile-icon { font-size: 24px; line-height: 1.1; }
-.tile-label { font-size: 16px; font-weight: 700; margin-top: 2px; }
-.tile-desc { font-size: 12px; color: var(--muted); }
-.menu-tile:disabled .tile-desc { color: var(--accent); }
-.menu-note { font-size: 12px; color: var(--muted); text-align: center; margin: 2px 0 0; }
+.home-tile.is-primary .home-tile-label { color: var(--accent); }
+.home-tile:disabled { opacity: 0.55; cursor: default; }
+.home-tile-icon { font-size: 26px; line-height: 1.1; }
+.home-tile-label { font-size: 16px; font-weight: 700; margin-top: 2px; }
+.home-tile-desc { font-size: 12px; color: var(--muted); }
+.home-tile:disabled .home-tile-desc { color: var(--accent); }
+.home-note { font-size: 12px; color: var(--muted); text-align: center; margin: 2px 0 0; }
 
 @media (max-width: 430px) {
   .topbar { padding: 10px 12px; }
-  .title { font-size: 15px; }
-  .logo-img { width: 26px; height: 26px; }
+  .logo-img { width: 28px; height: 28px; }
   .status { font-size: 12px; }
+  .home-logo { width: 88px; height: 88px; }
+  .home-app { font-size: 23px; }
 }
 
 .layout {
@@ -210,7 +212,7 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .swatches button { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--sw); border: 2px solid var(--border); cursor: pointer; }
 .swatches button.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .settings-grid input[type=color] { grid-column: 2; width: 52px; height: 32px; padding: 2px; background: var(--elev); border: 1px solid var(--border); border-radius: 8px; }
-.settings-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
+.settings-overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
 .settings-overlay[hidden] { display: none; }
 .settings-modal {
   width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
@@ -292,7 +294,6 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 @media (orientation: landscape) and (max-height: 660px) {
   .topbar { padding: 8px 12px; }
   .logo-img { width: 24px; height: 24px; }
-  .title { font-size: 15px; }
   .status { font-size: 12px; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .layout {
     grid-template-columns: minmax(280px, 46%) minmax(240px, 1fr);

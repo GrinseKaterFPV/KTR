@@ -20,8 +20,8 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
-- **Hauptmenü:** Beim Start öffnet sich das Hauptmenü (Hamburger ☰ oben links öffnet es jederzeit wieder). Der Timer ist eine von mehreren Funktionen (weitere Bereiche folgen schrittweise)
-- **Logo/Name „KTR FPV APP“:** das Icon zeigt die drei Kürzel K, T, R untereinander in einem 3×3-Raster
+- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – z. B. **Timer** – und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
+- **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die drei Kürzel K, T, R untereinander in einem 3×3-Raster; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
 - Runden pro Satz: Nach der eingestellten Rundenzahl stoppt der Timer automatisch; der Satz wird gespeichert und die nächste Durchfahrt startet den nächsten Satz
@@ -33,6 +33,7 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 - Akzentfarbe frei wählbar (Einstellungen → „Aussehen“): Presets oder eigene Farbe per Farbwähler
 - Einklappbare Hauptbereiche: Kamera, Timer, Rundenlog und Sätze lassen sich am Titel antippen ein-/ausklappen (Zustand wird gespeichert; Timer zeigt im eingeklappten Kopf die laufende Zeit)
 - Auto-Start auch direkt in der Timer-Karte (Schnellschalter; das Badge daneben antippen → Stepper/Presets für die Rundenzahl pro Satz)
+- Erkennung ein/aus („Auto Lap Detection“) wird gespeichert und beim nächsten Start wiederhergestellt
 - Countdown direkt in der Timer-Karte einstellbar (Badge antippen → Stepper/Presets)
 - Pilotfarben: beim Anlegen eines Piloten eine Farbe wählen – der Pilot wird im Chart und in der Vergleichstabelle in seiner Farbe dargestellt (Legende im Chart)
 - Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
