@@ -145,8 +145,8 @@ Details:
 
 ### 8.1 Homescreen-Kachel
 
-- Neue Kachel **„Game of K.W.A.D"** (`⛳` oder `🛹`) mit Kurzbeschreibung
-  „Freestyle-Tricks, Strafbuchstaben, Revanche".
+- Neue Kachel **„Game of K.W.A.D"** mit eigenem Kopter-Logo (`icon-kwad.svg`) und Kurzbeschreibung
+  „Freestyle-Tricks, Strafbuchstaben".
 - Umsetzung analog zur vorhandenen Kachel-Mechanik (Klick → Modus öffnen, ← führt zurück).
 
 ### 8.2 Setup-Screen (vor Spielbeginn)
