@@ -34,6 +34,7 @@ button, input, select { font: inherit; }
   border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
 }
 .gear-btn:hover, .gear-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
+.back-arrow { display: block; width: 18px; height: 18px; }
 .logo-img { width: 32px; height: 32px; border-radius: 8px; display: block; flex-shrink: 0; }
 .version { font-size: 11px; color: var(--muted); background: var(--elev); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
 .status { font-size: 13px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
