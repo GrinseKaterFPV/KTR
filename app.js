@@ -1279,6 +1279,11 @@
   function soundBest() { beep(1000, 0.08, 0.25, 'square'); beep(1400, 0.08, 0.25, 'square', 0.1); beep(1900, 0.16, 0.28, 'square', 0.2); }
   function soundStop() { beep(500, 0.15, 0.22, 'sine'); beep(350, 0.2, 0.2, 'sine', 0.12); }
 
+  // --- KWAD sounds ---
+  function soundKwadPenalty() { beep(300, 0.18, 0.25, 'sawtooth'); beep(220, 0.25, 0.22, 'sawtooth', 0.08); }
+  function soundKwadNewTrick() { beep(800, 0.1, 0.2, 'sine'); beep(1100, 0.12, 0.2, 'sine', 0.08); }
+  function soundKwadGameOver() { beep(200, 0.3, 0.28, 'sawtooth'); beep(150, 0.4, 0.25, 'sawtooth', 0.15); beep(100, 0.5, 0.22, 'sawtooth', 0.3); }
+
   // ---------- force update ----------
   async function forceUpdate() {
     setStatus(t('updating'));
@@ -2859,8 +2864,10 @@
     kwadLastTrick = kwadDrawIndex(kwadLastTrick, KWAD_TRICKS.length);
     kwadTrick = KWAD_TRICKS[kwadLastTrick];
     kwadTried = [];
+    kwadLastPenalty = null;
     const active = kwadActiveFrom(kwadTurnIdx);
     if (active !== -1) kwadTurnIdx = active;
+    if (typeof soundKwadNewTrick === 'function') soundKwadNewTrick();
     renderKwad();
   }
 
@@ -2872,9 +2879,19 @@
     const p = kwadPlayers[active];
     if (!ok) {
       const letter = kwadNextLetter(p.letters);
-      if (letter) p.letters = kwadNormalizeLetters(p.letters) + letter;
+      if (letter) {
+        p.letters = kwadNormalizeLetters(p.letters) + letter;
+        kwadLastPenalty = { playerIdx: active, letter };
+        if (typeof soundKwadPenalty === 'function') soundKwadPenalty();
+      }
       kwadSave();
-      if (kwadIsOut(p.letters)) { renderKwad(); return; }   // that player has lost
+      if (kwadIsOut(p.letters)) {
+        if (typeof soundKwadGameOver === 'function') soundKwadGameOver();
+        renderKwad();
+        return;
+      }   // that player has lost
+    } else {
+      kwadLastPenalty = null; // successful attempt clears undo
     }
     if (kwadTried.indexOf(p.name) === -1) kwadTried.push(p.name);
     const n = kwadPlayers.length;
