@@ -1,0 +1,7 @@
+node_modules/
+android/
+www/
+*.log
+*.key
+*.crt
+__pycache__/

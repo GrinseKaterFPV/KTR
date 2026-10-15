@@ -1,0 +1,16 @@
+{
+  "name": "fpv-racing-timer",
+  "version": "0.1.0",
+  "description": "FPV Racing Timer PWA (camera-based lap detection)",
+  "scripts": {
+    "serve": "http-server -p 8080",
+    "cap:init": "cap init \"FPV Racing Timer\" com.ktr.fpvtimer --web-dir .",
+    "cap:android": "cap add android && cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "http-server": "^14.1.1"
+  }
+}
