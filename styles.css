@@ -107,7 +107,8 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .settings-grid { display: grid; gap: 10px; }
 .settings-grid label { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; font-size: 13px; }
 .settings-grid input[type=range] { grid-column: 1 / -1; width: 100%; }
-.settings-grid span { font-family: monospace; }
+.settings-grid span[id$="Val"] { font-family: monospace; }
+.settings-grid label > span:first-child { font-family: inherit; }
 .settings-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.6); }
 .settings-overlay[hidden] { display: none; }
 .settings-modal {
