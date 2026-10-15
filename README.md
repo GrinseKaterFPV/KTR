@@ -38,7 +38,7 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 - Countdown direkt in der Timer-Karte einstellbar (Badge antippen → Stepper/Presets)
 - Pilotfarben: beim Anlegen eines Piloten eine Farbe wählen – der Pilot wird im Chart und in der Vergleichstabelle in seiner Farbe dargestellt (Legende im Chart)
 - Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
-- Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound
+- Countdown mit Audio-Signal vor dem Rennstart, Runden-Sound, Best-Lap-Sound (WebAudio wird beim ersten Antippen automatisch freigeschaltet – funktioniert so auch in Edge/Safari)
 - Sprachansage der Rundenzeiten (Text-to-Speech, „jede Runde“ oder „nur beste Runde“)
 - Richtungsprüfung: Button mit Pfeil (↔ aus → → ← ↓ ↑) zeichnet die erwartete Durchflugrichtung ins Tor; nur Durchflüge in dieser Richtung zählen als Runde
 - Autofokus-/Belichtungs-Schutz: Der Hintergrund passt sich dauerhaft an Drift an (selbstheilend) und globale Bildänderungen über das gesamte Bild werden ignoriert. Ein Watchdog verhindert, dass das Tor als "belegt" hängen bleibt und dadurch Runden übersieht. Optional (Standard aus) lässt sich die Kamera per „Kamera fixieren“ auf manuellen Fokus/Belichtung stellen

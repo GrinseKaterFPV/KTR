@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.13.1';
+  const APP_VERSION = '0.13.2';
 
   // ---------- i18n ----------
   const I18N = {
@@ -723,7 +723,7 @@
     els.showMotion.addEventListener('change', e => { state.showMotion = e.target.checked; saveSettings(); });
   }
   if (els.audioEnabled) {
-    els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; ensureAudio(); saveSettings(); });
+    els.audioEnabled.addEventListener('change', e => { state.audioEnabled = e.target.checked; unlockAudio(); saveSettings(); });
   }
   if (els.announceMode) {
     els.announceMode.addEventListener('change', e => {
@@ -1065,18 +1065,86 @@
   if (els.tileSettings) els.tileSettings.addEventListener('click', openSettings);
 
   // ---------- audio feedback ----------
+  // WebAudio only produces sound after a user gesture on Safari and on
+  // Chromium browsers with a strict autoplay policy (Edge/Chrome). We unlock
+  // the context on the first interaction (with a silent sample — the reliable
+  // trick for iOS Safari), keep it alive across tab switches, and degrade
+  // gracefully when no AudioContext is available.
   let audioCtx = null;
-  function ensureAudio() {
+  let audioUnlocked = false;
+  let speechPrimed = false;
+
+  function audioCtor() { return window.AudioContext || window.webkitAudioContext || null; }
+
+  // Resume the context and play one silent sample. MUST be called from a user
+  // gesture to satisfy the browser autoplay policies.
+  function unlockAudio() {
     try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      const Ctor = audioCtor();
+      if (!Ctor) return null;
+      if (!audioCtx) audioCtx = new Ctor();
+      const ctx = audioCtx;
+      const markReady = () => {
+        try {
+          const buf = ctx.createBuffer(1, 1, ctx.sampleRate || 22050);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(0);
+        } catch (e) { /* ignore */ }
+        audioUnlocked = true;
+      };
+      if (ctx.state === 'suspended') {
+        const p = ctx.resume();
+        if (p && typeof p.then === 'function') p.then(markReady).catch(() => {});
+        else markReady();
+      } else {
+        markReady();
+      }
     } catch (e) { /* audio not available */ }
     return audioCtx;
   }
+
+  function ensureAudio() {
+    try {
+      if (!audioCtx) {
+        const Ctor = audioCtor();
+        if (Ctor) audioCtx = new Ctor();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        const p = audioCtx.resume();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+    } catch (e) { /* audio not available */ }
+    return audioCtx;
+  }
+
+  // Unlock on the first user interaction, then stop listening. Also resume when
+  // the tab/app becomes visible again (mobile browsers suspend the context).
+  function installAudioUnlock() {
+    const events = ['pointerdown', 'touchstart', 'mousedown', 'click', 'keydown'];
+    function onGesture() {
+      unlockAudio();
+      if (!speechPrimed) { speechPrimed = true; try { primeSpeech(); } catch (e) { /* ignore */ } }
+      if (audioUnlocked) detach();
+    }
+    const detach = () => events.forEach(ev => window.removeEventListener(ev, onGesture, true));
+    events.forEach(ev => window.addEventListener(ev, onGesture, { capture: true, passive: true }));
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
+        const p = audioCtx.resume();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+    });
+  }
+
   function beep(freq, dur = 0.12, gain = 0.25, type = 'sine', delay = 0) {
     if (!state.audioEnabled) return;
     const ctx = ensureAudio();
     if (!ctx) return;
+    // Still locked (no gesture yet): skip instead of queuing stale beeps that
+    // would all fire at once on the next unlock.
+    if (ctx.state !== 'running') return;
     const t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -1595,7 +1663,7 @@
     if (!state.stream) { setStatus(t('start_camera_first')); return; }
     if (state.countdownActive || state.raceActive) return;
     if (state.autoStart) { armAutoWait(false); return; }
-    ensureAudio();
+    unlockAudio();
     primeSpeech();
     state.laps = [];
     state.stintSaved = false;
@@ -1625,7 +1693,7 @@
   // Arm the timer and wait for the first gate crossing to start the race.
   function armAutoWait(requireClear) {
     if (!state.stream || state.raceActive || state.countdownActive) return;
-    ensureAudio();
+    unlockAudio();
     primeSpeech();
     state.armed = true;
     els.armedToggle.checked = true;
@@ -2401,6 +2469,7 @@
   // ---------- init ----------
   function init() {
     initSettings();
+    installAudioUnlock();
     // Buttons inside a <summary> must not toggle the collapsible section.
     document.querySelectorAll('.card-summary button, .card-summary select').forEach(el => {
       el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
