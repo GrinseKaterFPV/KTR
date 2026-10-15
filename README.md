@@ -54,6 +54,13 @@ Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das
 mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden:
 `npm i @capacitor/core @capacitor/cli @capacitor/android && npx cap init && npx cap add android && npx cap sync`.
 
+## Tests
+`npm test` führt die Prüfskripte aus `tests/` aus (reines Node, keine Abhängigkeiten):
+- `tests/autostart_test.js` – Auto-Start-Erstlauf: der erste Durchflug startet das Rennen, zählt aber keine Runde; erst der zweite Durchflug ergibt Runde 1
+- `tests/roi_math_test.js` – ROI-Mathematik: eine gezeichnete Bildschirmfläche bleibt beim Wechsel der Verarbeitungsauflösung, bei unterschiedlichen Seitenverhältnissen (Hoch-/Querformat) und vor dem ersten verarbeiteten Frame an derselben Stelle
+
+Beide Skripte extrahieren den echten Code aus `app.js` und prüfen ihn – sie testen also das ausgelieferte Verhalten, keine Nachbildung.
+
 ## Einstellungen
 Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
 - **App-Einstellungen** (Zahnrad oben rechts am Homescreen bzw. Kachel „Einstellungen“): Sprache & Stimme, Audio & Ansagen (Audio-Feedback, Sprachansage aus/jede/beste, Sprechtempo, Stimme testen), Aussehen (Akzentfarbe), App (Update/Cache leeren)

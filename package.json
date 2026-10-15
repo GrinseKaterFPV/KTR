@@ -3,6 +3,7 @@
   "version": "0.13.6",
   "description": "KTR FPV APP PWA (camera-based lap detection and racing toolkit)",
   "scripts": {
+    "test": "node tests/run.js",
     "serve": "http-server -p 8080",
     "cap:init": "cap init \"KTR FPV APP\" com.ktr.fpvtimer --web-dir .",
     "cap:android": "cap add android && cap sync"
