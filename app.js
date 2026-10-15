@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.4.0';
+  const APP_VERSION = '0.4.1';
 
   // ---------- State ----------
   const state = {
@@ -83,6 +83,8 @@
     countdownSecs: document.getElementById('countdownSecs'),
     countdownSecsVal: document.getElementById('countdownSecsVal'),
     audioEnabled: document.getElementById('audioEnabled'),
+    versionBadge: document.getElementById('versionBadge'),
+    btnForceUpdate: document.getElementById('btnForceUpdate'),
   };
 
   const procCanvas = document.createElement('canvas');
@@ -217,6 +219,24 @@
   function soundLap() { beep(900, 0.08, 0.25, 'square'); beep(1500, 0.12, 0.25, 'square', 0.1); }
   function soundBest() { beep(1000, 0.08, 0.25, 'square'); beep(1400, 0.08, 0.25, 'square', 0.1); beep(1900, 0.16, 0.28, 'square', 0.2); }
   function soundStop() { beep(500, 0.15, 0.22, 'sine'); beep(350, 0.2, 0.2, 'sine', 0.12); }
+
+  // ---------- force update ----------
+  async function forceUpdate() {
+    setStatus('Aktualisiere …');
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if (window.caches && caches.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (e) { /* ignore */ }
+    const base = location.pathname.replace(/index\.html$/, '');
+    location.href = base + '?v=' + Date.now();
+  }
+  if (els.btnForceUpdate) els.btnForceUpdate.addEventListener('click', forceUpdate);
 
   // ---------- camera ----------
   async function enumerateCameras() {
@@ -764,6 +784,7 @@
     const r = els.overlay.getBoundingClientRect();
     els.overlay.width = Math.round(r.width) || 320;
     els.overlay.height = Math.round(r.height) || 240;
+    if (els.versionBadge) els.versionBadge.textContent = 'v' + APP_VERSION;
     saveSettings();
     setStatus('Bereit (v' + APP_VERSION + ') – Kamera starten');
   }
