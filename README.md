@@ -21,7 +21,8 @@ durch das alle Funktionen erreichbar sind. Die Runden werden anhand von Bewegung
 
 ## Features
 - **Home-Bildschirm:** Beim Start landet man auf dem Homescreen „KTR FPV APP“ (großes Logo, App-Name). Dort wählt man das Feature – z. B. **Timer** – und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
-- **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die drei Kürzel K, T, R untereinander in einem 3×3-Raster; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
+- **Logo/Name „KTR FPV APP“:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen; der Name „KTR FPV APP“ erscheint groß auf dem Homescreen
+  - *Hinweis:* Nach einem Logo-Wechsel zeigt der Startbildschirm bei installierten PWAs oft noch das alte Symbol – App dort entfernen und erneut hinzufügen, um das neue zu sehen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
 - Erkennungs-Bereich (ROI) per Fingermalerei ins Bild ziehen; die Bildschirm-/Bildzuordnung funktioniert korrekt in Hoch- und Querformat und bei jedem Wechsel der Verarbeitungs-Auflösung (320×240 ↔ 480×360) – der Rahmen bleibt auf demselben Bildausschnitt liegen
 - Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (zählt nicht als Runde) – kein Laufen zum Handy nötig
