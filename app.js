@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.4';
+  const APP_VERSION = '0.6.5';
 
   // ---------- State ----------
   const state = {
@@ -657,7 +657,7 @@
     // active. This absorbs focus/exposure drift so it does not show up as motion.
     if (state.driftComp && state.background && state.machine === 0) {
       const bg = state.background;
-      const a = 0.02;
+      const a = 0.01; // slower drift absorption
       for (let i = 0; i < bg.length; i++) bg[i] += (gray[i] - bg[i]) * a;
     }
 
@@ -752,6 +752,8 @@
       at: triggerTime,
     });
     state.currentLapStart = triggerTime;
+    state.machine = 0;
+    state.pendingLap = null;
     renderLaps();
     updateBest();
     if (isBest) soundBest(); else soundLap();
@@ -789,6 +791,8 @@
     state.machine = 0;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
+    state.directionToastUntil = 0;
+    state.maxChangedSeen = 0;
     state.lastTrigger = 0;
     if (state.countdownSecs <= 0) { beginRace(); return; }
     state.countdownActive = true;
@@ -807,6 +811,8 @@
     state.machine = 0;
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
+    state.directionToastUntil = 0;
+    state.maxChangedSeen = 0;
     state.lastTrigger = 0;
     state.goFlashUntil = performance.now() + 800;
     soundGo();
@@ -855,6 +861,7 @@
     state.pendingLap = null;
     state.wrongFlashUntil = 0;
     state.goFlashUntil = 0;
+    state.maxChangedSeen = 0;
     renderLaps();
     updateBest();
     els.raceTime.textContent = '00:00.000';
@@ -866,6 +873,9 @@
     state.armed = e.target.checked;
     state.machine = 0;
     state.pendingLap = null;
+    state.wrongFlashUntil = 0;
+    state.directionToastUntil = 0;
+    state.maxChangedSeen = 0;
   });
 
   function updateTimers() {
