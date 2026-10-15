@@ -239,6 +239,75 @@ details > summary::after {
 .card-collapsible > .card-body { margin-top: 10px; }
 .card-collapsible:not([open]) > .card-summary,
 .card-collapsible:not([open]) > .card-header > .card-summary { color: var(--text); }
+
+/* Nuclear option: completely hide any "Details" fallback text from browser */
+details::before,
+details::after,
+summary::before,
+summary::after {
+  content: none !important;
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide any "Details" text that might be injected by browser */
+details::before,
+details::after,
+summary::before,
+summary::after {
+  content: none !important;
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+}
+
+/* Hide any "Details" text node that might be injected */
+summary::before,
+summary::after {
+  content: none !important;
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Hide any pseudo-elements that might contain "Details" */
+details::before,
+details::after,
+summary::before,
+summary::after {
+  content: none !important;
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+}
+
+/* Hide any text nodes containing "Details" */
+summary::before,
+summary::after {
+  content: none !important;
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+}
 .summary-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .summary-actions button { padding: 6px 10px; font-size: 12px; }
 .summary-value { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
