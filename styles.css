@@ -156,11 +156,26 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 /* ---- auto-start quick toggle ---- */
 .auto-quick { font-weight: 600; }
 .auto-quick input:checked + span { color: var(--accent); }
+.auto-row { position: relative; display: flex; align-items: center; gap: 8px; }
+.auto-row .toggle { flex: 1; }
 .quick-badge {
-  margin-left: auto; font-family: monospace; font-size: 12px; font-weight: 700;
+  font-family: monospace; font-size: 13px; font-weight: 700;
   background: var(--elev); border: 1px solid var(--border); border-radius: 999px;
-  padding: 1px 9px; color: var(--accent);
+  padding: 3px 11px; color: var(--accent); cursor: pointer; flex-shrink: 0;
 }
+.quick-badge:hover, .quick-badge:focus-visible { border-color: var(--accent); }
+.laps-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.55); min-width: 190px;
+}
+.laps-pop[hidden] { display: none; }
+.laps-pop-title { width: 100%; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.laps-step { width: 40px; height: 40px; padding: 0; font-size: 20px; font-weight: 800; line-height: 1; }
+.laps-pop-val { min-width: 46px; text-align: center; font-family: monospace; font-size: 18px; font-weight: 700; color: var(--accent); }
+.laps-presets { display: flex; gap: 6px; width: 100%; }
+.laps-presets button { flex: 1; padding: 6px 0; font-size: 13px; }
 
 /* ---- sets comparison chart ---- */
 .chart-block { margin: 4px 0 12px; }

@@ -76,11 +76,25 @@
         <input type="checkbox" id="armedToggle" />
         <span data-i18n="armed">Erkennung aktiv (Auto-Runden)</span>
       </label>
-      <label class="toggle auto-quick">
-        <input type="checkbox" id="autoStartQuick" />
-        <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span>
-        <span class="quick-badge" id="autoLapsBadge" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)">∞</span>
-      </label>
+      <div class="auto-row">
+        <label class="toggle auto-quick">
+          <input type="checkbox" id="autoStartQuick" />
+          <span data-i18n="auto_start_quick">Auto-Start (Timer startet beim 1. Durchflug)</span>
+        </label>
+        <button type="button" class="quick-badge" id="autoLapsBadge" data-i18n-title="auto_laps" data-i18n-aria="auto_laps" title="Runden pro Satz (0 = unbegrenzt)" aria-label="Runden pro Satz (0 = unbegrenzt)">∞</button>
+        <div class="laps-pop" id="lapsPop" hidden>
+          <div class="laps-pop-title" data-i18n="laps_pop_title">Runden pro Satz</div>
+          <button type="button" class="laps-step" id="lapsMinus" data-i18n-aria="laps_less" aria-label="Weniger">−</button>
+          <span class="laps-pop-val" id="lapsPopVal">∞</span>
+          <button type="button" class="laps-step" id="lapsPlus" data-i18n-aria="laps_more" aria-label="Mehr">+</button>
+          <div class="laps-presets">
+            <button type="button" data-laps="0">∞</button>
+            <button type="button" data-laps="3">3</button>
+            <button type="button" data-laps="5">5</button>
+            <button type="button" data-laps="10">10</button>
+          </div>
+        </div>
+      </div>
       <div class="pilot-row">
         <input id="pilotName" type="text" data-i18n-ph="pilot_name" placeholder="Pilotenname" />
         <button id="btnAddPilot" data-i18n="save_pilot">Pilot speichern</button>

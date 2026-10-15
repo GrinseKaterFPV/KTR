@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.10.1';
+  const APP_VERSION = '0.10.2';
 
   // ---------- i18n ----------
   const I18N = {
@@ -128,6 +128,9 @@
       avg_word: 'Ø',
       hint_auto: 'Auto-Start: Die erste Tor-Durchfahrt startet die Zeitmessung (sie zählt nicht als Runde). Nach der eingestellten Rundenzahl stoppt der Timer automatisch, der Satz wird gespeichert und beim nächsten Durchflug startet der nächste Satz. So kannst du mehrere Sätze fahren und am Ende vergleichen. 0 = unbegrenzt (manueller Stop).',
       auto_start_quick: 'Auto-Start (Timer startet beim 1. Durchflug)',
+      laps_pop_title: 'Runden pro Satz',
+      laps_less: 'Weniger',
+      laps_more: 'Mehr',
       chart_title: 'Rundenverlauf',
       chart_last8: 'Rundenverlauf (letzte 8 Sätze)',
     },
@@ -254,6 +257,9 @@
       avg_word: 'avg',
       hint_auto: 'Auto-start: The first gate crossing starts the timer (it is not counted as a lap). After the configured number of laps the timer stops automatically, the set is saved, and the next crossing starts the next set. This lets you fly several sets and compare them at the end. 0 = unlimited (manual stop).',
       auto_start_quick: 'Auto-start (timer starts on 1st crossing)',
+      laps_pop_title: 'Laps per set',
+      laps_less: 'Less',
+      laps_more: 'More',
       chart_title: 'Lap progress',
       chart_last8: 'Lap progress (last 8 sets)',
     },
@@ -376,6 +382,10 @@
     autoStart: document.getElementById('autoStart'),
     autoStartQuick: document.getElementById('autoStartQuick'),
     autoLapsBadge: document.getElementById('autoLapsBadge'),
+    lapsPop: document.getElementById('lapsPop'),
+    lapsPopVal: document.getElementById('lapsPopVal'),
+    lapsMinus: document.getElementById('lapsMinus'),
+    lapsPlus: document.getElementById('lapsPlus'),
     autoLaps: document.getElementById('autoLaps'),
     autoLapsVal: document.getElementById('autoLapsVal'),
     setsList: document.getElementById('setsList'),
@@ -493,8 +503,7 @@
     if (els.autoStart) els.autoStart.checked = state.autoStart;
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
     state.autoLaps = s.autoLaps ?? 0;
-    if (els.autoLaps) { els.autoLaps.value = state.autoLaps; els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps); }
-    updateAutoLapsBadge();
+    renderAutoLaps();
     state.sets = loadSets();
     state.setCounter = state.sets.reduce((m, x) => Math.max(m, x.n || 0), 0);
     state.lang = (s.lang === 'en') ? 'en' : 'de';
@@ -708,8 +717,25 @@
       state.awaitingStart = false;
     }
   }
-  function updateAutoLapsBadge() {
-    if (els.autoLapsBadge) els.autoLapsBadge.textContent = formatAutoLaps(state.autoLaps);
+  function renderAutoLaps() {
+    const v = formatAutoLaps(state.autoLaps);
+    if (els.autoLaps) els.autoLaps.value = state.autoLaps;
+    if (els.autoLapsVal) els.autoLapsVal.textContent = v;
+    if (els.autoLapsBadge) els.autoLapsBadge.textContent = v;
+    if (els.lapsPopVal) els.lapsPopVal.textContent = v;
+  }
+  function setAutoLaps(v) {
+    v = Math.max(0, Math.min(30, Math.round(Number(v) || 0)));
+    state.autoLaps = v;
+    renderAutoLaps();
+    saveSettings();
+    // If the limit was lowered below the laps already flown, end the stint now.
+    if (state.autoStart && state.raceActive && v > 0 && state.laps.length >= v) finishAutoStint();
+  }
+  function toggleLapsPop(show) {
+    if (!els.lapsPop) return;
+    const willShow = (typeof show === 'boolean') ? show : els.lapsPop.hidden;
+    els.lapsPop.hidden = !willShow;
   }
   if (els.autoStart) {
     els.autoStart.addEventListener('change', e => setAutoStart(e.target.checked));
@@ -720,11 +746,34 @@
   if (els.autoLaps) {
     els.autoLaps.addEventListener('input', e => {
       state.autoLaps = +e.target.value;
-      if (els.autoLapsVal) els.autoLapsVal.textContent = formatAutoLaps(state.autoLaps);
-      updateAutoLapsBadge();
+      renderAutoLaps();
       saveSettings();
     });
   }
+  if (els.autoLapsBadge) {
+    els.autoLapsBadge.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleLapsPop();
+    });
+  }
+  if (els.lapsMinus) els.lapsMinus.addEventListener('click', e => { e.stopPropagation(); setAutoLaps(state.autoLaps - 1); });
+  if (els.lapsPlus) els.lapsPlus.addEventListener('click', e => { e.stopPropagation(); setAutoLaps(state.autoLaps + 1); });
+  if (els.lapsPop) {
+    els.lapsPop.querySelectorAll('[data-laps]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        setAutoLaps(+btn.getAttribute('data-laps'));
+        toggleLapsPop(false);
+      });
+    });
+  }
+  document.addEventListener('click', e => {
+    if (!els.lapsPop || els.lapsPop.hidden) return;
+    if (els.lapsPop.contains(e.target)) return;
+    if (els.autoLapsBadge && els.autoLapsBadge.contains(e.target)) return;
+    toggleLapsPop(false);
+  });
   if (els.langSelect) {
     els.langSelect.addEventListener('change', e => {
       state.lang = (e.target.value === 'en') ? 'en' : 'de';
