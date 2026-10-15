@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.16.1] - 2025-10-15
+## [0.16.2] - 2025-10-15
 ### Added
 - Game of K.W.A.D: Trick name is now centered
 - Game of K.W.A.D: Import pilots from main app (with their colors) via dropdown
+- App ID changed to `com.ktr.fpvtools` (removed personal references)
 
 ### Fixed
 - KWAD player list now shows pilot color dots
