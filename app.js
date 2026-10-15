@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.6.6';
+  const APP_VERSION = '0.6.7';
 
   // ---------- State ----------
   const state = {
@@ -666,6 +666,7 @@
       // Whole ROI changed at once -> almost certainly focus/light, not a drone.
       state.machine = 0;
       state.pendingLap = null;
+      state.wrongFlashUntil = 0;
     } else if (state.armed && state.raceActive && roi) {
       if (state.machine === 0 && changed >= state.enterThreshold) {
         state.machine = 1;
@@ -705,7 +706,8 @@
   }
 
   function tryTriggerLap(now) {
-    if (now - state.lastTrigger < state.cooldownMs) return;
+    if (state.laps.length > 0 && now - state.lastTrigger < state.cooldownMs) return;
+    if (state.laps.length === 0 && now - (state.raceStart || now) < 1000) return;
     state.lastTrigger = now;
     recordLap(now);
     haptic();
