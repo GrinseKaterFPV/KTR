@@ -17,7 +17,7 @@ die URL lautet **`https://grinsekaterfpv.github.io/KTR/`**.
 
 Das Repository heißt dafür `KTR` (früher `Timer`). Alle Pfade in der App sind
 relativ (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, `icon-ktr.svg`,
-`sw.js`), deshalb funktioniert die App unter dem neuen Pfad unverändert.
+`icon-kwad.svg`, `sw.js`), deshalb funktioniert die App unter dem neuen Pfad unverändert.
 
 > **Reset-Hinweis:** Die alte URL `…/Timer/` antwortet inzwischen mit 404.
 > Bereits installierte PWA-Kurzbefehle und Lesezeichen müssen einmal neu angelegt werden
@@ -37,7 +37,7 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
    überschreitet und danach unter die Exit-Schwelle fällt (plus Cooldown).
 
 ## Features
-- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen mit großem Logo und dem Namen **„Katers FPV Toolkit“**. Dort wählt man das Feature – **Timer**, **Game of K.W.A.D** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
+- **Home-Bildschirm:** Beim Start landet man auf dem Homescreen mit großem Logo und dem Namen **„Katers FPV Toolkit“**. Dort wählt man das Feature – **Timer**, **Game of K.W.A.D**, **Piloten** – oder die **Einstellungen** und ist dann in der jeweiligen Unter-App. Der Zurück-Button (←) links oben führt jederzeit wieder zum Homescreen; spätere Features (z. B. Telemetrie) kommen dort als weitere Kacheln dazu
 - **Logo:** oben steht nur das quadratische Logo – die neun Buchstaben **K T R / F P V / A P P** in einem 3×3-Raster, von oben links nach unten rechts gelesen
   - *Hinweis:* Nach einem Logo-Wechsel zeigt der Startbildschirm bei installierten PWAs oft noch das alte Symbol – App dort entfernen und erneut hinzufügen, um das neue zu sehen
 - Live-Visualisierung der Erkennung (gelbe Pixel = erkannte Bewegung, grüner Rahmen/Punkt = Bereich/Schwerpunkt)
@@ -53,7 +53,7 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
 - Akzentfarbe frei wählbar (Einstellungen → „Aussehen“): Presets oder eigene Farbe per Farbwähler
 - Einklappbare Hauptbereiche: Kamera, Timer, Rundenlog und Sätze lassen sich am Titel antippen ein-/ausklappen (Zustand wird gespeichert; Timer zeigt im eingeklappten Kopf die laufende Zeit)
 - Auto-Start auch direkt in der Timer-Karte (Schnellschalter; das Badge daneben antippen → Stepper/Presets für die Rundenzahl pro Satz)
-- Erkennung ein/aus („Auto Lap Detection“) wird gespeichert und beim nächsten Start wiederhergestellt
+- Erkennung ein/aus („Auto Lap Detection“) wird gespeichert und beim nächsten Start wiederhergestellt; der Text der Checkbox wird wie bei „Auto-start on 1st pass“ in der Akzentfarbe hervorgehoben, sobald sie gesetzt ist
 - Countdown direkt in der Timer-Karte einstellbar (Badge antippen → Stepper/Presets)
 - Pilotfarben: beim Anlegen eines Piloten eine Farbe wählen – der Pilot wird im Chart und in der Vergleichstabelle in seiner Farbe dargestellt (Legende im Chart)
 - Querformat/Landscape: kompakter Zwei-Spalten-Layout, damit Vorschau, Bedienung und Scrollen im horizontalen Modus funktionieren
@@ -64,8 +64,9 @@ Domainnamen ins Repo legen und die DNS-Einträge beim Anbieter setzen.
 - Zweisprachig (Deutsch/Englisch): App-Sprache in den App-Einstellungen, Sprachstimme in den Timer-Einstellungen („Rennen & Audio“); Aussprache von Ansagen passt sich an. Zusätzlich kann eine konkrete Sprachstimme gewählt werden
 - Timer mit Einfrieren bei „Stop“ (Rennen-Zeit und Runde bleiben stehen)
 - Optionale Audio-Ausgabe (ausschaltbar), Pilotenverwaltung, CSV-Export
-- Einklappbare Einstellungen mit zwei getrennten Zahnrädern: oben rechts am Homescreen → App-Einstellungen, in der Timer-Karte → Timer-Einstellungen; Untergruppen standardmäßig zugeklappt
-- **Game of K.W.A.D** (eigener Modus, komplett lokal ohne Server): Game of SKATE für FPV-Freestyle. Eigene Spielerliste (bleibt gespeichert), zufälliger Trick aus einem Pool („Neuer Trick“), der aktive Spieler wird reihum hervorgehoben. **Geschafft** gibt keinen Buchstaben, **Nicht geschafft** kostet einen Strafbuchstaben in der Reihenfolge **K → W → A → D**; wer zuerst alle vier hat, **verliert** (Buchstaben werden zurückgesetzt für eine Revanche). Sobald alle aktiven Spieler einen Trick versucht haben, kommt automatisch ein neuer. Die Bewertung liegt bei der Gruppe – die App ist Ansager, kein Schiedsrichter
+- Einklappbare Einstellungen mit drei getrennten Zahnrädern: oben rechts am Homescreen → App-Einstellungen, in der Kamera-Karte → Kamera-Einstellungen, in der Timer-Karte → Timer-Einstellungen; Untergruppen standardmäßig zugeklappt
+- **Game of K.W.A.D** (eigener Modus, komplett lokal ohne Server): Game of SKATE für FPV-Freestyle. Eigene Spielerliste (bleibt gespeichert), zufälliger Trick aus einem Pool („Neuer Trick“), der aktive Spieler wird reihum hervorgehoben. **Geschafft** gibt keinen Buchstaben, **Nicht geschafft** kostet einen Strafbuchstaben in der Reihenfolge **K → W → A → D**; wer zuerst alle vier hat, **verliert** (Buchstaben werden zurückgesetzt für eine Revanche). Sobald alle aktiven Spieler einen Trick versucht haben, kommt automatisch ein neuer. Die Bewertung liegt bei der Gruppe – die App ist Ansager, kein Schiedsrichter. Als Logo dient ein gezeichneter FPV-Freestyle-Kopter (`icon-kwad.svg`) im selben Stil wie das App-Icon
+- **Piloten** (eigene Kachel): vollständiger Profil-Workflow – Piloten mit **Name + Farbe** anlegen, auswählen (aktiver Pilot) und löschen, inklusive **Piloten-Vergleichstabelle** und **CSV-Export** der Piloten (Name, Farbe, Sätze, Runden, beste/Ø/Gesamt). Die schnelle Pilotenauswahl in der Timer-Karte bleibt erhalten
 
 ## Als Android-App (optional)
 Diese Web-App ist eine installierbare PWA. Für eine native Android-APK kann das Projekt
@@ -78,18 +79,18 @@ mit [Capacitor](https://capacitorjs.com/) in ein Android-Projekt gewrappt werden
 - `tests/roi_math_test.js` – ROI-Mathematik: eine gezeichnete Bildschirmfläche bleibt beim Wechsel der Verarbeitungsauflösung, bei unterschiedlichen Seitenverhältnissen (Hoch-/Querformat) und vor dem ersten verarbeiteten Frame an derselben Stelle
 - `tests/kwad_test.js` – Game of K.W.A.D: Strafbuchstaben laufen **K → W → A → D** und stoppen danach, der erste Spieler mit vier Buchstaben verliert, ein Trick wiederholt sich nie direkt, und die Buchstaben-Tafel wird korrekt gerendert (mit einem minimalen DOM-Stub)
 - `tests/persist_test.js` – Auto-Lap-Persistenz: `state.armed` wird von `saveSettings` geschrieben, beim Start wiederhergestellt und beim Umschalten sofort gespeichert (Regressionsschutz)
+- `tests/ui_test.js` – UI-Struktur & Pilotenprofile: Kamera-Einstellungen liegen im eigenen Overlay, das Timer-Menü enthält nur noch Runden/Satz, Countdown und Rennen & Audio, die Checkbox-Texte werden bei gesetztem Haken farbig, Piloten-Kachel/-Screen samt CSV-Export existieren, das K.W.A.D-Icon ist ein Kopter, und `addPilot`/`removePilot` verhalten sich wie erwartet (Version + SW-Cache inklusive)
 
 Die Skripte extrahieren den echten Code aus `app.js` und prüfen ihn – sie testen also das ausgelieferte Verhalten, keine Nachbildung.
 
 ## Einstellungen
-Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
+Drei getrennte Menüs, jeweils oben rechts als Zahnrad:
 - **App-Einstellungen** (Zahnrad oben rechts am Homescreen bzw. Kachel „Einstellungen“): Sprache (App-Sprache), Aussehen (Akzentfarbe), App (Update/Cache leeren)
-- **Timer-Einstellungen** (Zahnrad in der Timer-Karte):
-  - Erkennung: Diff-Schwelle (Pixel-Differenz 0–255 zum Hintergrund), Enter (px), Exit (px), Cooldown (Mindestabstand), Verarbeitungsauflösung (niedriger = schneller), erwartete Richtung, Driftausgleich, Kamera fixieren
-  - Auto-Start & Rennen: Auto-Start an/aus, Runden pro Satz (0 = unbegrenzt), Countdown/Vorbereitungszeit (0–15 s)
-  - Rennen & Audio: Audio-Feedback (Countdown, Runden), Sprachstimme, Sprachansage (aus/jede/beste), Sprechtempo, Stimme testen
+- **Kamera-Einstellungen** (Zahnrad in der Kamera-Karte): Diff-Schwelle (Pixel-Differenz 0–255 zum Hintergrund), Enter (px), Exit (px), Cooldown (Mindestabstand), Verarbeitungsauflösung (niedriger = schneller), erwartete Richtung, Driftausgleich, Kamera fixieren
+- **Timer-Einstellungen** (Zahnrad in der Timer-Karte): **Rennen & Audio** – Runden pro Satz (0 = unbegrenzt), Countdown/Vorbereitungszeit (0–15 s), Audio-Feedback (Countdown, Runden), Sprachstimme, Sprachansage (aus/jede/beste), Sprechtempo, Stimme testen
+- Die Erkennung (Schwelle, Enter/Exit, Cooldown, Richtung, Drift/Cam-Lock) liegt damit bei der Kamera statt im Timer-Menü; die frühere Sektion „Auto-Start & Rennen“ ist entfallen, weil Auto-Start bereits als Schnellschalter in der Timer-Karte sitzt
 - Die Schnellregler in der Timer-Karte bleiben erhalten (Auto-Start-Schalter, Badge „Runden/Satz“, Countdown-Badge) und sind mit den Feldern im Timer-Menü synchron
-- Piloten: Name + Farbe anlegen/ändern (Farbe wird im Chart und in der Vergleichstabelle verwendet)
+- Piloten: eigene Kachel „Piloten“ für den vollständigen Profil-Workflow (Name + Farbe anlegen/auswählen/löschen, Vergleichstabelle, CSV-Export); die Farben werden im Chart und in der Vergleichstabelle verwendet
 - Aussehen: Akzentfarbe der App (Presets oder eigene Farbe)
 
 ## Game of K.W.A.D
@@ -102,3 +103,24 @@ Zwei getrennte Menüs, jeweils oben rechts als Zahnrad:
 - Multi-Pilot / Multi-Lane
 - Bluetooth-Lautsprecher-Ausgabe
 - Persistente Sessions (Room DB)
+
+## GitHub „About“ (Beschreibung + Topics)
+Für das Repository **`GrinseKaterFPV/KTR`** (About rechts oben auf der Repo-Seite).
+Vorbereitete Werte:
+
+- **Description:**
+  `FPV Racing Toolkit als Web-/PWA-App: Rundentimer mit Bewegungserkennung, Game of K.W.A.D und Pilotenverwaltung.`
+- **Website:** `https://grinsekaterfpv.github.io/KTR/`
+- **Topics:**
+  `fpv`, `drone`, `racing`, `timer`, `pwa`, `web-app`, `javascript`, `camera`, `freestyle`, `game-of-skate`, `game-of-kwad`, `pilot-management`, `github-pages`
+
+Mit installierter und angemeldeter [GitHub CLI](https://cli.github.com/) direkt setzen:
+
+```bash
+gh repo edit GrinseKaterFPV/KTR \
+  --description "FPV Racing Toolkit als Web-/PWA-App: Rundentimer mit Bewegungserkennung, Game of K.W.A.D und Pilotenverwaltung." \
+  --homepage "https://grinsekaterfpv.github.io/KTR/" \
+  --add-topic fpv,drone,racing,timer,pwa,web-app,javascript,camera,freestyle,game-of-skate,game-of-kwad,pilot-management,github-pages
+```
+
+Ohne CLI: auf der Repo-Seite **About** (Zahnrad) öffnen, Description/Website eintragen und die Topics nacheinander hinzufügen.
