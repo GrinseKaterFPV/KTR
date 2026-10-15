@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.2.0';
+  const APP_VERSION = '0.3.0';
 
   // ---------- State ----------
   const state = {
@@ -203,6 +203,8 @@
       setStatus('Kamera läuft');
       els.zoneHint.style.display = 'block';
       startLoop();
+      // Auto-calibrate the background once video is running, so detection works right away.
+      setTimeout(() => { if (!state.background) calibrateBackground(); }, 1200);
     } catch (e) {
       console.error(e);
       setStatus('Kamera-Fehler: ' + (e.message || e));
@@ -318,6 +320,15 @@
     processGrayInto(gray, false);
 
     if (!state.background) {
+      els.metricState.textContent = 'Status: Hintergrund kalibrieren…';
+      const w = els.overlay.width, h = els.overlay.height;
+      overlayCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      overlayCtx.fillRect(0, h - 34, w, 34);
+      overlayCtx.fillStyle = '#ff7a1a';
+      overlayCtx.font = 'bold 15px sans-serif';
+      overlayCtx.textAlign = 'center';
+      overlayCtx.fillText('Hintergrund wird kalibriert …', w / 2, h - 12);
+      overlayCtx.textAlign = 'left';
       drawOverlay();
       return;
     }
