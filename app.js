@@ -204,6 +204,12 @@
       th_sets: 'Sätze',
       storage_trimmed: 'Speicher fast voll – ältere Sätze wurden entfernt, damit neue gespeichert werden können.',
       storage_full: 'Speicher voll – Speichern fehlgeschlagen. Bitte ältere Sätze löschen.',
+      g_backup: 'Backup & Restore',
+      backup_now: 'Backup erstellen (JSON)',
+      restore_now: 'Restore aus Datei',
+      backup_done: 'Backup erstellt: {name}',
+      restore_done: 'Restore erfolgreich – App wird neu geladen',
+      restore_error: 'Fehler beim Restore: {error}',
     },
     en: {
       title: 'KTR',
@@ -404,7 +410,12 @@
       th_sets: 'Sets',
       storage_trimmed: 'Storage almost full – older sets were removed to make room for new ones.',
       storage_full: 'Storage full – saving failed. Please delete older sets.',
-    },
+      g_backup: 'Backup & Restore',
+      backup_now: 'Create backup (JSON)',
+      restore_now: 'Restore from file',
+      backup_done: 'Backup created: {name}',
+      restore_done: 'Restore successful – reloading app',
+      restore_error: 'Restore failed: {error}',
   };
 
   function t(key) {
@@ -1365,6 +1376,194 @@
     location.href = base + '?v=' + Date.now();
   }
   if (els.btnForceUpdate) els.btnForceUpdate.addEventListener('click', forceUpdate);
+
+  // --- Backup / Restore ---
+  function createBackup() {
+    const data = {
+      version: 1,
+      timestamp: Date.now(),
+      settings: {
+        diffThreshold: state.diffThreshold,
+        enterThreshold: state.enterThreshold,
+        exitThreshold: state.exitThreshold,
+        cooldownMs: state.cooldownMs,
+        procRes: els.procRes?.value,
+        roi: state.roi,
+        pilots: state.pilots,
+        currentPilot: state.currentPilot,
+        pilotColors: state.pilotColors,
+        showMotion: state.showMotion,
+        audioEnabled: state.audioEnabled,
+        countdownSecs: state.countdownSecs,
+        announceMode: state.announceMode,
+        announceRate: state.announceRate,
+        direction: state.direction,
+        driftComp: state.driftComp,
+        camLock: state.camLock,
+        camDeviceId: state.camDeviceId,
+        autoStart: state.autoStart,
+        armed: state.armed,
+        autoLaps: state.autoLaps,
+        setFilter: state.setFilter,
+        accent: state.accent,
+        sections: state.sections,
+        lang: state.lang,
+        voiceURI: state.voiceURI,
+      },
+      sets: state.sets,
+      laps: state.laps,
+      kwad: {
+        players: kwadPlayers,
+        mode: kwadMode,
+        categories: KWAD_CATEGORIES,
+        stats: kwadStats,
+        customTricks: KWAD_CATEGORIES?.custom?.tricks || [],
+      },
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const name = `fpv-backup-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+    return name;
+  }
+
+  function restoreBackup(json) {
+    try {
+      const data = JSON.parse(json);
+      if (!data || data.version !== 1) throw new Error('Invalid backup format');
+
+      // Restore settings
+      if (data.settings) {
+        Object.assign(state, data.settings);
+        // Apply UI
+        if (data.settings.procRes) els.procRes.value = data.settings.procRes;
+        if (els.diffThresh) { els.diffThresh.value = data.settings.diffThreshold; els.diffThreshVal.textContent = data.settings.diffThreshold; }
+        if (els.enterThresh) { els.enterThresh.value = data.settings.enterThreshold; els.enterThreshVal.textContent = data.settings.enterThreshold; }
+        if (els.exitThresh) { els.exitThresh.value = data.settings.exitThreshold; els.exitThreshVal.textContent = data.settings.exitThreshold; }
+        if (els.cooldown) { els.cooldown.value = data.settings.cooldownMs; els.cooldownVal.textContent = data.settings.cooldownMs; }
+        if (els.showMotion) els.showMotion.checked = data.settings.showMotion;
+        if (els.audioEnabled) els.audioEnabled.checked = data.settings.audioEnabled;
+        if (els.announceMode) els.announceMode.value = data.settings.announceMode;
+        if (els.announceRate) { els.announceRate.value = data.settings.announceRate; els.announceRateVal.textContent = (+data.settings.announceRate).toFixed(2); }
+        if (els.directionSelect) els.directionSelect.value = data.settings.direction;
+        if (els.driftComp) els.driftComp.checked = data.settings.driftComp;
+        if (els.camLock) els.camLock.checked = data.settings.camLock;
+        if (els.autoStartQuick) els.autoStartQuick.checked = data.settings.autoStart;
+        if (els.armedToggle) els.armedToggle.checked = data.settings.armed;
+        if (els.autoLaps) els.autoLaps.value = data.settings.autoLaps;
+        if (els.setPilotFilter) els.setPilotFilter.value = data.settings.setFilter;
+        if (els.accentCustom) els.accentCustom.value = data.settings.accent;
+        if (els.langSelect) els.langSelect.value = data.settings.lang;
+        if (els.voiceSelect) els.voiceSelect.value = data.settings.voiceURI || '';
+        state.accent = data.settings.accent;
+        applyAccent(state.accent, false);
+        if (data.settings.lang) { state.lang = data.settings.lang; if (els.langSelect) els.langSelect.value = state.lang; }
+        applyLanguage();
+        saveSettings();
+      }
+
+      // Restore sets & laps
+      if (Array.isArray(data.sets)) {
+        state.sets = data.sets;
+        saveSets();
+      }
+      if (Array.isArray(data.laps)) {
+        state.laps = data.laps;
+        renderLaps();
+        updateBest();
+      }
+
+      // Restore KWAD
+      if (data.kwad) {
+        if (Array.isArray(data.kwad.players)) {
+          kwadPlayers = data.kwad.players;
+        }
+        if (data.kwad.mode) kwadMode = data.kwad.mode;
+        if (data.kwad.categories) {
+          Object.keys(data.kwad.categories).forEach(id => {
+            if (KWAD_CATEGORIES[id] && typeof data.kwad.categories[id].enabled === 'boolean') {
+              KWAD_CATEGORIES[id].enabled = data.kwad.categories[id].enabled;
+            }
+          });
+        }
+        if (data.kwad.stats) kwadStats = data.kwad.stats;
+        if (data.kwad.customTricks) KWAD_CATEGORIES.custom.tricks = data.kwad.customTricks;
+        kwadTrickPool = kwadBuildTrickPool();
+        if (kwadMode === 'roundRobinCategory') {
+          kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id);
+          kwadCategoryIdx = 0;
+        }
+        kwadSave();
+        kwadSaveCategories();
+        kwadSaveCustomTricks();
+        kwadSaveMode();
+        kwadSaveStats();
+      }
+
+      // Re-render everything
+      applyAccent(state.accent, false);
+      applyLanguage();
+      renderPilots();
+      renderLaps();
+      renderSets();
+      renderKwad();
+      if (els.kwadModeSelect) renderKwadMode();
+      if (els.kwadCategoryGrid) renderKwadCategories();
+      if (els.kwadCustomTricksList) renderKwadCustomTricks();
+      if (els.kwadStatsGrid) renderKwadStats();
+
+      return true;
+    } catch (e) {
+      console.error('Restore error:', e);
+      throw e;
+    }
+  }
+
+  if (els.btnBackup) {
+    els.btnBackup.addEventListener('click', () => {
+      try {
+        const name = createBackup();
+        if (els.backupStatus) {
+          els.backupStatus.textContent = t('backup_done').replace('{name}', name);
+          els.backupStatus.hidden = false;
+          setTimeout(() => { els.backupStatus.hidden = true; }, 3000);
+        }
+      } catch (e) {
+        console.error('Backup error:', e);
+        toast('Backup fehlgeschlagen: ' + e.message);
+      }
+    });
+  }
+
+  if (els.fileRestore) {
+    els.fileRestore.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          restoreBackup(ev.target.result);
+          if (els.backupStatus) {
+            els.backupStatus.textContent = t('restore_done');
+            els.backupStatus.hidden = false;
+          }
+          setTimeout(() => location.reload(), 1500);
+        } catch (e) {
+          if (els.backupStatus) {
+            els.backupStatus.textContent = t('restore_error').replace('{error}', e.message);
+            els.backupStatus.hidden = false;
+          }
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    });
+  }
 
   // ---------- camera ----------
   function isBackLabel(label) { return /(back|rear|environment|r[üu]ck)/i.test(label || ''); }

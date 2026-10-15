@@ -321,6 +321,17 @@
             <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
           </div>
         </details>
+        <details class="settings-group">
+          <summary><h3 data-i18n="g_backup">Backup & Restore</h3></summary>
+          <div class="settings-grid">
+            <button id="btnBackup" class="btn" type="button" data-i18n="backup_now">Backup erstellen (JSON)</button>
+            <label class="file-input-wrap">
+              <input type="file" id="fileRestore" accept=".json" hidden />
+              <span class="btn" data-i18n="restore_now">Restore aus Datei</span>
+            </label>
+          </div>
+          <p id="backupStatus" class="hint" hidden></p>
+        </details>
       </div>
     </div>
 
