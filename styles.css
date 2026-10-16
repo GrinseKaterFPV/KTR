@@ -208,15 +208,16 @@ button, input, select { font: inherit; }
 }
 
 /* ---- collapsible main sections ---- */
-/* The <summary> must be the FIRST child of <details> (it lives next to the
-   .card-header wrapper, not inside it) — otherwise the browser ignores it and
-   renders its own "Details" fallback text. The gear button stays in
-   .card-header, which is pinned to the card's top-right corner instead. */
+/* The <summary> must be the FIRST child of <details> — otherwise the browser
+   ignores it and renders its own "Details" fallback text. The context gear
+   button lives INSIDE the summary (like the CSV/„Alle exportieren" buttons),
+   so it stays visible while the section is collapsed. The global click guard
+   in init() keeps those buttons from toggling the card. */
 .card-collapsible { position: relative; }
 .card-collapsible > .card-summary {
   display: flex; align-items: center; gap: 10px;
   cursor: pointer; list-style: none; margin: 0;
-  min-height: 36px; padding-right: 46px;
+  min-height: 36px;
   font-size: 13px; font-weight: 700; color: var(--muted);
   text-transform: uppercase; letter-spacing: .6px;
   white-space: nowrap;
@@ -243,23 +244,13 @@ summary.card-summary::marker {
    has no real <summary> child. Since the summary now sits first, no
    pseudo-element hacks are needed here — and they would kill the ▾/▴ caret. */
 
-.summary-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.summary-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .summary-actions button { padding: 6px 10px; font-size: 12px; }
 .summary-value { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-/* Context gear inside a card header (e.g. timer card → timer settings) */
-.card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; }
-
-/* Card header holds only the gear button now; it is pinned to the top-right
-   corner so the summary (which must stay the first <details> child) can span
-   the full width. */
-.card-header {
-  display: flex; align-items: center; justify-content: flex-end;
-  gap: 10px; margin: 0; padding: 0;
-  position: absolute; top: 0; right: 0; z-index: 1;
-}
-.card-header > .gear-btn {
-  flex-shrink: 0;
-}
+/* Context gear inside a card summary (e.g. timer card → timer settings).
+   margin-left:auto pushes it to the right end of the summary row, so it keeps
+   the old "pinned to the corner" look — and stays reachable when collapsed. */
+.card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; margin-left: auto; flex-shrink: 0; padding: 0; }
 
 .video-wrap {
   position: relative; width: 100%; aspect-ratio: 4/3; background: #000;
