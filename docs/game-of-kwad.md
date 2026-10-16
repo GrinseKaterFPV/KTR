@@ -1,9 +1,10 @@
 # Game of K.W.A.D — Konzept & Pflichtenheft
 
-> Status: **v1 umgesetzt** (rein manuell/lokal, siehe § 12 Phase 1), Rest **Konzept**.
+> Status: **v0.18.0 umgesetzt** (rein manuell/lokal: Kategorien, eigene Tricks, Zieh-Modi,
+> Statistik, Undo, Prüfart „Hindernis" mit Hindernisauswähler, siehe § 12 Phase 1), Rest **Konzept**.
 > Diese Datei beschreibt weiterhin, was das Spiel werden soll und in welchen Scheiben
-> die Ausbaustufen umgesetzt werden. Die v1 ändert **nichts** am bestehenden Timer, an
-> der Erkennung oder an den Einstellungen — sie ist ein eigener, lokaler Modus.
+> die Ausbaustufen umgesetzt werden. Der Modus ändert **nichts** am bestehenden Timer, an
+> der Erkennung oder an den Einstellungen — er ist ein eigener, lokaler Modus.
 
 ## 1. Idee in einem Satz
 
@@ -108,6 +109,34 @@ Zum Pool:
 - **Namentliche Kurzform** für die Ansage (z. B. „Power Loop" statt der ganzen Beschreibung).
 - Neue Tricks lassen sich als reine Datenliste ergänzen (Name, Text, Schwierigkeit, Prüfart) —
   ohne Logikänderung.
+
+### 6.1 Umgesetzt (ab v0.18.0): Prüfart und Hindernisauswähler
+
+Jeder Trick trägt neben `name`, `desc` (Ansagetext) und der Kategorie-Schwierigkeit ein Feld
+**`check` — die Prüfart**:
+
+| Prüfart | Schlüssel | Bedeutung |
+| --- | --- | --- |
+| **Freiflug** | `free` | Der Trick braucht kein Tor und kein Hindernis (z. B. Yaw Spin, Split-S) |
+| **Tor / Gate** | `gate` | Der Trick wird am/vor dem Tor geflogen (z. B. Dive, Gap Roll, Power Loop) |
+| **Hindernis** | `obstacle` | Der Trick bezieht ein Hindernis ein (z. B. Orbit um eine Flagge, Wall Scrape entlang einer Wand) |
+
+Regeln dazu (bewusst **manuell**, keine automatische Prüfung):
+
+- Die Prüfart ist eine **Einstellung pro Trick**. Die eingebauten Tricks bringen eine sinnvolle
+  Vorgabe mit; bei **eigenen Tricks** wird sie im KWAD-Einstellungs-Overlay (Feld „Prüfart")
+  mit angelegt und im Spiel als kleines Etikett angezeigt.
+- Alte/fehlende Werte fallen automatisch auf **Freiflug** zurück (`kwadCheck()`), damit früher
+  gespeicherte eigene Tricks weiter funktionieren.
+- Ist der gezogene Trick ein **Hindernis-Trick**, blendet der Spiel-Screen eine eigene Karte ein:
+  „**Hindernis-Trick – die Gruppe bestimmt das Hindernis**" und darunter die Auswahl
+  **„Hindernisauswähler"** — eine Liste der **noch aktiven Spieler**. Wer ausgewählt ist, legt das
+  Hindernis für diesen Trick fest.
+- Der Hindernisauswähler wird unter einem eigenen Schlüssel (`kwad_obstacle_picker`) gespeichert,
+  damit die Wahl über Runden hinweg erhalten bleibt; ist die gewählte Person nicht mehr dabei
+  (eliminiert oder entfernt), rückt automatisch der erste aktive Spieler nach.
+- **Keine automatische Bewertung:** Wie überall in K.W.A.D entscheidet die **Gruppe**, ob der Trick
+  als geschafft gilt. Die App ist Ansager und Protokoll, nicht Schiedsrichter.
 
 ## 7. Spielablauf (Zustandsmodell)
 

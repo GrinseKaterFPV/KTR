@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **Prüfart** per trick – Free flight (`free`), Gate (`gate`) or **Obstacle** (`obstacle`); every built-in trick ships with a sensible default
+- Game of K.W.A.D: **Obstacle picker** – when an obstacle trick is drawn, the game shows "the group decides the obstacle" and lets you nominate one of the active players; the choice is remembered (`kwad_obstacle_picker`)
+- Game of K.W.A.D: the custom-trick form now takes the Prüfart, and the trick list shows it as a badge
+- Game of K.W.A.D: obstacle tricks are drawn from the same weighted pool, so no separate mode is needed
+
+### Changed
+- Game of K.W.A.D: old/custom tricks without a Prüfart fall back to free flight, so existing saved tricks keep working
+
 ## [0.17.1] - 2026-10-16
 ### Fixed
 - Collapsible cards: the `<summary>` is now a real first child of `<details>`, so the browser's "Details" fallback text is gone for good
