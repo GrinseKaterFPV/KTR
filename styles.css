@@ -155,6 +155,7 @@ button, input, select { font: inherit; }
 }
 .kwad-custom-trick .custom-name { flex: 1; min-width: 120px; font-weight: 700; }
 .kwad-custom-trick .custom-desc { flex: 1; min-width: 120px; font-size: 12px; color: var(--muted); }
+.kwad-custom-trick .custom-direction { font-size: 11px; color: var(--accent2); }
 .kwad-custom-trick .custom-cat { font-size: 11px; color: var(--accent); }
 .kwad-custom-trick .custom-diff { font-size: 12px; color: var(--accent2); letter-spacing: 1px; }
 .kwad-custom-trick .custom-check { font-size: 11px; color: var(--accent2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
@@ -171,6 +172,7 @@ button, input, select { font: inherit; }
 .kwad-trick-meta .kwad-meta-cat { font-weight: 700; color: var(--accent); }
 .kwad-trick-meta .kwad-meta-diff { color: var(--accent2); letter-spacing: 1px; }
 .kwad-trick-meta .kwad-meta-check { border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
+.kwad-trick-meta .kwad-meta-direction { color: var(--text); font-weight: 700; }
 .kwad-trick-meta .kwad-meta-desc { flex: 1 1 100%; margin: 0; text-align: center; line-height: 1.4; }
 
 /* ---- KWAD "Trickliste & Pool" ---- */
@@ -185,16 +187,20 @@ button, input, select { font: inherit; }
 .trick-list-row {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 8px; background: var(--elev); border: 1px solid var(--border); border-radius: 8px;
-  font-size: 13px; cursor: pointer;
+  font-size: 13px;
 }
 .trick-list-row.is-off { opacity: .5; }
+.trick-list-row > input[type="checkbox"] { flex: 0 0 auto; }
 .trick-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .trick-list-name { font-weight: 700; }
 .trick-list-desc { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trick-list-direction { font-size: 11px; color: var(--accent2); }
 .trick-list-diff { color: var(--accent2); font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
 .trick-list-check { font-size: 11px; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.trick-list-edit { width: 28px; height: 28px; padding: 0; font-size: 14px; flex: 0 0 auto; }
 /* The export lives in the "Trickliste & Pool" summary row, next to the caret. */
 .settings-group > summary .trick-list-export { margin: 0; }
+.trick-list-reset { margin: 0 0 8px; }
 
 /* ---- Per-player trick statistics (bottom of the KWAD screen) ---- */
 .kwad-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
@@ -282,16 +288,6 @@ button, input, select { font: inherit; }
   text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pilot-profile-meta.is-empty { opacity: .75; }
-.pilot-profile-actions {
-  display: inline-flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0;
-}
-.pilot-activate {
-  width: 22px; height: 22px; padding: 0; border: none; border-radius: 50%;
-  background: rgba(0,0,0,0.18); color: var(--muted); font-size: 12px; line-height: 1;
-  cursor: pointer;
-}
-.pilot-activate.on { color: var(--accent); background: rgba(255,255,255,.06); }
-.pilot-activate:hover { background: rgba(0,0,0,0.32); }
 .pilot-profile-body {
   padding: 0 10px 10px; border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 10px;
@@ -305,7 +301,11 @@ button, input, select { font: inherit; }
   border: 1px solid var(--border); border-radius: 8px; padding: 8px;
 }
 .pilot-rename-row button { flex: 0 1 auto; white-space: nowrap; }
-/* The colour can be changed from inside the profile at any time. */
+.pilot-profile.is-editing { border-color: var(--accent); }
+.pilot-rename:disabled { opacity: .72; }
+.pilot-rename-row button:disabled,
+.pilot-color-row input:disabled { opacity: .65; cursor: not-allowed; }
+/* Name and colour are only editable from this profile's edit action. */
 .pilot-color-row { display: flex; align-items: center; gap: 8px; }
 .pilot-color-row .small-label { margin: 0; }
 .pilot-color-row input[type="color"] {

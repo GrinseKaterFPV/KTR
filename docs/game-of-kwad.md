@@ -1,7 +1,7 @@
 # Game of K.W.A.D — Konzept & Pflichtenheft
 
-> Status: **v0.23.0 umgesetzt** (rein manuell/lokal: Kategorien, eigene Tricks (nachträglich
-> bearbeitbar), Zieh-Modi, Statistik, Undo, Prüfart „Gap"/„Hindernis" mit automatisch bestimmtem
+> Status: **v0.27.0 umgesetzt** (rein manuell/lokal: Kategorien, eigene Tricks (nachträglich
+> bearbeitbar), Zieh-Modi, Statistik inkl. Siegen je Pilot, Undo, Prüfart „Gap"/„Hindernis" mit automatisch bestimmtem
 > Auswähler direkt im Trick-Abschnitt, optionale Trick-Ansage, siehe § 12 Phase 1), Rest **Konzept**.
 > Diese Datei beschreibt weiterhin, was das Spiel werden soll und in welchen Scheiben
 > die Ausbaustufen umgesetzt werden. Der Modus ändert **nichts** am bestehenden Timer, an
@@ -17,6 +17,8 @@ Strafbuchstaben** — wer zuerst **K, W, A und D** beisammen hat, verliert.
 
 - Die App **sieht** schon zu, ob das Tor durchflogen wurde (bestehende Erkennung, `armed`).
 - Sie kann **sprechen** (Sprachansage der Rundenzeiten ist vorhanden) — also auch den Trick ansagen.
+  Die KWAD-Trickansage verwendet dieselbe Stimme und dasselbe Sprechtempo; Sprachoptionen und
+  KWAD-Ansageschalter liegen zentral in den Haupteinstellungen.
 - Sie kennt **Piloten mit Farben** — die Buchstaben-Tafel kann die Farben direkt wiederverwenden.
 - Der Homescreen ist seit dem Aufräumen wieder luftig → eine dritte Kachel hat Platz.
 
@@ -57,7 +59,7 @@ Strafbuchstaben** — wer zuerst **K, W, A und D** beisammen hat, verliert.
 | **Trick neu ziehen** | Der aktive Pilot darf einen unpassenden Trick **1× pro Runde** tauschen (zu eng, zu viel Wind, Akku knapp) | aus |
 | **Pause ohne Buchstabe** | „Pause" unterbricht die Runde (Akkuwechsel). Kein Buchstabe, Runde startet neu | an |
 | **Nur erster Durchflug zählt** | Weitere Durchflüge im selben Versuch ändern nichts (Mehrfach-Durchflug ist kein Extra-Erfolg) | an |
-| **Richtungs-Trick** | Manche Tricks verlangen eine Flugrichtung (z. B. „Dive" nur von oben nach unten) → nutzt die vorhandene Richtungsprüfung | aus |
+| **Richtungs-Trick** | Bei passenden Tricks wird eine Richtung separat gezogen, angezeigt, angesagt und im CSV ausgegeben; sie wird nicht automatisch geprüft | an |
 | **Fairness-Ansage** | Vor dem Trickstart erscheint ein Hinweis, dass die **Trick-Bewertung in der Gruppe** liegt (siehe 5.) | an |
 
 ### 4.3 Modus B „Vorgeben" (SKATE-klassisch, spätere Ausbaustufe)
@@ -76,36 +78,48 @@ ein Split-S oder ein Matty Flip geflogen wurde. Deshalb:
 - **Erfolg** ist zweistufig: **Tor-Durchflug** (automatisch) **plus** Bestätigung des Piloten
   („Trick war sauber" — automatische Bestätigung per Einstellung abschaltbar).
 - **Fehlversuch** ist immer auch **manuell** auslösbar (Crash, Abbruch, „war kein Trick").
-- Für Tricks, die gar kein Tor brauchen (z. B. „Wall Scrape"), gilt **Selbstauskunft** ohne
+- Für Tricks, die gar kein Tor brauchen (z. B. „Wall Ride"), gilt **Selbstauskunft** ohne
   Durchflug-Prüfung — die App nimmt hier nur die Zeitmessung ab.
 - Fazit: **Die App ist Schiedsrichter-Assistent und Ansager, nicht Schiedsrichter.** Das steht als
   Fairness-Hinweis auch im Spiel-Screen.
 
-## 6. Trick-Pool (Vorschlag)
+## 6. Eingebaute Trickliste
 
-„Durchflug" = kann die App automatisch am Gap prüfen. „Selbst" = nur per Bestätigung.
+Die gepflegte Liste steht in der App unter **KWAD-Einstellungen → „Trick Liste"** und lässt
+sich als CSV exportieren. Schwierigkeit: 1 (einfach) bis 5 (sehr anspruchsvoll). „Prüfung"
+bezeichnet hier die gewählte Setup-Prüfart, keine automatische Trick-Erkennung. Wo eine
+Richtung angegeben ist, zieht die App bei jedem neuen Trick eine der beiden Möglichkeiten.
 
-| Trick | Beschreibung (Ansagetext) | Schwierigkeit | Prüfung |
-| --- | --- | --- | --- |
-| Yaw Spin | Eine schnelle flache Drehung um die Hochachse, direkt nach dem Gap | 1 | Selbst |
-| Dive | Spitzwinklig von oben kommend durch das Gap stürzen | 2 | Durchflug (Richtung sinnvoll) |
-| Gap Roll | Eine Rolle genau im Moment des Gap-Durchflugs | 2 | Durchflug |
-| Tight Gap | Durch ein enges Gap fliegen, ohne Höhe zu verlieren | 2 | Durchflug |
-| Orbit | Das Gap eng umkreisen (mind. 1 voller Kreis) und dann durchfliegen | 2 | Durchflug |
-| Juicy Flick / Flick | Kurzer, harter Yaw-Flick knapp über dem Gap, durchfliegen | 2 | Durchflug |
-| Wall Scrape | Knapp an einer Wand/einem Hindernis entlang, ohne Berührung | 2 | Selbst |
-| Power Loop | Loop über oder durch das Gap, danach sauber weiterfliegen | 3 | Durchflug |
-| Split-S | Rolle mit halber Rolle: Richtung umkehren und durch das Gap | 3 | Durchflug |
-| Matty Flip | Rückwärts-Loop über das Gap, durchfliegen | 4 | Durchflug |
-| Trippy Spin / Rubik's Cube | Orbit mit dauerhaftem Yaw um das Gap | 4 | Durchflug |
-| Inverted Pass | Invertiert (auf dem Kopf) durch das Gap | 4 | Durchflug |
-| Backwards Pass | Rückwärts durch das Gap | 4 | Durchflug |
+| Trick | Kurzbeschreibung | Schwierigkeit | Prüfung | Richtung |
+| --- | --- | ---: | --- | --- |
+| Straight Pass | Gerade und kontrolliert durch eine Öffnung fliegen | 1 | Gap | — |
+| Roll | Einmal um die Längsachse drehen und die Flugbahn möglichst gerade halten | 1 | Freiflug | Roll links/rechts |
+| Yaw Spin | Einmal vollständig um die Hochachse drehen | 1 | Freiflug | Yaw links/rechts |
+| Frontflip / Backflip | Eine Vorwärts-/Rückwärtsrotation um die Querachse | 2 | Freiflug | — |
+| Dive | Mit Nase oder Heck voraus steil abwärts fliegen und kontrolliert abfangen | 2 | Freiflug | Vorwärts/rückwärts |
+| Gap Roll | Während des Durchflugs eine vollständige Rollbewegung ausführen | 2 | Gap | Roll links/rechts |
+| Tight Gap | Durch eine enge Öffnung fliegen, ohne sie zu berühren | 2 | Gap | — |
+| Split-S | Halbe Rolle in den Rückenflug, dann halben Loop nach unten; Ausflug in Gegenrichtung | 2 | Freiflug | Roll links/rechts |
+| Orbit | Ein Hindernis in einer vollständigen Kreisbahn umfliegen | 2 | Hindernis | Im/gegen Uhrzeigersinn |
+| Wall Ride | Eng an einer Wand entlangfliegen, ohne sie zu berühren | 3 | Hindernis | Links nach rechts/rechts nach links |
+| Wall Tap | Eine Wand kurz berühren und kontrolliert wegfliegen | 3 | Hindernis | — |
+| Power Loop | Einen Loop um ein Hindernis fliegen und kontrolliert weiterfliegen | 3 | Hindernis | — |
+| Juicy Flick | Schnellen Flick aus dem Vorwärtsflug, Richtung umkehren und kontrolliert weiterfliegen | 3 | Freiflug | Roll links/rechts |
+| Barrel Roll | Vollständige Rollbewegung mit gebogener, spiralförmiger Flugbahn | 3 | Freiflug | Roll links/rechts |
+| Corkscrew | Im Vorwärtsflug schnell mindestens drei vollständige Rollen hintereinander | 3 | Freiflug | Roll links/rechts |
+| Inverted Pass | Auf dem Rücken vorwärts oder rückwärts durch eine Öffnung fliegen | 3 | Gap | Vorwärts/rückwärts |
+| Backwards Pass | Rückwärts durch eine Öffnung fliegen | 3 | Gap | — |
+| Double Frontflip / Double Backflip | Zwei Vorwärts-/Rückwärtsrotationen direkt hintereinander | 3 | Freiflug | — |
+| Knife Edge Pass | Seitlich gerollt durch eine Öffnung fliegen | 3 | Gap | Roll links/rechts |
+| Rubik's Cube | Halber Frontflip, vollständige Rolle, halber Frontflip | 4 | Freiflug | Roll links/rechts |
+| Inverted Yaw-spin | In den Rückenflug drehen, Yaw-Drehung ausführen und aufrichten | 4 | Freiflug | Yaw links/rechts |
+| Trippy Spin | Ein Hindernis eng umkreisen und dabei kontinuierlich yawen | 4 | Hindernis | Im/gegen Uhrzeigersinn |
+| Matty Flip | Über ein Hindernis steigen, nach vorn abkippen und darunter zurückfliegen | 4 | Hindernis | Im/gegen Uhrzeigersinn |
 
-> Diese Tabelle ist der ursprüngliche **Vorschlag**. Verbindlich ist die gepflegte Liste in der
-> App: **KWAD-Einstellungen → „Trickliste & Pool"**. Dort stehen alle eingebauten Tricks mit
-> Prüfart und Schwierigkeit, sie lässt sich seit v0.21 **als CSV exportieren**
-> (`Trickliste exportieren`). Ein Trick ohne Tor/Gap — z. B. „Tight Gap" statt des früheren
-> „Level Pass" — trägt dort die Prüfart **Gap** bzw. **Freiflug**.
+Vorübergehend lassen sich eingebaute Tricks über den Stift in der Liste bearbeiten. Änderungen
+an Richtung, Beschreibung, Schwierigkeit und Prüfart werden lokal gespeichert, in den CSV-Export
+übernommen und verändern nicht die Standardwerte im Quellcode. Mit **„Eingebaute Änderungen
+zurücksetzen"** lassen sich alle lokalen Anpassungen verwerfen.
 
 Zum Pool:
 
@@ -129,7 +143,7 @@ Jeder Trick trägt neben `name`, `desc` (Ansagetext) und der Kategorie-Schwierig
 | --- | --- | --- |
 | **Freiflug** | `free` | Der Trick braucht kein Tor und kein Hindernis (z. B. Yaw Spin, Split-S) |
 | **Gap** | `gap` | Der Trick wird durch/am Gap geflogen (z. B. Dive, Gap Roll, Power Loop) |
-| **Hindernis** | `obstacle` | Der Trick bezieht ein Hindernis ein (z. B. Orbit um eine Flagge, Wall Scrape entlang einer Wand) |
+| **Hindernis** | `obstacle` | Der Trick bezieht ein Hindernis ein (z. B. Orbit um eine Flagge, Wall Ride entlang einer Wand) |
 
 > Bis v0.19 hieß der Schlüssel `gate` („Tor / Gate"). Weil Freestyle meist an **Gaps** statt an
 > Toren fliegt, heißt die Rubrik seit v0.20 **Gap**; `kwadCheck()` bildet den alten Wert `gate`
@@ -277,7 +291,7 @@ kwadSession = {
 | Kamera getrennt / Tab im Hintergrund | Runde pausiert automatisch, Hinweis; nach Rückkehr weiter |
 | Doppelter Tor-Durchflug | nur der erste zählt (Standardregel an) |
 | Trick am Platz unmöglich | „Trick neu ziehen" (1× pro Runde, falls aktiviert) |
-| Trick ohne Tor (Wall Scrape) | nur Selbstauskunft + Zeitmessung |
+| Trick ohne Tor (Wall Ride oder Wall Tap) | nur Selbstauskunft + Zeitmessung |
 | Alle Piloten verlieren gleichzeitig? | Kann nicht passieren: bewertet wird immer nur der aktive Pilot |
 | Nur 1 Pilot übrig, andere eliminiert | Ergebnis-Screen (Sieger), Revanche anbieten |
 | App-Neustart mitten im Spiel | Session wird wiederhergestellt (siehe § 10) |

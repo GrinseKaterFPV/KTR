@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.23.0';
+  const APP_VERSION = '0.29.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -21,18 +21,19 @@
       m_pilots: 'Piloten',
       m_pilots_desc: 'Profile, Farben & Vergleich',
       pilots_hint: 'Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.',
-      pilots_active_hint: 'Tippe ein Profil an, um Statistik und Verwaltung zu öffnen. Mit ★ wählst du den aktiven Piloten.',
+      pilots_active_hint: 'Mit „Bearbeiten“ änderst du Name und Farbe eines Profils. Das bearbeitete Profil wird aktiv.',
       export_pilots: 'Piloten exportieren (CSV)',
       pilot_export: 'Pilot exportieren (CSV)',
       pilot_delete: 'Pilot löschen',
       pilot_screen_empty: 'Noch keine Piloten angelegt.',
       pilot_active: 'aktiv',
-      pilot_select: 'Als aktiven Piloten wählen',
       pilot_manage: 'Profil verwalten',
-      pilot_rename: 'Umbenennen',
-      pilot_rename_taken: 'Der Name „{name}“ ist schon vergeben.',
+      pilot_edit: 'Bearbeiten',
+      pilot_apply: 'Änderungen übernehmen',
+      pilot_name_taken: 'Ein Pilot mit dem Namen „{name}“ existiert bereits.',
+      pilot_name_required: 'Bitte gib einen Pilotennamen ein.',
       pilot_stats_reset: 'Statistik zurücksetzen',
-      pilot_reset_confirm: 'Trick-Statistiken von „{name}“ wirklich zurücksetzen?',
+      pilot_reset_confirm: 'Game-of-K.W.A.D.-Statistiken von „{name}“ wirklich zurücksetzen?',
       pilot_delete_confirm: 'Profil „{name}“ mit seinen Trick-Statistiken wirklich löschen?',
       kwad_hint: 'Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.',
       kwad_trick: 'Trick',
@@ -45,6 +46,7 @@
       kwad_reset: 'Neues Spiel (Buchstaben zurücksetzen)',
       kwad_remove: 'Spieler entfernen',
       kwad_loses: 'verliert!',
+      kwad_wins: 'gewinnt die Runde!',
       kwad_no_players: 'Mindestens 2 Spieler hinzufügen.',
       kwad_round_done: 'Alle dran – neuer Trick.',
       kwad_undo: 'Rückgängig',
@@ -65,18 +67,24 @@
       kwad_custom_update: 'Änderungen übernehmen',
       kwad_custom_cancel: 'Abbrechen',
       kwad_custom_edit: 'Bearbeiten',
+      kwad_builtin_edit: 'Eingebauten Trick bearbeiten',
+      kwad_trick_name_taken: 'Ein Trick dieses Namens existiert in der Kategorie bereits.',
       kwad_custom_delete: 'Löschen',
       kwad_stats: 'Trick-Statistiken',
       kwad_stats_attempted: 'Versucht',
       kwad_stats_succeeded: 'Geschafft',
+      kwad_stats_won: 'Gewonnene Spiele',
       kwad_stats_rate: 'Quote',
       kwad_stats_total: 'Gesamt',
       kwad_stats_empty: 'Noch keine Versuche.',
       kwad_stats_hint: 'Pro Spieler, damit ihr euch direkt vergleichen könnt.',
-      kwad_pool: 'Trickliste & Pool',
-      kwad_pool_hint: 'Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.',
+      kwad_pool: 'Trick Liste',
+      kwad_pool_hint: 'Häkchen = Trick liegt im Zieh-Pool. Mit ✎ kannst du eingebaute Tricks bearbeiten; Änderungen werden lokal gespeichert und exportiert.',
       kwad_pool_toggle: 'Trick im Pool',
       kwad_export_list: 'Trickliste exportieren (CSV)',
+      kwad_reset_builtin: 'Eingebaute Änderungen zurücksetzen',
+      kwad_reset_builtin_confirm: 'Alle lokalen Änderungen an eingebauten Tricks verwerfen und die Standardwerte wiederherstellen?',
+      kwad_reset_builtin_done: 'Eingebaute Tricks wurden auf Standardwerte zurückgesetzt.',
       kwad_tricks: 'Tricks',
       kwad_custom_cat: 'Kategorie',
       kwad_category_basics: 'Basics',
@@ -85,6 +93,21 @@
       kwad_category_pro: 'Pro',
       kwad_category_custom: 'Eigene',
       kwad_difficulty: 'Schwierigkeit',
+      kwad_direction: 'Richtung',
+      kwad_direction_none: 'Keine',
+      kwad_direction_roll: 'Rollrichtung',
+      kwad_direction_yaw: 'Yaw-Richtung',
+      kwad_direction_orbit: 'Kreisrichtung',
+      kwad_direction_flight: 'Flugrichtung',
+      kwad_direction_wall: 'Flugrichtung an der Wand',
+      kwad_direction_left: 'links',
+      kwad_direction_right: 'rechts',
+      kwad_direction_clockwise: 'im Uhrzeigersinn',
+      kwad_direction_counterclockwise: 'gegen den Uhrzeigersinn',
+      kwad_direction_forward: 'vorwärts',
+      kwad_direction_backward: 'rückwärts',
+      kwad_direction_left_to_right: 'von links nach rechts',
+      kwad_direction_right_to_left: 'von rechts nach links',
       kwad_desc: 'Beschreibung',
       kwad_enabled: 'Aktiv',
       kwad_check: 'Prüfart',
@@ -142,6 +165,7 @@
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio-Feedback (Countdown, Runden)',
+      g_speech: 'Sprachausgabe',
       speech_announce: 'Sprachansage',
       ann_off: 'Aus',
       ann_every: 'Jede Runde',
@@ -233,6 +257,7 @@
       no_pilot: 'Ohne Pilot',
       no_sets_for_pilot: 'Keine Sätze für diesen Piloten.',
       pilot_compare_title: 'Piloten-Vergleich',
+      pilot_kwad_compare: 'Game of K.W.A.D – Spielstatistik',
       th_sets: 'Sätze',
       storage_trimmed: 'Speicher fast voll – ältere Sätze wurden entfernt, damit neue gespeichert werden können.',
       storage_full: 'Speicher voll – Speichern fehlgeschlagen. Bitte ältere Sätze löschen.',
@@ -259,18 +284,19 @@
       m_pilots: 'Pilots',
       m_pilots_desc: 'Profiles, colours & comparison',
       pilots_hint: 'Create pilots with a name and colour. The colour is used in the chart and the comparison table.',
-      pilots_active_hint: 'Tap a profile to open its statistics and management tools. Use ★ to pick the active pilot.',
+      pilots_active_hint: 'Use “Edit” to change a profile name or colour. The profile being edited becomes active.',
       export_pilots: 'Export pilots (CSV)',
       pilot_export: 'Export pilot (CSV)',
       pilot_delete: 'Delete pilot',
       pilot_screen_empty: 'No pilots yet.',
       pilot_active: 'active',
-      pilot_select: 'Set as active pilot',
       pilot_manage: 'Manage profile',
-      pilot_rename: 'Rename',
-      pilot_rename_taken: 'The name “{name}” is already taken.',
+      pilot_edit: 'Edit',
+      pilot_apply: 'Apply changes',
+      pilot_name_taken: 'A pilot named “{name}” already exists.',
+      pilot_name_required: 'Enter a pilot name.',
       pilot_stats_reset: 'Reset statistics',
-      pilot_reset_confirm: 'Really reset the trick statistics of “{name}”?',
+      pilot_reset_confirm: 'Really reset the Game of K.W.A.D statistics of “{name}”?',
       pilot_delete_confirm: 'Really delete the profile “{name}” together with its trick statistics?',
       kwad_hint: 'Call a trick – whoever cannot fly it collects a letter. The first to hold K, W, A and D loses.',
       kwad_trick: 'Trick',
@@ -283,6 +309,7 @@
       kwad_reset: 'New game (reset letters)',
       kwad_remove: 'Remove player',
       kwad_loses: 'loses!',
+      kwad_wins: 'wins the game!',
       kwad_no_players: 'Add at least 2 players.',
       kwad_round_done: 'Everyone had a go – new trick.',
       kwad_undo: 'Undo',
@@ -303,18 +330,24 @@
       kwad_custom_update: 'Apply changes',
       kwad_custom_cancel: 'Cancel',
       kwad_custom_edit: 'Edit',
+      kwad_builtin_edit: 'Edit built-in trick',
+      kwad_trick_name_taken: 'A trick with this name already exists in the category.',
       kwad_custom_delete: 'Delete',
       kwad_stats: 'Trick Statistics',
       kwad_stats_attempted: 'Attempted',
       kwad_stats_succeeded: 'Succeeded',
+      kwad_stats_won: 'Games won',
       kwad_stats_rate: 'Rate',
       kwad_stats_total: 'Total',
       kwad_stats_empty: 'No attempts yet.',
       kwad_stats_hint: 'Per player, so you can compare directly.',
-      kwad_pool: 'Trick list & pool',
-      kwad_pool_hint: 'Checked = trick is in the draw pool. Unchecked tricks stay listed but are never drawn.',
+      kwad_pool: 'Trick List',
+      kwad_pool_hint: 'Checked = trick is in the draw pool. Use ✎ to edit built-in tricks; edits are saved locally and included in exports.',
       kwad_pool_toggle: 'Trick in pool',
       kwad_export_list: 'Export trick list (CSV)',
+      kwad_reset_builtin: 'Reset built-in edits',
+      kwad_reset_builtin_confirm: 'Discard all local edits to built-in tricks and restore their defaults?',
+      kwad_reset_builtin_done: 'Built-in tricks were restored to their defaults.',
       kwad_tricks: 'Tricks',
       kwad_custom_cat: 'Category',
       kwad_category_basics: 'Basics',
@@ -323,6 +356,21 @@
       kwad_category_pro: 'Pro',
       kwad_category_custom: 'Custom',
       kwad_difficulty: 'Difficulty',
+      kwad_direction: 'Direction',
+      kwad_direction_none: 'None',
+      kwad_direction_roll: 'Roll direction',
+      kwad_direction_yaw: 'Yaw direction',
+      kwad_direction_orbit: 'Orbit direction',
+      kwad_direction_flight: 'Flight direction',
+      kwad_direction_wall: 'Direction along wall',
+      kwad_direction_left: 'left',
+      kwad_direction_right: 'right',
+      kwad_direction_clockwise: 'clockwise',
+      kwad_direction_counterclockwise: 'counterclockwise',
+      kwad_direction_forward: 'forward',
+      kwad_direction_backward: 'backward',
+      kwad_direction_left_to_right: 'left to right',
+      kwad_direction_right_to_left: 'right to left',
       kwad_desc: 'Description',
       kwad_enabled: 'Enabled',
       kwad_check: 'Check',
@@ -380,6 +428,7 @@
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio feedback (countdown, laps)',
+      g_speech: 'Speech',
       speech_announce: 'Voice announcement',
       ann_off: 'Off',
       ann_every: 'Every lap',
@@ -471,6 +520,7 @@
       no_pilot: 'No pilot',
       no_sets_for_pilot: 'No sets for this pilot.',
       pilot_compare_title: 'Pilot comparison',
+      pilot_kwad_compare: 'Game of K.W.A.D – Game statistics',
       th_sets: 'Sets',
       storage_trimmed: 'Storage almost full – older sets were removed to make room for new ones.',
       storage_full: 'Storage full – saving failed. Please delete older sets.',
@@ -480,13 +530,64 @@
       backup_done: 'Backup created: {name}',
       restore_done: 'Restore successful – reloading app',
       restore_error: 'Restore failed: {error}',
-  }
-};
+    }
+  };
 
   function t(key) {
     const dict = I18N[state.lang] || I18N.de;
     if (key in dict) return dict[key];
     return I18N.de[key] !== undefined ? I18N.de[key] : key;
+  }
+
+  function kwadRenameBuiltinTrick(catId, oldName, newName) {
+    const oldKey = catId + '/' + oldName;
+    const newKey = catId + '/' + newName;
+    if (Object.prototype.hasOwnProperty.call(kwadPool, oldKey)) {
+      kwadPool[newKey] = kwadPool[oldKey];
+      delete kwadPool[oldKey];
+      kwadSavePool();
+    }
+    const merge = (dst, src) => {
+      if (!dst[newName]) dst[newName] = { attempted: src.attempted || 0, succeeded: src.succeeded || 0 };
+      else {
+        dst[newName].attempted = (dst[newName].attempted || 0) + (src.attempted || 0);
+        dst[newName].succeeded = (dst[newName].succeeded || 0) + (src.succeeded || 0);
+      }
+      delete dst[oldName];
+    };
+    if (kwadStats[oldName]) merge(kwadStats, kwadStats[oldName]);
+    Object.values(kwadPlayerStats).forEach(bucket => {
+      if (bucket && bucket[oldName]) merge(bucket, bucket[oldName]);
+    });
+    kwadSaveStats();
+  }
+  function kwadResetBuiltinOverrides() {
+    if (!Object.keys(kwadBuiltinOverrides).length || !askConfirm(t('kwad_reset_builtin_confirm'))) return;
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      if (cat.id === 'custom') return;
+      cat.tricks.forEach(trick => {
+        const defaults = KWAD_BUILTIN_DEFAULTS.get(trick);
+        if (!defaults) return;
+        const oldName = trick.name;
+        trick.name = defaults.name;
+        trick.desc = defaults.desc;
+        trick.en = defaults.en ? { ...defaults.en } : undefined;
+        trick.check = defaults.check;
+        if (defaults.difficulty === undefined) delete trick.difficulty;
+        else trick.difficulty = defaults.difficulty;
+        if (defaults.direction) trick.direction = defaults.direction;
+        else delete trick.direction;
+        if (oldName !== trick.name) kwadRenameBuiltinTrick(cat.id, oldName, trick.name);
+      });
+    });
+    kwadBuiltinOverrides = {};
+    try { localStorage.removeItem('kwad_builtin_overrides'); }
+    catch { storageError(); return; }
+    kwadTrickPool = kwadBuildTrickPool();
+    renderKwadTrickList();
+    renderKwadCategories();
+    renderKwad();
+    toast(t('kwad_reset_builtin_done'));
   }
   function dirText(dir) { return t('dir_text_' + dir); }
 
@@ -557,6 +658,22 @@
     rafId: null,
     frameCount: 0,
   };
+  const KWAD_BUILTIN_IDS = new WeakMap();
+  const KWAD_BUILTIN_DEFAULTS = new WeakMap();
+  Object.values(KWAD_CATEGORIES).forEach(cat => {
+    if (cat.id === 'custom') return;
+    cat.tricks.forEach(trick => {
+      KWAD_BUILTIN_IDS.set(trick, cat.id + '/' + trick.name);
+      KWAD_BUILTIN_DEFAULTS.set(trick, {
+        name: trick.name,
+        desc: trick.desc,
+        en: trick.en ? { ...trick.en } : undefined,
+        check: trick.check,
+        difficulty: trick.difficulty,
+        direction: trick.direction || '',
+      });
+    });
+  });
 
   const els = {
     video: document.getElementById('video'),
@@ -684,11 +801,14 @@
     kwadCustomDesc: document.getElementById('kwadCustomDesc'),
     kwadCustomCheck: document.getElementById('kwadCustomCheck'),
     kwadCustomDifficulty: document.getElementById('kwadCustomDifficulty'),
+    kwadCustomDirection: document.getElementById('kwadCustomDirection'),
     kwadCustomCat: document.getElementById('kwadCustomCat'),
+    kwadCustomCatLabel: document.getElementById('kwadCustomCatLabel'),
     btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
     btnKwadCustomCancel: document.getElementById('btnKwadCustomCancel'),
     kwadTrickList: document.getElementById('kwadTrickList'),
     btnKwadExport: document.getElementById('btnKwadExport'),
+    btnKwadResetBuiltin: document.getElementById('btnKwadResetBuiltin'),
     kwadTrickMeta: document.getElementById('kwadTrickMeta'),
     kwadStatsGrid: document.getElementById('kwadStatsGrid'),
     versionBadge: document.getElementById('versionBadge'),
@@ -713,6 +833,31 @@
       maskImage = maskCtx.createImageData(state.procW, state.procH);
     }
     return maskImage;
+  }
+
+  function kwadEditBuiltinTrick(id) {
+    let found = null;
+    Object.values(KWAD_CATEGORIES).some(cat => {
+      if (cat.id === 'custom') return false;
+      found = cat.tricks.find(trick => KWAD_BUILTIN_IDS.get(trick) === id) || null;
+      return !!found;
+    });
+    if (!found) return;
+    kwadEditingBuiltin = { id, trick: found };
+    kwadEditingCustomIdx = -1;
+    if (els.kwadCustomName) els.kwadCustomName.value = kwadTrickName(found);
+    if (els.kwadCustomDesc) els.kwadCustomDesc.value = kwadTrickDesc(found) || '';
+    if (els.kwadCustomCheck) els.kwadCustomCheck.value = kwadCheck(found);
+    if (els.kwadCustomDifficulty) els.kwadCustomDifficulty.value = String(kwadDifficulty(found));
+    if (els.kwadCustomDirection) els.kwadCustomDirection.value = kwadDirectionType(found);
+    if (els.kwadCustomCatLabel) els.kwadCustomCatLabel.hidden = true;
+    kwadUpdateCustomFormMode();
+    const form = els.kwadCustomName && els.kwadCustomName.closest('details');
+    if (form) form.open = true;
+    if (els.kwadCustomName) {
+      els.kwadCustomName.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      els.kwadCustomName.focus();
+    }
   }
 
   // ---------- helpers ----------
@@ -1502,8 +1647,10 @@
         players: kwadPlayers,
         mode: kwadMode,
         categories: KWAD_CATEGORIES,
+        builtinOverrides: kwadBuiltinOverrides,
         stats: kwadStats,
         playerStats: kwadPlayerStats,
+        playerWins: kwadPlayerWins,
         pool: kwadPool,
         announce: kwadAnnounce,
         customTricks: KWAD_CATEGORIES?.custom?.tricks || [],
@@ -1589,8 +1736,13 @@
             }
           });
         }
+        if (data.kwad.builtinOverrides && typeof data.kwad.builtinOverrides === 'object') {
+          kwadApplyBuiltinOverrides(data.kwad.builtinOverrides);
+          kwadSaveBuiltinOverrides();
+        }
         if (data.kwad.stats) kwadStats = data.kwad.stats;
         if (data.kwad.playerStats && typeof data.kwad.playerStats === 'object') kwadPlayerStats = data.kwad.playerStats;
+        if (data.kwad.playerWins && typeof data.kwad.playerWins === 'object') kwadPlayerWins = data.kwad.playerWins;
         if (data.kwad.pool && typeof data.kwad.pool === 'object') kwadPool = data.kwad.pool;
         if (typeof data.kwad.announce === 'boolean') kwadAnnounce = data.kwad.announce;
         if (data.kwad.customTricks) KWAD_CATEGORIES.custom.tricks = data.kwad.customTricks;
@@ -2488,32 +2640,53 @@
       if (!groups.has(p)) groups.set(p, []);
       groups.get(p).push(s);
     });
-    if (groups.size < 2) return '';
-    const rows = [...groups.entries()].map(([p, sets]) => {
-      const laps = [];
-      sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
-      return {
-        p,
-        count: sets.length,
-        laps: laps.length,
-        best: Math.min(...sets.map(s => s.bestMs)),
-        avg: laps.length ? laps.reduce((a, d) => a + d, 0) / laps.length : 0,
-        total: laps.reduce((a, d) => a + d, 0),
-      };
-    });
-    const bestOverall = Math.min(...rows.map(r => r.best));
-    rows.sort((a, b) => a.best - b.best);
+    const sections = [];
+    if (groups.size >= 2) {
+      const rows = [...groups.entries()].map(([p, sets]) => {
+        const laps = [];
+        sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
+        return {
+          p,
+          count: sets.length,
+          laps: laps.length,
+          best: Math.min(...sets.map(s => s.bestMs)),
+          avg: laps.length ? laps.reduce((a, d) => a + d, 0) / laps.length : 0,
+          total: laps.reduce((a, d) => a + d, 0),
+        };
+      });
+      const bestOverall = Math.min(...rows.map(r => r.best));
+      rows.sort((a, b) => a.best - b.best);
+      const head =
+        `<tr><th>${t('th_pilot')}</th><th>${t('th_sets')}</th><th>${t('set_laps_word')}</th>` +
+        `<th>${t('set_best_word')}</th><th>${t('avg_word')}</th><th>${t('th_total')}</th></tr>`;
+      const body = rows.map(r =>
+        `<tr><td><i class="dot" style="background:${pilotColor(r.p)}"></i>${esc(pilotLabel(r.p))}</td>` +
+        `<td class="num">${r.count}</td><td class="num">${r.laps}</td>` +
+        `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
+        `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
+      ).join('');
+      sections.push(`<h4>${t('pilot_compare_title')}</h4>` +
+        `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`);
+    }
+    const kwadPilots = [...new Set([...(state.pilots || []), ...Object.keys(kwadPlayerStats), ...Object.keys(kwadPlayerWins)])]
+    .filter(name => typeof name === 'string' && name)
+    .sort((a, b) => a.localeCompare(b));
+    if (kwadPilots.length) {
     const head =
-      `<tr><th>${t('th_pilot')}</th><th>${t('th_sets')}</th><th>${t('set_laps_word')}</th>` +
-      `<th>${t('set_best_word')}</th><th>${t('avg_word')}</th><th>${t('th_total')}</th></tr>`;
-    const body = rows.map(r =>
-      `<tr><td><i class="dot" style="background:${pilotColor(r.p)}"></i>${esc(pilotLabel(r.p))}</td>` +
-      `<td class="num">${r.count}</td><td class="num">${r.laps}</td>` +
-      `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
-      `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
-    ).join('');
-    return `<h4>${t('pilot_compare_title')}</h4>` +
-      `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+      `<tr><th>${t('th_pilot')}</th><th>${t('kwad_stats_won')}</th><th>${t('kwad_stats_attempted')}</th>` +
+      `<th>${t('kwad_stats_succeeded')}</th><th>${t('kwad_stats_rate')}</th></tr>`;
+      const body = kwadPilots.map(name => {
+        const stats = kwadPlayerStats[name] || {};
+        const attempted = kwadTotalAttempts(stats);
+        const succeeded = kwadTotalSucceeded(stats);
+        return `<tr><td><i class="dot" style="background:${pilotColor(name)}"></i>${esc(name)}</td>` +
+          `<td class="num">${kwadPlayerWins[name] || 0}</td><td class="num">${attempted}</td><td class="num">${succeeded}</td>` +
+          `<td class="num">${kwadRate(succeeded, attempted)}</td></tr>`;
+      }).join('');
+      sections.push(`<h4>${t('pilot_kwad_compare')}</h4>` +
+        `<table class="compare-table pilot-kwad-compare"><thead>${head}</thead><tbody>${body}</tbody></table>`);
+    }
+    return sections.join('');
   }
   function renderPilotCompare() {
     const html = pilotCompareHTML();
@@ -2776,12 +2949,8 @@
   function ensurePilotColorInput() {
     if (!els.pilotColor) return;
     const name = els.pilotName ? els.pilotName.value.trim() : '';
-    if (name && state.pilots.includes(name)) {
-      const col = state.pilotColors[name] || pilotColor(name);
-      els.pilotColor.value = col;
-      state.pilotColors[name] = col;
-      els.pilotColor.hidden = false;
-    } else if (name) {
+    const duplicate = state.pilots.some(pilot => pilot.toLowerCase() === name.toLowerCase());
+    if (name && !duplicate) {
       els.pilotColor.value = nextPilotColor();
       els.pilotColor.hidden = false;
     } else {
@@ -2800,7 +2969,6 @@
       chip.style.borderColor = col;
       chip.style.color = active ? '#0b0f14' : col;
       if (active) chip.style.background = col;
-      chip.addEventListener('click', () => { state.currentPilot = name; if (els.pilotName) els.pilotName.value = name; ensurePilotColorInput(); renderPilots(); saveSettings(); });
       els.pilots.appendChild(chip);
     });
     if (typeof renderPilotsScreen === 'function') renderPilotsScreen();
@@ -2810,13 +2978,14 @@
   // Profiles that are open on the Piloten screen — remembered so a re-render
   // (rename, new pilot, language change) does not collapse them again.
   const pilotOpen = new Set();
+  let pilotEditingName = '';
 
   // Headline numbers of one profile, shown in the collapsed profile row.
   function pilotStatTotals(name) {
     const bucket = kwadPlayerStats[name] || {};
     const attempted = kwadTotalAttempts(bucket);
     const succeeded = kwadTotalSucceeded(bucket);
-    return { attempted, succeeded, rate: kwadRate(succeeded, attempted) };
+    return { attempted, succeeded, wins: kwadPlayerWins[name] || 0, rate: kwadRate(succeeded, attempted) };
   }
 
   // CSV rows (header first) for one or more pilots — used by the "Piloten
@@ -2843,41 +3012,13 @@
     catch { return false; }
   }
 
-  // Reflect a new active pilot without rebuilding the list: a full re-render
-  // would race against the open/closed state of the <details> profiles.
-  function syncPilotCards() {
-    const list = els.pilotsScreenList;
-    if (!list || !list.querySelectorAll) return;
-    Array.prototype.forEach.call(list.querySelectorAll('.pilot-profile'), card => {
-      const name = card.dataset ? card.dataset.name : '';
-      if (!name) return;
-      const active = state.currentPilot === name;
-      const col = pilotColor(name);
-      card.classList.toggle('is-active', active);
-      const chip = card.querySelector('.pilot-profile-chip');
-      if (chip) {
-        chip.classList.toggle('active', active);
-        chip.style.borderColor = col;
-        chip.style.color = active ? '#0b0f14' : col;
-        chip.style.background = active ? col : '';
-      }
-      const badge = card.querySelector('.pilot-badge');
-      if (badge) badge.hidden = !active;
-      const star = card.querySelector('.pilot-activate');
-      if (star) {
-        star.classList.toggle('on', active);
-        star.setAttribute('aria-pressed', active ? 'true' : 'false');
-      }
-    });
-  }
-
   // Rename a profile. Everything that stores the name follows — colour, active
   // pilot, open card and (via kwadRenameProfile) the statistics — so the K.W.A.D.
   // history stays with the person behind the profile.
   function renamePilot(oldName, newName) {
     newName = (newName || '').trim();
     if (!newName || newName === oldName) return false;
-    if (state.pilots.some(n => n.toLowerCase() === newName.toLowerCase())) return false;
+    if (state.pilots.some(n => n !== oldName && n.toLowerCase() === newName.toLowerCase())) return false;
     const i = state.pilots.indexOf(oldName);
     if (i === -1) return false;
     state.pilots[i] = newName;
@@ -2894,12 +3035,17 @@
   }
 
   // Dedicated "Piloten" screen: every profile expands to show its K.W.A.D.
-  // statistics plus the tools to manage it (active pilot, rename, reset, delete),
+  // statistics and profile-local management tools.
   // followed by the comparison table and a CSV export.
   function renderPilotsScreen() {
     if (!els.pilotsScreenList) return;
     const list = els.pilotsScreenList;
     list.innerHTML = '';
+    const isEditing = !!pilotEditingName;
+    if (els.pilotScreenName) els.pilotScreenName.disabled = isEditing;
+    if (els.btnPilotScreenAdd) els.btnPilotScreenAdd.disabled = isEditing;
+    if (els.pilotName) els.pilotName.disabled = isEditing;
+    if (els.btnAddPilot) els.btnAddPilot.disabled = isEditing;
     if (!state.pilots.length) {
       const empty = document.createElement('div');
       empty.className = 'set-empty';
@@ -2944,38 +3090,15 @@
       chip.appendChild(badge);
       sum.appendChild(chip);
 
-      // "Versucht 12 · Quote 58 %" — the profile in one glance.
+      // Show game wins alongside attempt volume and success rate.
       const meta = document.createElement('span');
       meta.className = 'pilot-profile-meta' + (totals.attempted ? '' : ' is-empty');
-      meta.textContent = totals.attempted
-        ? t('kwad_stats_attempted') + ' ' + totals.attempted + ' · ' + t('kwad_stats_rate') + ' ' + totals.rate
-        : t('kwad_stats_empty');
+      meta.textContent = [
+        totals.wins ? t('kwad_stats_won') + ' ' + totals.wins : '',
+        totals.attempted ? t('kwad_stats_attempted') + ' ' + totals.attempted + ' · ' + t('kwad_stats_rate') + ' ' + totals.rate : '',
+      ].filter(Boolean).join(' · ') || t('kwad_stats_empty');
       sum.appendChild(meta);
 
-      const actions = document.createElement('span');
-      actions.className = 'pilot-profile-actions';
-
-      const star = document.createElement('button');
-      star.type = 'button';
-      star.className = 'pilot-activate' + (active ? ' on' : '');
-      star.textContent = '★';
-      star.title = t('pilot_select');
-      star.setAttribute('aria-label', t('pilot_select') + ': ' + name);
-      star.setAttribute('aria-pressed', active ? 'true' : 'false');
-      star.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (state.currentPilot === name) return;
-        state.currentPilot = name;
-        if (els.pilotName) els.pilotName.value = name;
-        if (els.pilotScreenName) els.pilotScreenName.value = name;
-        ensurePilotColorInput();
-        saveSettings();
-        syncPilotCards();
-      });
-
-      actions.appendChild(star);
-      sum.appendChild(actions);
       card.appendChild(sum);
 
       const body = document.createElement('div');
@@ -2983,11 +3106,13 @@
 
       const stats = document.createElement('div');
       stats.className = 'pilot-profile-stats';
-      stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}, 'profile:' + name));
+      stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}, 'profile:' + name, totals.wins));
       body.appendChild(stats);
 
       const tools = document.createElement('div');
       tools.className = 'pilot-profile-tools';
+      const editing = pilotEditingName === name;
+      if (editing) card.classList.add('is-editing');
       const cap = document.createElement('div');
       cap.className = 'small-label';
       cap.textContent = t('pilot_manage');
@@ -3001,20 +3126,45 @@
       input.value = name;
       input.placeholder = t('pilot_name');
       input.setAttribute('aria-label', t('pilot_name') + ': ' + name);
+      input.disabled = !editing;
       const renameBtn = document.createElement('button');
       renameBtn.type = 'button';
-      renameBtn.className = 'pilot-rename-btn';
-      renameBtn.textContent = t('pilot_rename');
-      const applyRename = () => {
-        const next = (input.value || '').trim();
-        if (!next || next.toLowerCase() === name.toLowerCase()) { input.value = name; return; }
-        if (!renamePilot(name, next)) {
-          input.value = name;
-          toast(t('pilot_rename_taken').replace('{name}', next), 2400);
+      renameBtn.className = 'pilot-edit-btn';
+      renameBtn.textContent = t(editing ? 'pilot_apply' : 'pilot_edit');
+      renameBtn.disabled = !!pilotEditingName && !editing;
+      const applyChanges = () => {
+        if (!editing) {
+          pilotEditingName = name;
+          pilotOpen.add(name);
+          state.currentPilot = name;
+          saveSettings();
+          renderPilots();
+          const nextInput = els.pilotsScreenList.querySelector('.pilot-profile.is-editing .pilot-rename');
+          if (nextInput) nextInput.focus();
+          return;
         }
+        const next = (input.value || '').trim();
+        if (!next) {
+          toast(t('pilot_name_required'), 2400);
+          input.focus();
+          return;
+        }
+        const duplicate = state.pilots.some(pilot => pilot !== name && pilot.toLowerCase() === next.toLowerCase());
+        if (duplicate) {
+          toast(t('pilot_name_taken').replace('{name}', next), 2400);
+          input.focus();
+          return;
+        }
+        if (next !== name && !renamePilot(name, next)) return;
+        state.pilotColors[next] = colorInput.value;
+        state.currentPilot = next;
+        pilotEditingName = '';
+        pilotOpen.add(next);
+        saveSettings();
+        renderPilots();
       };
-      renameBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); applyRename(); });
-      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyRename(); } });
+      renameBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); applyChanges(); });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter' && editing) { e.preventDefault(); applyChanges(); } });
       row.appendChild(input);
       row.appendChild(renameBtn);
       tools.appendChild(row);
@@ -3030,15 +3180,7 @@
       colorInput.className = 'pilot-color';
       colorInput.value = col;
       colorInput.setAttribute('aria-label', t('pilot_color') + ': ' + name);
-      colorInput.addEventListener('input', e => {
-        state.pilotColors[name] = e.target.value;
-        syncPilotCards();
-      });
-      colorInput.addEventListener('change', e => {
-        state.pilotColors[name] = e.target.value;
-        saveSettings();
-        renderPilots();
-      });
+      colorInput.disabled = !editing;
       colorRow.appendChild(colorCap);
       colorRow.appendChild(colorInput);
       tools.appendChild(colorRow);
@@ -3050,7 +3192,7 @@
       reset.type = 'button';
       reset.className = 'pilot-stats-reset';
       reset.textContent = t('pilot_stats_reset');
-      reset.disabled = !totals.attempted;
+      reset.disabled = isEditing || (!totals.attempted && !totals.wins);
       reset.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
@@ -3065,6 +3207,7 @@
       exp.type = 'button';
       exp.className = 'pilot-export';
       exp.textContent = t('pilot_export');
+      exp.disabled = isEditing;
       exp.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
@@ -3078,6 +3221,7 @@
       del.type = 'button';
       del.className = 'pilot-delete btn-danger';
       del.textContent = t('pilot_delete');
+      del.disabled = isEditing;
       del.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
@@ -3092,13 +3236,17 @@
 
       list.appendChild(card);
     });
-    if (els.pilotScreenColor) els.pilotScreenColor.value = nextPilotColor();
+    if (els.pilotScreenColor) {
+      els.pilotScreenColor.value = nextPilotColor();
+      els.pilotScreenColor.disabled = isEditing;
+    }
   }
 
   function addPilot(name, color) {
     name = (name || '').trim();
-    if (!name) return false;
-    if (!state.pilots.includes(name)) state.pilots.push(name);
+    if (!name || pilotEditingName) return false;
+    if (state.pilots.some(pilot => pilot.toLowerCase() === name.toLowerCase())) return false;
+    state.pilots.push(name);
     if (color) state.pilotColors[name] = color;
     state.currentPilot = name;
     renderPilots();
@@ -3111,6 +3259,7 @@
     state.pilots.splice(idx, 1);
     if (state.pilotColors) delete state.pilotColors[name];
     if (state.currentPilot === name) state.currentPilot = state.pilots[0] || null;
+    if (pilotEditingName === name) pilotEditingName = '';
     // The profile takes its statistics with it — the caller confirms this.
     kwadDropProfileStats(name);
     pilotOpen.delete(name);
@@ -3137,13 +3286,27 @@
   }
   els.btnAddPilot.addEventListener('click', () => {
     const ok = addPilot(els.pilotName.value, els.pilotColor ? els.pilotColor.value : null);
-    if (!ok) return;
+    if (!ok) {
+      const name = (els.pilotName.value || '').trim();
+      if (name && state.pilots.some(pilot => pilot.toLowerCase() === name.toLowerCase())) {
+        toast(t('pilot_name_taken').replace('{name}', name), 2400);
+      }
+      return;
+    }
     els.pilotName.value = '';
     if (els.pilotColor) els.pilotColor.hidden = true;
   });
   if (els.btnPilotScreenAdd) {
     els.btnPilotScreenAdd.addEventListener('click', () => {
-      addPilot(els.pilotScreenName.value, els.pilotScreenColor ? els.pilotScreenColor.value : null);
+      const name = els.pilotScreenName.value;
+      const ok = addPilot(name, els.pilotScreenColor ? els.pilotScreenColor.value : null);
+      if (!ok) {
+        const normalized = (name || '').trim();
+        if (normalized && state.pilots.some(pilot => pilot.toLowerCase() === normalized.toLowerCase())) {
+          toast(t('pilot_name_taken').replace('{name}', normalized), 2400);
+        }
+        return;
+      }
       if (els.pilotScreenName) els.pilotScreenName.value = '';
     });
   }
@@ -3321,7 +3484,7 @@
   // so a problem in the game can never touch the timer settings or the lap sets.
   const KWAD_LETTERS = 'KWAD';
 
-  // --- Trick Categories with difficulty (1-5), descriptions, and default enabled state ---
+  // --- Trick Categories with difficulty (1-5), descriptions, and optional direction ---
   // `check` is the Prüfart: 'free' (Freiflug), 'gap' (Gap), 'obstacle' (Hindernis).
   // A trick marked 'obstacle' makes the game ask the group who picks the obstacle.
   // `name`/`desc` are the canonical German text and are also the identity of a
@@ -3335,14 +3498,20 @@
       difficulty: 1,
       enabled: true,
       tricks: [
-        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gap',
-          en: { name: 'Dive', desc: 'Steep dive through the gap, then pull up' } },
-        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gap',
-          en: { name: 'Gap Roll', desc: 'A roll (barrel roll) right in the gap' } },
-        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gap',
-          en: { name: 'Straight Pass', desc: 'Clean straight flight through the gap' } },
-        { name: 'Tight Gap', desc: 'Durch ein enges Gap fliegen, ohne Höhe zu verlieren', check: 'gap',
-          en: { name: 'Tight Gap', desc: 'Fly through a narrow gap without losing height' } },
+        { name: 'Straight Pass', desc: 'Gerade und kontrolliert durch eine Öffnung fliegen.', difficulty: 1, check: 'gap',
+          en: { name: 'Straight Pass', desc: 'Fly straight and under control through an opening.' } },
+        { name: 'Roll', desc: 'Den Copter einmal um seine Längsachse drehen und die Flugrichtung möglichst gerade halten.', difficulty: 1, check: 'free', direction: 'roll',
+          en: { name: 'Roll', desc: 'Rotate the quad once around its longitudinal axis while keeping the flight path as straight as possible.' } },
+        { name: 'Frontflip', desc: 'Eine Vorwärtsrotation um die Querachse fliegen.', difficulty: 2, check: 'free',
+          en: { name: 'Frontflip', desc: 'Perform one forward rotation around the pitch axis.' } },
+        { name: 'Backflip', desc: 'Eine Rückwärtsrotation um die Querachse fliegen.', difficulty: 2, check: 'free',
+          en: { name: 'Backflip', desc: 'Perform one backward rotation around the pitch axis.' } },
+        { name: 'Dive', desc: 'Mit der Nase oder dem Heck voraus steil nach unten fliegen und kontrolliert abfangen.', difficulty: 2, check: 'free', direction: 'flight',
+          en: { name: 'Dive', desc: 'Descend steeply nose-first or tail-first, then recover under control.' } },
+        { name: 'Gap Roll', desc: 'Während des Durchflugs eine vollständige Rollbewegung ausführen.', difficulty: 2, check: 'gap', direction: 'roll',
+          en: { name: 'Gap Roll', desc: 'Perform one complete roll while passing through the gap.' } },
+        { name: 'Tight Gap', desc: 'Durch eine enge Öffnung fliegen, ohne sie zu berühren.', difficulty: 2, check: 'gap',
+          en: { name: 'Tight Gap', desc: 'Fly through a narrow opening without touching it.' } },
       ]
     },
     intermediate: {
@@ -3352,18 +3521,22 @@
       difficulty: 2,
       enabled: true,
       tricks: [
-        { name: 'Power Loop', desc: 'Looping über das Gap (Rückwärts-Loop)', check: 'gap',
-          en: { name: 'Power Loop', desc: 'Loop over the gap (backwards loop)' } },
-        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll', check: 'free',
-          en: { name: 'Split-S', desc: 'Half loop down, then half roll' } },
-        { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis (Flagge, Tor, Baum)', check: 'obstacle',
-          en: { name: 'Orbit', desc: 'Circling an obstacle (flag, gate, tree)' } },
-        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse', check: 'free',
-          en: { name: 'Yaw Spin', desc: 'Fast 360° spin around the yaw axis' } },
-        { name: 'Wall Scrape', desc: 'Nah an einem Hindernis entlangschrappen (Wand, Tor, Boden)', check: 'obstacle',
-          en: { name: 'Wall Scrape', desc: 'Scraping along an obstacle (wall, gate, ground)' } },
-        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)', check: 'free',
-          en: { name: 'Corkscrew', desc: 'Combination of loop and roll' } },
+        { name: 'Yaw Spin', desc: 'Den Copter einmal vollständig um die Hochachse drehen.', difficulty: 1, check: 'free', direction: 'yaw',
+          en: { name: 'Yaw Spin', desc: 'Rotate the quad once fully around its vertical axis.' } },
+        { name: 'Split-S', desc: 'Halbe Rolle in den Rückenflug, dann einen halben Loop nach unten fliegen; der Ausflug geht in Gegenrichtung.', difficulty: 2, check: 'free', direction: 'roll',
+          en: { name: 'Split-S', desc: 'Half-roll into inverted flight, then perform a half loop downward and exit in the opposite direction.' } },
+        { name: 'Orbit', desc: 'Ein Hindernis in einer vollständigen Kreisbahn umfliegen.', difficulty: 2, check: 'obstacle', direction: 'orbit',
+          en: { name: 'Orbit', desc: 'Fly one complete circular path around an obstacle.' } },
+        { name: 'Wall Ride', desc: 'Eng an einer Wand entlangfliegen, ohne sie zu berühren.', difficulty: 3, check: 'obstacle', direction: 'wall',
+          en: { name: 'Wall Ride', desc: 'Fly close along a wall without touching it.' } },
+        { name: 'Wall Tap', desc: 'Eine Wand kurz berühren und anschließend kontrolliert wegfliegen.', difficulty: 3, check: 'obstacle',
+          en: { name: 'Wall Tap', desc: 'Briefly touch a wall, then fly away under control.' } },
+        { name: 'Power Loop', desc: 'Einen Loop um ein Hindernis fliegen und die Flugbahn kontrolliert fortsetzen.', difficulty: 3, check: 'obstacle',
+          en: { name: 'Power Loop', desc: 'Fly a loop around an obstacle and continue on a controlled flight path.' } },
+        { name: 'Barrel Roll', desc: 'Eine vollständige Rollbewegung mit einer gebogenen, spiralförmigen Flugbahn verbinden.', difficulty: 3, check: 'free', direction: 'roll',
+          en: { name: 'Barrel Roll', desc: 'Combine a full roll with a curved, spiral flight path.' } },
+        { name: 'Corkscrew', desc: 'Im Vorwärtsflug schnell mindestens drei vollständige Rollen hintereinander fliegen.', difficulty: 3, check: 'free', direction: 'roll',
+          en: { name: 'Corkscrew', desc: 'While flying forward, quickly perform at least three complete rolls in succession.' } },
       ]
     },
     advanced: {
@@ -3373,18 +3546,20 @@
       difficulty: 3,
       enabled: true,
       tricks: [
-        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)', check: 'free',
-          en: { name: 'Matty Flip', desc: 'Backwards flip with 180° yaw (Matty Stuntz style)' } },
-        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)', check: 'free',
-          en: { name: 'Juicy Flick', desc: 'Fast pitch + roll + yaw combo (freestyle classic)' } },
-        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig', check: 'free',
-          en: { name: 'Trippy Spin', desc: 'Multiple rotations around several axes at once' } },
-        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Gap', check: 'gap',
-          en: { name: 'Inverted Pass', desc: 'Through the gap on your back (inverted)' } },
-        { name: 'Backwards Pass', desc: 'Rückwärts durch das Gap fliegen', check: 'gap',
-          en: { name: 'Backwards Pass', desc: 'Flying backwards through the gap' } },
-        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Gap', check: 'gap',
-          en: { name: 'Knife Edge', desc: 'Through the gap on your side (90° roll)' } },
+        { name: 'Inverted Pass', desc: 'Auf dem Rücken vorwärts oder rückwärts durch eine Öffnung fliegen.', difficulty: 3, check: 'gap', direction: 'flight',
+          en: { name: 'Inverted Pass', desc: 'Fly through an opening while inverted, forward or backward.' } },
+        { name: 'Backwards Pass', desc: 'Rückwärts durch eine Öffnung fliegen.', difficulty: 3, check: 'gap',
+          en: { name: 'Backwards Pass', desc: 'Fly backward through an opening.' } },
+        { name: 'Knife Edge Pass', desc: 'Seitlich gerollt durch eine Öffnung fliegen; die gewählte Seite bleibt nach unten gerichtet.', difficulty: 3, check: 'gap', direction: 'roll',
+          en: { name: 'Knife Edge Pass', desc: 'Fly through an opening with the quad rolled sideways, keeping the chosen side down.' } },
+        { name: 'Double Frontflip', desc: 'Zwei Vorwärtsrotationen direkt hintereinander fliegen.', difficulty: 3, check: 'free',
+          en: { name: 'Double Frontflip', desc: 'Perform two forward rotations in succession.' } },
+        { name: 'Juicy Flick', desc: 'Aus dem Vorwärtsflug einen schnellen Flick einleiten, die Flugrichtung umkehren und kontrolliert weiterfliegen.', difficulty: 3, check: 'free', direction: 'roll',
+          en: { name: 'Juicy Flick', desc: 'From forward flight, perform a quick flick, reverse direction, and continue under control.' } },
+        { name: 'Trippy Spin', desc: 'Ein Hindernis eng umkreisen und den Copter dabei kontinuierlich um die Hochachse drehen.', difficulty: 4, check: 'obstacle', direction: 'orbit',
+          en: { name: 'Trippy Spin', desc: 'Orbit closely around an obstacle while continuously yawing the quad.' } },
+        { name: 'Matty Flip', desc: 'Über ein Hindernis steigen, nach vorn abkippen und unter dem Hindernis zurückfliegen.', difficulty: 4, check: 'obstacle', direction: 'orbit',
+          en: { name: 'Matty Flip', desc: 'Rise over an obstacle, pitch forward, and return beneath it.' } },
       ]
     },
     pro: {
@@ -3394,16 +3569,12 @@
       difficulty: 4,
       enabled: false,
       tricks: [
-        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw', check: 'free',
-          en: { name: 'Rubik\'s Cube', desc: '3 axes one after another: roll → pitch → yaw' } },
-        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander', check: 'free',
-          en: { name: 'Double Backflip', desc: 'Two backwards loops right after each other' } },
-        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position', check: 'free',
-          en: { name: 'Fakie Flip', desc: 'Backwards flip from an inverted position' } },
-        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll', check: 'free',
-          en: { name: 'Tornado', desc: 'Fast yaw spin during a loop/roll' } },
-        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation', check: 'free',
-          en: { name: 'Alien', desc: 'Inverted yaw spin with pitch variation' } },
+        { name: 'Double Backflip', desc: 'Zwei Rückwärtsrotationen direkt hintereinander fliegen.', difficulty: 3, check: 'free',
+          en: { name: 'Double Backflip', desc: 'Perform two backward rotations in succession.' } },
+        { name: 'Rubik\'s Cube', desc: 'Eine halbe Vorwärtsrotation, eine vollständige Rollbewegung und eine weitere halbe Vorwärtsrotation verbinden.', difficulty: 4, check: 'free', direction: 'roll',
+          en: { name: 'Rubik\'s Cube', desc: 'Combine a half forward flip, one complete roll, and another half forward flip.' } },
+        { name: 'Inverted Yaw-spin', desc: 'In den Rückenflug drehen, dort eine vollständige Yaw-Drehung fliegen und wieder aufrichten.', difficulty: 4, check: 'free', direction: 'yaw',
+          en: { name: 'Inverted Yaw-spin', desc: 'Turn inverted, perform one complete yaw spin, then return upright.' } },
       ]
     },
     custom: {
@@ -3469,6 +3640,44 @@
     return 3;
   }
 
+  const KWAD_DIRECTION_OPTIONS = {
+    roll: ['left', 'right'],
+    yaw: ['left', 'right'],
+    orbit: ['clockwise', 'counterclockwise'],
+    flight: ['forward', 'backward'],
+    wall: ['left_to_right', 'right_to_left'],
+  };
+
+  function kwadDirectionType(trick) {
+    const type = trick && trick.direction;
+    return Object.prototype.hasOwnProperty.call(KWAD_DIRECTION_OPTIONS, type) ? type : '';
+  }
+  function kwadDirectionLabel(trick, value) {
+    const type = kwadDirectionType(trick);
+    return type && KWAD_DIRECTION_OPTIONS[type].includes(value) ? t('kwad_direction_' + value) : '';
+  }
+  function kwadDirectionText(trick, value) {
+    const type = kwadDirectionType(trick);
+    const label = kwadDirectionLabel(trick, value);
+    return type && label ? t('kwad_direction_' + type) + ': ' + label : '';
+  }
+  function kwadChooseDirection(trick) {
+    const type = kwadDirectionType(trick);
+    if (!type) return '';
+    const choices = KWAD_DIRECTION_OPTIONS[type];
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
+  function kwadAvailableDirections(trick) {
+    const type = kwadDirectionType(trick);
+    return type ? type + ':' + KWAD_DIRECTION_OPTIONS[type].join('|') : '';
+  }
+  function kwadDirectionChoicesText(trick) {
+    const type = kwadDirectionType(trick);
+    if (!type) return '';
+    const choices = KWAD_DIRECTION_OPTIONS[type].map(value => t('kwad_direction_' + value)).join(' / ');
+    return t('kwad_direction_' + type) + ': ' + choices;
+  }
+
   // Which group a trick is drawn from. Built-in tricks stay in their category;
   // a custom trick may be filed into one of the built-in groups instead.
   function kwadTrickGroup(catId, trick) {
@@ -3528,6 +3737,7 @@
   let kwadTurnIdx = 0;
   let kwadTrick = '';
   let kwadTrickObj = null; // current trick object with category, desc
+  let kwadTrickDirection = '';
   let kwadTried = [];     // names that already had a go at the current trick
   let kwadLastTrick = -1;
   let kwadLastPenalty = null; // { playerIdx, letter } for undo
@@ -3537,8 +3747,11 @@
   let kwadPicker = ''; // player name who picks the gap/obstacle (persisted as kwad_obstacle_picker)
   let kwadAnnounce = false; // read the drawn trick out loud (persisted)
   let kwadEditingCustomIdx = -1; // index of the own trick currently edited, -1 = "add"
+  let kwadEditingBuiltin = null;
+  let kwadBuiltinOverrides = {};
   let kwadStats = {}; // global aggregate: { trickName: { attempted, succeeded } }
   let kwadPlayerStats = {}; // per profile: { playerName: { trickName: { attempted, succeeded } } }
+  let kwadPlayerWins = {}; // completed games won by each profile
   let kwadPool = {}; // per-trick draw switch: { 'category/trickName': false }
   let kwadStatClosed = new Set(); // statistics panels the user folded (per key)
   let kwadCategoryFilter = null; // deprecated, use category.enabled
@@ -3564,9 +3777,20 @@
     for (let i = 0; i < players.length; i++) if (kwadIsOut(players[i].letters)) return i;
     return -1;
   }
+  function kwadAwardSoleWinner() {
+    const active = kwadPlayers.filter(p => !kwadIsOut(p.letters));
+    if (active.length !== 1) return false;
+    const name = active[0].name;
+    kwadPlayerWins[name] = (kwadPlayerWins[name] || 0) + 1;
+    kwadSaveStats();
+    renderPilotsScreen();
+    renderPilotCompare();
+    return true;
+  }
 
   // -- persistence (own key; guarded against corrupt JSON / quota errors) --
   function kwadLoad() {
+    kwadLoadBuiltinOverrides();
     // Load players
     let list = [];
     try {
@@ -3626,6 +3850,14 @@
       if (playerStatsRaw && typeof playerStatsRaw === 'object') kwadPlayerStats = playerStatsRaw;
     } catch { kwadPlayerStats = {}; }
 
+    try {
+      const playerWinsRaw = JSON.parse(localStorage.getItem('kwad_player_wins') || '{}');
+      if (playerWinsRaw && typeof playerWinsRaw === 'object' && !Array.isArray(playerWinsRaw)) {
+        kwadPlayerWins = Object.fromEntries(Object.entries(playerWinsRaw)
+          .filter(([, wins]) => Number.isSafeInteger(wins) && wins >= 0));
+      }
+    } catch { kwadPlayerWins = {}; }
+
     // Load the per-trick pool switches
     try {
       const poolRaw = JSON.parse(localStorage.getItem('kwad_trick_pool') || '{}');
@@ -3668,12 +3900,64 @@
       localStorage.setItem('kwad_custom_tricks', JSON.stringify(KWAD_CATEGORIES.custom.tricks));
     } catch { storageError(); }
   }
+  function kwadApplyBuiltinOverrides(overrides) {
+    if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) return;
+    const tricksById = new Map();
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      if (cat.id !== 'custom') cat.tricks.forEach(trick => tricksById.set(KWAD_BUILTIN_IDS.get(trick), trick));
+    });
+    const applied = {};
+    Object.keys(overrides).forEach(id => {
+      const trick = tricksById.get(id);
+      const override = overrides[id];
+      if (!trick || !override || typeof override !== 'object') return;
+      if (typeof override.name === 'string' && override.name.trim()) trick.name = override.name.trim();
+      if (typeof override.desc === 'string') trick.desc = override.desc;
+      if (override.en && typeof override.en === 'object') {
+        if (typeof override.en.name === 'string' && override.en.name.trim()) {
+          trick.en = { ...(trick.en || {}), name: override.en.name.trim() };
+        }
+        if (typeof override.en.desc === 'string') {
+          trick.en = { ...(trick.en || {}), desc: override.en.desc };
+        }
+      }
+      if (override.check === 'free' || override.check === 'gap' || override.check === 'obstacle') trick.check = override.check;
+      if (Number.isInteger(override.difficulty) && override.difficulty >= 1 && override.difficulty <= 5) {
+        trick.difficulty = override.difficulty;
+      }
+      if (override.direction === '' || Object.prototype.hasOwnProperty.call(KWAD_DIRECTION_OPTIONS, override.direction)) {
+        trick.direction = override.direction;
+      }
+      applied[id] = {
+        name: trick.name,
+        desc: trick.desc,
+        en: trick.en ? { ...trick.en } : undefined,
+        check: trick.check,
+        difficulty: trick.difficulty,
+        direction: trick.direction || '',
+      };
+    });
+    kwadBuiltinOverrides = applied;
+  }
+  function kwadLoadBuiltinOverrides() {
+    try {
+      const raw = JSON.parse(localStorage.getItem('kwad_builtin_overrides') || '{}');
+      kwadApplyBuiltinOverrides(raw);
+    } catch {
+      kwadBuiltinOverrides = {};
+    }
+  }
+  function kwadSaveBuiltinOverrides() {
+    try { localStorage.setItem('kwad_builtin_overrides', JSON.stringify(kwadBuiltinOverrides)); }
+    catch { storageError(); }
+  }
   function kwadSaveMode() {
     try { localStorage.setItem('kwad_mode', kwadMode); } catch { /* ignore */ }
   }
   function kwadSaveStats() {
     try { localStorage.setItem('kwad_stats', JSON.stringify(kwadStats)); } catch { /* ignore */ }
     try { localStorage.setItem('kwad_player_stats', JSON.stringify(kwadPlayerStats)); } catch { /* ignore */ }
+    try { localStorage.setItem('kwad_player_wins', JSON.stringify(kwadPlayerWins)); } catch { /* ignore */ }
   }
   function kwadSavePool() {
     try { localStorage.setItem('kwad_trick_pool', JSON.stringify(kwadPool)); } catch { /* ignore */ }
@@ -3723,6 +4007,11 @@
   function kwadAnnounceTrick() {
     if (!kwadTrickObj) return;
     let text = kwadTrickName(kwadTrickObj);
+    const directionType = kwadDirectionType(kwadTrickObj);
+    const directionLabel = kwadDirectionLabel(kwadTrickObj, kwadTrickDirection);
+    if (directionType && directionLabel) {
+      text += '. ' + t('kwad_direction_' + directionType) + ' ' + directionLabel;
+    }
     const kind = kwadPickerKind(kwadTrickObj);
     if (kind && kwadPicker) {
       text += '. ' + kwadPicker + ' ' + t(kind === 'obstacle' ? 'kwad_picker_obstacle' : 'kwad_picker_gap');
@@ -3750,12 +4039,12 @@
       els.kwadPilotSelect.value = current || '';
     }
     const loser = kwadLoserIndex(kwadPlayers);
-    if (loser === -1) {
+    if (kwadActiveCount() >= 2) {
       const active = kwadActiveFrom(kwadTurnIdx);
       if (active !== -1) kwadTurnIdx = active;
     }
-    const active = loser === -1 ? kwadActiveFrom(kwadTurnIdx) : -1;
-    const canPlay = loser === -1 && kwadActiveCount() >= 2;
+    const active = kwadActiveCount() >= 2 ? kwadActiveFrom(kwadTurnIdx) : -1;
+    const canPlay = kwadActiveCount() >= 2;
 
     if (els.kwadTrick) els.kwadTrick.textContent = kwadTrickObj ? kwadTrickName(kwadTrickObj) : (kwadTrick || '—');
 
@@ -3785,6 +4074,13 @@
           descEl.className = 'kwad-meta-desc';
           descEl.textContent = kwadTrickDesc(kwadTrickObj);
           els.kwadTrickMeta.appendChild(descEl);
+        }
+        const directionText = kwadDirectionText(kwadTrickObj, kwadTrickDirection);
+        if (directionText) {
+          const directionEl = document.createElement('span');
+          directionEl.className = 'kwad-meta-direction';
+          directionEl.textContent = directionText;
+          els.kwadTrickMeta.appendChild(directionEl);
         }
       } else {
         els.kwadTrickMeta.hidden = true;
@@ -3848,9 +4144,10 @@
     }
 
     if (els.kwadResult) {
-      if (loser !== -1) {
+      const winner = kwadPlayers.find(p => !kwadIsOut(p.letters));
+      if (loser !== -1 && kwadActiveCount() === 1 && winner) {
         els.kwadResult.hidden = false;
-        els.kwadResult.textContent = kwadPlayers[loser].name + ' ' + t('kwad_loses');
+        els.kwadResult.textContent = winner.name + ' ' + t('kwad_wins');
       } else {
         els.kwadResult.hidden = true;
       }
@@ -3863,10 +4160,11 @@
   }
 
   function kwadNewTrick() {
-    if (kwadLoserIndex(kwadPlayers) !== -1) return;
+    if (kwadActiveCount() < 2) return;
     if (kwadTrickPool.length === 0) {
       kwadTrick = '—';
       kwadTrickObj = null;
+      kwadTrickDirection = '';
       renderKwad();
       return;
     }
@@ -3917,6 +4215,7 @@
     kwadLastTrick = pickIdx;
     kwadTrickObj = kwadTrickPool[pickIdx];
     kwadTrick = kwadTrickObj.name;
+    kwadTrickDirection = kwadChooseDirection(kwadTrickObj);
     kwadTried = [];
     kwadLastPenalty = null;
     // A gap or obstacle trick names its picker right away (most letters, ties by lot).
@@ -3933,7 +4232,7 @@
 
   // One attempt turned in by the current player. `ok === false` adds a letter.
   function kwadRound(ok) {
-    if (kwadLoserIndex(kwadPlayers) !== -1) return;
+    if (kwadActiveCount() < 2) return;
     const active = kwadActiveFrom(kwadTurnIdx);
     if (active === -1) return;
     const p = kwadPlayers[active];
@@ -3947,7 +4246,9 @@
       }
       kwadRecordStat(p.name, currentTrickName, false);
       kwadSave();
-      if (kwadIsOut(p.letters)) {
+      if (kwadActiveCount() === 1) {
+        const winner = kwadPlayers.find(player => !kwadIsOut(player.letters));
+        if (winner && kwadAwardSoleWinner()) kwadLastPenalty.winner = winner.name;
         if (typeof soundKwadGameOver === 'function') soundKwadGameOver();
         renderKwad();
         renderKwadStats();
@@ -3985,12 +4286,13 @@
   // never rewind more than the very last letter.
   function kwadUndoPenalty() {
     if (!kwadLastPenalty) return;
-    const { playerIdx, letter, trick } = kwadLastPenalty;
+    const { playerIdx, letter, trick, winner } = kwadLastPenalty;
     kwadLastPenalty = null;
     const p = kwadPlayers[playerIdx];
     if (!p) { renderKwad(); return; }
     const letters = kwadNormalizeLetters(p.letters);
     p.letters = (letter && letters.slice(-1) === letter) ? letters.slice(0, -1) : letters;
+    if (winner && kwadPlayerWins[winner] > 0) kwadPlayerWins[winner]--;
     // The player gets their go back at the same trick.
     const at = kwadTried.indexOf(p.name);
     if (at !== -1) kwadTried.splice(at, 1);
@@ -3998,7 +4300,11 @@
       kwadStats[trick].attempted--;
       const mine = kwadPlayerStats[p.name];
       if (mine && mine[trick] && mine[trick].attempted > 0) mine[trick].attempted--;
-      kwadSaveStats();
+    }
+    kwadSaveStats();
+    if (winner) {
+      renderPilotsScreen();
+      renderPilotCompare();
     }
     kwadTurnIdx = playerIdx;
     kwadSave();
@@ -4011,9 +4317,9 @@
   // loses exactly those attempts, so the panels keep adding up to the same number.
   function kwadDropProfileStats(playerName) {
     const bucket = playerName && kwadPlayerStats[playerName];
-    if (!bucket) return;
     delete kwadPlayerStats[playerName];
-    Object.keys(bucket).forEach(trick => {
+    delete kwadPlayerWins[playerName];
+    Object.keys(bucket || {}).forEach(trick => {
       const total = kwadStats[trick];
       const s = bucket[trick];
       if (!total || !s) return;
@@ -4022,12 +4328,19 @@
       if (!total.attempted && !total.succeeded) delete kwadStats[trick];
     });
     kwadSaveStats();
+    renderPilotsScreen();
+    renderPilotCompare();
   }
 
   // Rename a player's bucket when their profile is renamed. The trick keys stay
   // intact, so the stats still match the drawn trick names.
   function kwadRenameProfile(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return;
+    const hasWins = Object.prototype.hasOwnProperty.call(kwadPlayerWins, oldName);
+    if (hasWins) {
+      kwadPlayerWins[newName] = (kwadPlayerWins[newName] || 0) + kwadPlayerWins[oldName];
+      delete kwadPlayerWins[oldName];
+    }
     if (kwadPlayerStats[oldName]) {
       if (kwadPlayerStats[newName]) {
         // Merge: add attempts/succeeded into the new bucket.
@@ -4047,6 +4360,7 @@
       }
       kwadSaveStats();
     }
+    if (hasWins) kwadSaveStats();
     kwadPlayers.forEach(p => {
       if (p.name === oldName) p.name = newName;
     });
@@ -4074,6 +4388,8 @@
       if (succeeded) mine[trickName].succeeded++;
     }
     kwadSaveStats();
+    renderPilotsScreen();
+    renderPilotCompare();
   }
 
   function kwadAddPlayer(name) {
@@ -4184,8 +4500,8 @@
         const on = kwadTrickEnabled(owner, trick);
         const group = kwadTrickGroup(owner, trick);
         const groupOn = !!(KWAD_CATEGORIES[group] && KWAD_CATEGORIES[group].enabled);
-        const row = document.createElement('label');
-        row.className = 'trick-list-row check-row' + ((on && groupOn) ? '' : ' is-off');
+        const row = document.createElement('div');
+        row.className = 'trick-list-row' + ((on && groupOn) ? '' : ' is-off');
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
@@ -4205,6 +4521,13 @@
         desc.textContent = kwadTrickDesc(trick) || '—';
         info.appendChild(name);
         info.appendChild(desc);
+        const directions = kwadDirectionChoicesText(trick);
+        if (directions) {
+          const directionEl = document.createElement('span');
+          directionEl.className = 'trick-list-direction';
+          directionEl.textContent = t('kwad_direction') + ': ' + directions;
+          info.appendChild(directionEl);
+        }
 
         const diff = document.createElement('span');
         diff.className = 'trick-list-diff';
@@ -4222,6 +4545,17 @@
         row.appendChild(info);
         row.appendChild(diff);
         row.appendChild(chk);
+        if (owner !== 'custom') {
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'trick-list-edit btn';
+          edit.textContent = '✎';
+          edit.title = t('kwad_builtin_edit');
+          edit.setAttribute('aria-label', t('kwad_builtin_edit') + ': ' + kwadTrickName(trick));
+          edit.dataset.id = KWAD_BUILTIN_IDS.get(trick);
+          edit.addEventListener('click', e => kwadEditBuiltinTrick(e.currentTarget.dataset.id));
+          row.appendChild(edit);
+        }
         els.kwadTrickList.appendChild(row);
       });
     });
@@ -4247,7 +4581,7 @@
   // rows. Headers stay English/machine-readable, the rows follow the current
   // language, so a group can print or share the list it actually flies.
   function kwadTrickListRows() {
-    const rows = [['category', 'trick', 'description', 'difficulty', 'check', 'in_pool']];
+    const rows = [['category', 'trick', 'description', 'difficulty', 'check', 'direction', 'in_pool']];
     Object.values(KWAD_CATEGORIES).forEach(cat => {
       kwadGroupTricks(cat.id).forEach(({ trick, owner }) => {
         rows.push([
@@ -4256,6 +4590,7 @@
           kwadTrickDesc(trick),
           kwadDifficulty(trick, owner),
           t('kwad_check_' + kwadCheck(trick)),
+          kwadAvailableDirections(trick),
           kwadTrickEnabled(owner, trick) ? 'yes' : 'no',
         ]);
       });
@@ -4280,6 +4615,7 @@
       item.innerHTML = `
         <span class="custom-name">${esc(kwadTrickName(trick))}</span>
         <span class="custom-desc">${esc(kwadTrickDesc(trick) || '—')}</span>
+        <span class="custom-direction">${esc(kwadDirectionChoicesText(trick))}</span>
         <span class="custom-diff" title="${t('kwad_difficulty')}">${stars}</span>
         <span class="custom-check" data-i18n="kwad_check_${check}">${t('kwad_check_' + check)}</span>
         <span class="custom-cat">${t('kwad_category_' + group)}</span>
@@ -4307,11 +4643,14 @@
   function kwadEditCustomTrick(idx) {
     const trick = KWAD_CATEGORIES.custom.tricks[idx];
     if (!trick) return;
+    kwadEditingBuiltin = null;
     kwadEditingCustomIdx = idx;
+    if (els.kwadCustomCatLabel) els.kwadCustomCatLabel.hidden = false;
     if (els.kwadCustomName) els.kwadCustomName.value = kwadTrickName(trick);
     if (els.kwadCustomDesc) els.kwadCustomDesc.value = kwadTrickDesc(trick) || '';
     if (els.kwadCustomCheck) els.kwadCustomCheck.value = kwadCheck(trick);
     if (els.kwadCustomDifficulty) els.kwadCustomDifficulty.value = String(kwadDifficulty(trick, 'custom'));
+    if (els.kwadCustomDirection) els.kwadCustomDirection.value = kwadDirectionType(trick);
     if (els.kwadCustomCat) els.kwadCustomCat.value = kwadTrickGroup('custom', trick);
     kwadUpdateCustomFormMode();
     renderKwadCustomTricks();
@@ -4320,18 +4659,21 @@
   // Back to "add" mode and clear the fields (after saving and on cancel).
   function kwadResetCustomForm() {
     kwadEditingCustomIdx = -1;
+    kwadEditingBuiltin = null;
     if (els.kwadCustomName) els.kwadCustomName.value = '';
     if (els.kwadCustomDesc) els.kwadCustomDesc.value = '';
     if (els.kwadCustomCheck) els.kwadCustomCheck.value = 'free';
     if (els.kwadCustomDifficulty) els.kwadCustomDifficulty.value = '3';
+    if (els.kwadCustomDirection) els.kwadCustomDirection.value = '';
     if (els.kwadCustomCat) els.kwadCustomCat.value = 'custom';
+    if (els.kwadCustomCatLabel) els.kwadCustomCatLabel.hidden = false;
     kwadUpdateCustomFormMode();
   }
 
   // The save button doubles as "add" and "apply changes"; the cancel button
   // only appears while a row is being edited.
   function kwadUpdateCustomFormMode() {
-    const editing = kwadEditingCustomIdx >= 0;
+    const editing = kwadEditingCustomIdx >= 0 || !!kwadEditingBuiltin;
     if (els.btnKwadCustomSave) {
       const key = editing ? 'kwad_custom_update' : 'kwad_custom_save';
       els.btnKwadCustomSave.setAttribute('data-i18n', key);
@@ -4372,19 +4714,57 @@
     const desc = (els.kwadCustomDesc.value || '').trim();
     const check = kwadCheck({ check: els.kwadCustomCheck ? els.kwadCustomCheck.value : '' });
     const difficulty = kwadDifficulty({ difficulty: els.kwadCustomDifficulty ? els.kwadCustomDifficulty.value : 3 }, 'custom');
+    const directionValue = els.kwadCustomDirection ? els.kwadCustomDirection.value : '';
+    const direction = Object.prototype.hasOwnProperty.call(KWAD_DIRECTION_OPTIONS, directionValue) ? directionValue : '';
     const cat = (els.kwadCustomCat && els.kwadCustomCat.value && els.kwadCustomCat.value !== 'custom' && KWAD_CATEGORIES[els.kwadCustomCat.value])
       ? els.kwadCustomCat.value
       : 'custom';
     if (!name) return;
+    if (kwadEditingBuiltin) {
+      const { id, trick } = kwadEditingBuiltin;
+      const catId = id.slice(0, id.indexOf('/'));
+      const oldName = trick.name;
+      if (state.lang !== 'en' && KWAD_CATEGORIES[catId].tricks.some(other =>
+        other !== trick && other.name.toLowerCase() === name.toLowerCase())) {
+        toast(t('kwad_trick_name_taken'), 2400);
+        return;
+      }
+      if (state.lang === 'en') {
+        trick.en = { ...(trick.en || {}), name, desc };
+      } else {
+        trick.name = name;
+        trick.desc = desc;
+        if (oldName !== name) kwadRenameBuiltinTrick(catId, oldName, name);
+      }
+      trick.check = check;
+      trick.difficulty = difficulty;
+      if (direction) trick.direction = direction;
+      else delete trick.direction;
+      kwadBuiltinOverrides[id] = {
+        name: trick.name,
+        desc: trick.desc,
+        en: trick.en ? { ...trick.en } : undefined,
+        check: trick.check,
+        difficulty: trick.difficulty,
+        direction: trick.direction || '',
+      };
+      kwadSaveBuiltinOverrides();
+      kwadTrickPool = kwadBuildTrickPool();
+      kwadResetCustomForm();
+      renderKwadTrickList();
+      renderKwadCategories();
+      renderKwad();
+      return;
+    }
     const editing = kwadEditingCustomIdx >= 0 && kwadEditingCustomIdx < KWAD_CATEGORIES.custom.tricks.length;
     // A name may not clash with another own trick (the edited row itself is fine).
     if (KWAD_CATEGORIES.custom.tricks.some((t, i) => i !== kwadEditingCustomIdx && t.name.toLowerCase() === name.toLowerCase())) return;
     if (editing) {
       const prev = KWAD_CATEGORIES.custom.tricks[kwadEditingCustomIdx];
       if (prev.name !== name) kwadRenameOwnTrick(prev.name, name);
-      KWAD_CATEGORIES.custom.tricks[kwadEditingCustomIdx] = { name, desc, check, difficulty, cat, custom: true };
+      KWAD_CATEGORIES.custom.tricks[kwadEditingCustomIdx] = { name, desc, check, difficulty, direction, cat, custom: true };
     } else {
-      KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, difficulty, cat, custom: true });
+      KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, difficulty, direction, cat, custom: true });
     }
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
@@ -4430,7 +4810,7 @@
   // folded panel still says something), then the summary numbers and the
   // per-trick rows. `panelKey` identifies the panel, so a manual fold survives
   // the re-render that every attempt triggers.
-  function kwadStatPanel(title, color, stats, panelKey) {
+  function kwadStatPanel(title, color, stats, panelKey, gamesWon) {
     const attempted = kwadTotalAttempts(stats);
     const succeeded = kwadTotalSucceeded(stats);
     const rate = kwadRate(succeeded, attempted);
@@ -4465,7 +4845,10 @@
     // Shown only while the panel is folded (see styles.css).
     const folded = document.createElement('span');
     folded.className = 'kwad-stat-folded';
-    folded.textContent = attempted ? attempted + ' · ' + rate : '–';
+    folded.textContent = [
+      gamesWon ? t('kwad_stats_won') + ' ' + gamesWon : '',
+      attempted ? attempted + ' · ' + rate : '',
+    ].filter(Boolean).join(' · ') || '–';
     head.appendChild(folded);
     panel.appendChild(head);
 
@@ -4474,9 +4857,10 @@
     summary.appendChild(kwadStatCell(t('kwad_stats_attempted'), String(attempted)));
     summary.appendChild(kwadStatCell(t('kwad_stats_succeeded'), String(succeeded)));
     summary.appendChild(kwadStatCell(t('kwad_stats_rate'), rate));
+    summary.appendChild(kwadStatCell(t('kwad_stats_won'), String(gamesWon || 0)));
     panel.appendChild(summary);
 
-    if (!entries.length) {
+    if (!entries.length && !gamesWon) {
       const hint = document.createElement('p');
       hint.className = 'hint';
       hint.textContent = t('kwad_stats_empty');
@@ -4528,11 +4912,11 @@
     grid.textContent = '';
 
     const inGame = kwadPlayers.map(p => p.name);
-    const others = Object.keys(kwadPlayerStats)
+    const others = [...new Set([...Object.keys(kwadPlayerStats), ...Object.keys(kwadPlayerWins)])]
       .filter(nm => inGame.indexOf(nm) === -1)
       .sort((a, b) => kwadTotalAttempts(kwadPlayerStats[b]) - kwadTotalAttempts(kwadPlayerStats[a]));
 
-    if (!inGame.length && !others.length && !kwadTotalAttempts(kwadStats)) {
+    if (!inGame.length && !others.length && !Object.keys(kwadPlayerWins).length && !kwadTotalAttempts(kwadStats)) {
       const empty = document.createElement('p');
       empty.className = 'hint';
       empty.textContent = t('kwad_stats_empty');
@@ -4540,12 +4924,13 @@
       return;
     }
 
-    grid.appendChild(kwadStatPanel(t('kwad_stats_total'), '', kwadStats, 'total'));
+    const totalWins = Object.values(kwadPlayerWins).reduce((sum, wins) => sum + wins, 0);
+    grid.appendChild(kwadStatPanel(t('kwad_stats_total'), '', kwadStats, 'total', totalWins));
     inGame.concat(others).forEach(nm => {
       const idx = inGame.indexOf(nm);
       const color = (idx !== -1 && kwadPlayers[idx].color) ||
         (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[nm]) || '';
-      grid.appendChild(kwadStatPanel(nm, color, kwadPlayerStats[nm] || {}, nm));
+      grid.appendChild(kwadStatPanel(nm, color, kwadPlayerStats[nm] || {}, nm, kwadPlayerWins[nm] || 0));
     });
   }
 
@@ -4587,6 +4972,7 @@
   if (els.btnKwadCustomSave) els.btnKwadCustomSave.addEventListener('click', kwadAddCustomTrick);
   if (els.btnKwadCustomCancel) els.btnKwadCustomCancel.addEventListener('click', kwadResetCustomForm);
   if (els.btnKwadExport) els.btnKwadExport.addEventListener('click', kwadExportTrickList);
+  if (els.btnKwadResetBuiltin) els.btnKwadResetBuiltin.addEventListener('click', kwadResetBuiltinOverrides);
   kwadLoad();
 
   // ---------- init ----------

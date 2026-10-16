@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Piloten: neue Profile werden ausschließlich über separate Eingabefelder angelegt; bestehende Profile lassen sich einzeln direkt in ihrer Karte bearbeiten und übernehmen Name/Farbe über „Änderungen übernehmen“
+- Piloten: die aktive Auswahl-Schaltfläche entfällt; beim Bearbeiten wird das Profil aktiv, und währenddessen sind andere Profile sowie die Neuanlage gesperrt
+- Game of K.W.A.D: eingebaute Trickliste neu geordnet und präzisiert; ergänzt sind Front-/Backflip, Double Front-/Backflip, Roll, Barrel Roll und weitere Tricks
+- Game of K.W.A.D: optionale Richtungsmetadaten für passende Tricks; gezogene Richtung erscheint separat in der Spielansicht und wird bei aktivierter Ansage mitgesprochen
+- Game of K.W.A.D: Trick-Richtung steht nun auch im Bearbeitungsformular und CSV-Export; Power Loop bleibt richtungslos und ist als Loop um ein Hindernis beschrieben
+- Piloten: **gewonnene Game-of-K.W.A.D.-Spiele werden jetzt pro Pilot gezählt** und erscheinen im Vergleich, in der Profilübersicht und in den KWAD-Statistiken; Siege bleiben lokal gespeichert, werden gesichert und folgen Profil-Umbenennungen
+
+### Fixed
+- Game of K.W.A.D: bei mehr als zwei Piloten geht das Spiel nach der ersten Eliminierung weiter; der letzte verbleibende Pilot erhält den Sieg, und ein rückgängig gemachter letzter Strafbuchstabe nimmt den Sieg zurück
+
+### Changed
+- Sprachausgabe: **Stimme, Timer-Ansage, Sprechtempo, Sprachtest und KWAD-Trickansage sind jetzt zentral in den Haupteinstellungen**; die KWAD-Trickansage verwendet weiterhin dieselbe Stimme und dasselbe Sprechtempo wie der Timer
+- Timer-Einstellungen: Countdown und Audio-Feedback bleiben im Timer-Menü; nur Sprachoptionen wurden verschoben
+
+## [0.25.0] - 2026-10-16
+### Added
+- Piloten: **Die Vergleichsansicht zeigt jetzt auch Game-of-K.W.A.D.-Versuche, Erfolge und Quote pro Pilot**; sie aktualisiert sich direkt nach jedem gewerteten Versuch
+
+### Changed
+- Game of K.W.A.D: der Einstellungsbereich heißt jetzt **„Trick Liste"** statt „Trickliste & Pool"
+
+## [0.24.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **eingebaute Tricks sind vorübergehend bearbeitbar** — Änderungen an Name, Beschreibung, Prüfart und Schwierigkeit werden lokal gespeichert, erscheinen im CSV-Export und können gesammelt auf die Standardwerte zurückgesetzt werden; die Standard-Trickliste im Quellcode bleibt unverändert
 
 ## [0.23.0] - 2026-10-16
 ### Added

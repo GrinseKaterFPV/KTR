@@ -13,16 +13,16 @@ const KWAD_CATEGORIES = {
   basics: {
     id: 'basics', label: 'Basics', emoji: '🟢', difficulty: 1, enabled: true,
     tricks: [
-      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gap', en: { name: 'Dive EN', desc: 'Steep dive' } },
-      { name: 'Yaw Spin', desc: 'Schnelle flache Drehung', check: 'free' },
-      { name: 'Gap Roll', desc: 'Eine Rolle im Gap', check: 'gap' },
-      { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis', check: 'obstacle' },
+      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'free', direction: 'flight', en: { name: 'Dive EN', desc: 'Steep dive' } },
+      { name: 'Yaw Spin', desc: 'Schnelle flache Drehung', check: 'free', direction: 'yaw' },
+      { name: 'Gap Roll', desc: 'Eine Rolle im Gap', check: 'gap', direction: 'roll', difficulty: 2 },
+      { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis', check: 'obstacle', direction: 'orbit' },
     ]
   },
   intermediate: {
     id: 'intermediate', label: 'Intermediate', emoji: '🟡', difficulty: 2, enabled: true,
     tricks: [
-      { name: 'Power Loop', desc: 'Looping über das Gap' },
+      { name: 'Power Loop', desc: 'Loop um ein Hindernis', check: 'obstacle' },
       { name: 'Split-S', desc: 'Halber Loop nach unten' },
     ]
   },
@@ -54,11 +54,14 @@ function kwadBuildTrickPool() {
 }
 
 const body = [
-  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadPlayerStats = {}, kwadPool = {}, kwadLastPenalty = null, kwadPicker = "", kwadAnnounce = false, kwadEditingCustomIdx = -1;',
+  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTrickDirection = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadPlayerStats = {}, kwadPlayerWins = {}, kwadPool = {}, kwadLastPenalty = null, kwadPicker = "", kwadAnnounce = false, kwadEditingCustomIdx = -1, kwadEditingBuiltin = null, kwadBuiltinOverrides = {};',
   'let kwadStatClosed = new Set();',
   'var state = { lang: "de" };',
   'let newTrickCalls = 0;',
   'const KWAD_CATEGORIES = ' + JSON.stringify(KWAD_CATEGORIES) + ';',
+  'const KWAD_DIRECTION_OPTIONS = { roll: ["left", "right"], yaw: ["left", "right"], orbit: ["clockwise", "counterclockwise"], flight: ["forward", "backward"], wall: ["left_to_right", "right_to_left"] };',
+  'let announcedText = ""; function speak(text) { announcedText = text; }',
+  'const KWAD_BUILTIN_IDS = new WeakMap(); Object.values(KWAD_CATEGORIES).forEach(cat => { if (cat.id !== "custom") cat.tricks.forEach(trick => KWAD_BUILTIN_IDS.set(trick, cat.id + "/" + trick.name)); });',
   'function kwadBuildTrickPool() { const pool = []; Object.values(KWAD_CATEGORIES).forEach(cat => { if (cat.enabled && cat.tricks.length) { cat.tricks.forEach(t => pool.push({ ...t, category: cat.id })); } }); return pool; }',
   'kwadTrickPool = kwadBuildTrickPool();',
   extract('kwadNormalizeLetters'),
@@ -70,12 +73,20 @@ const body = [
   extract('kwadTrickDesc'),
   extract('kwadTrickByName'),
   extract('kwadTrickLabel'),
+  extract('kwadDirectionType'),
+  extract('kwadDirectionLabel'),
+  extract('kwadDirectionText'),
+  extract('kwadChooseDirection'),
+  extract('kwadAvailableDirections'),
+  extract('kwadDirectionChoicesText'),
+  extract('kwadApplyBuiltinOverrides'),
   extract('kwadDifficulty'),
   extract('kwadTrickGroup'),
   extract('kwadTrickEnabled'),
   extract('kwadGroupTricks'),
   extract('kwadGroupPoolCount'),
   extract('kwadSavePool'),
+  extract('kwadRenameBuiltinTrick'),
   extract('renderKwadTrickList'),
   extract('renderKwadCategories'),
   extract('kwadSetTrickEnabled'),
@@ -85,6 +96,7 @@ const body = [
   extract('kwadActiveCount'),
   extract('kwadBuildTrickPool'),
   extract('kwadRecordStat'),
+  extract('kwadAwardSoleWinner'),
   extract('kwadSaveStats'),
   extract('kwadSavePicker'),
   extract('kwadPickerKind'),
@@ -103,11 +115,16 @@ const body = [
   extract('kwadUpdateCustomFormMode'),
   extract('renderKwadCustomTricks'),
   'function esc(v) { return String(v == null ? "" : v); }',
+  'let pilotStatRenders = 0;',
+  'function renderPilotsScreen() { pilotStatRenders++; }',
+  'function renderPilotCompare() { pilotStatRenders++; }',
   'function kwadSaveCustomTricks() {}',
+  'function kwadSaveBuiltinOverrides() {}',
   extract('kwadAddCustomTrick'),
   extract('kwadRemoveCustomTrick'),
   extract('kwadNewTrick').replace('function kwadNewTrick(', 'function kwadNewTrickImpl('),
   'function kwadNewTrick() { newTrickCalls++; return kwadNewTrickImpl(); }',
+  extract('kwadAnnounceTrick'),
   extract('renderKwad'),
   extract('kwadRound'),
   extract('kwadUndoPenalty'),
@@ -128,14 +145,29 @@ const body = [
     'apiObj.kwadActiveFrom = kwadActiveFrom;',
     'apiObj.kwadBuildTrickPool = kwadBuildTrickPool;',
     'apiObj.kwadDifficulty = kwadDifficulty;',
+    'apiObj.kwadDirectionType = kwadDirectionType;',
+    'apiObj.kwadDirectionText = kwadDirectionText;',
+    'apiObj.kwadChooseDirection = kwadChooseDirection;',
+    'apiObj.kwadAvailableDirections = kwadAvailableDirections;',
+    'apiObj.announcedText = function() { return announcedText; };',
+    'apiObj.currentDirection = function() { return kwadTrickDirection; };',
+    'apiObj.setDirectionPool = function(pool) { kwadTrickPool = pool; kwadMode = "random"; };',
+    'apiObj.setAnnounce = function(value) { kwadAnnounce = value; };',
+    'apiObj.announceTrick = kwadAnnounceTrick;',
     'apiObj.kwadTrickEnabled = kwadTrickEnabled;',
     'apiObj.kwadGroupTricks = kwadGroupTricks;',
     'apiObj.kwadGroupPoolCount = kwadGroupPoolCount;',
     'apiObj.kwadPlayerStats = function() { return kwadPlayerStats; };',
+    'apiObj.kwadPlayerWins = function() { return kwadPlayerWins; };',
+    'apiObj.setPlayerWins = function(wins) { kwadPlayerWins = wins; };',
     'apiObj.kwadPool = function() { return kwadPool; };',
     'apiObj.setPool = function(owner, trick, on) { kwadSetTrickEnabled(owner, trick, on); };',
     'apiObj.trickListRows = kwadTrickListRows;',
     'apiObj.trickName = kwadTrickName;',
+    'apiObj.categories = function() { return KWAD_CATEGORIES; };',
+    'apiObj.applyBuiltinOverrides = kwadApplyBuiltinOverrides;',
+    'apiObj.builtinOverrides = function() { return kwadBuiltinOverrides; };',
+    'apiObj.startBuiltinEdit = function(id) { const trick = Object.values(KWAD_CATEGORIES).flatMap(cat => cat.tricks).find(t => KWAD_BUILTIN_IDS.get(t) === id); kwadEditingBuiltin = trick ? { id, trick } : null; };',
     'apiObj.trickDesc = kwadTrickDesc;',
     'apiObj.trickLabel = kwadTrickLabel;',
     'apiObj.setLang = function(l) { state.lang = l; };',
@@ -146,6 +178,7 @@ const body = [
     'apiObj.addCustom = function(trick) { KWAD_CATEGORIES.custom.tricks.push(trick); kwadTrickPool = kwadBuildTrickPool(); };',
     'apiObj.renderKwadStats = renderKwadStats;',
     'apiObj.kwadRecordStat = kwadRecordStat;',
+    'apiObj.pilotStatRenders = function() { return pilotStatRenders; };',
     'apiObj.kwadSaveStats = kwadSaveStats;',
     'apiObj.kwadDropProfileStats = kwadDropProfileStats;',
     'apiObj.kwadRenameProfile = kwadRenameProfile;',
@@ -155,7 +188,7 @@ const body = [
     'apiObj.penalty = function() { return kwadLastPenalty; };',
     'apiObj.stats = function() { return kwadStats; };',
     'apiObj.kwadNewTrick = kwadNewTrick;',
-    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadStats = {}; kwadPlayerStats = {}; kwadPool = {}; kwadTrickPool = kwadBuildTrickPool(); kwadLastPenalty = null; kwadPicker = ""; };',
+    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickDirection = ""; kwadStats = {}; kwadPlayerStats = {}; kwadPlayerWins = {}; kwadPool = {}; kwadTrickPool = kwadBuildTrickPool(); kwadLastPenalty = null; kwadPicker = ""; };',
     'apiObj.players = function() { return kwadPlayers; };',
     'apiObj.turn = function() { return kwadTurnIdx; };',
     'apiObj.tried = function() { return kwadTried; };',
@@ -191,7 +224,7 @@ function extract(name) {
 function makeEl(tag) {
   const el = {
     tag, children: [], className: '', title: '', type: '', disabled: false, hidden: false, _text: '',
-    attrs: {},
+    attrs: {}, dataset: {},
     classList: { _s: new Set(), add(c) { this._s.add(c); }, contains(c) { return this._s.has(c); } },
     setAttribute(k, v) { el.attrs[k] = v; },
     appendChild(c) { el.children.push(c); return c; },
@@ -227,7 +260,9 @@ const els = {
   kwadCustomDesc: makeEl('input'),
   kwadCustomCheck: makeEl('select'),
   kwadCustomDifficulty: makeEl('select'),
+  kwadCustomDirection: makeEl('select'),
   kwadCustomCat: makeEl('select'),
+  kwadCustomCatLabel: makeEl('label'),
   btnKwadCustomSave: makeEl('button'),
   btnKwadCustomCancel: makeEl('button'),
   btnKwadDone: makeEl('button'),
@@ -275,6 +310,26 @@ check('D1: a fresh trick is never the previous one', noRepeat);
 check('D2: drawn index stays in range', inRange);
 check('D3: all pool entries can be drawn', sawVariety.size === 3);
 check('D4: a single-trick pool stays at 0', api.kwadDrawIndex(-1, 1) === 0);
+check('D5: directionless tricks have no direction type',
+  api.kwadDirectionType({ name: 'Power Loop' }) === ''
+  && api.kwadDirectionType({ name: 'Roll', direction: 'roll' }) === 'roll');
+check('D6: directional options stay separate from trick names in CSV data',
+  api.kwadAvailableDirections({ name: 'Roll', direction: 'roll' }) === 'roll:left|right'
+  && api.kwadAvailableDirections({ name: 'Orbit', direction: 'orbit' }) === 'orbit:clockwise|counterclockwise');
+
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+api.setDirectionPool([{ name: 'Yaw Spin', desc: 'Drehung', check: 'free', direction: 'yaw', category: 'basics' }]);
+api.setAnnounce(true);
+api.kwadNewTrick();
+const chosenDirection = api.currentDirection();
+const directionMeta = els.kwadTrickMeta.children.find(child => child.className === 'kwad-meta-direction');
+check('D7: drawing a directional trick chooses one of its declared directions',
+  ['left', 'right'].includes(chosenDirection));
+check('D8: the drawn direction is shown in the trick metadata',
+  !!directionMeta && directionMeta.textContent === 'kwad_direction_yaw: kwad_direction_' + chosenDirection);
+check('D9: the trick announcement includes its selected direction',
+  api.announcedText().indexOf('Yaw Spin. kwad_direction_yaw kwad_direction_' + chosenDirection) === 0);
+api.setAnnounce(false);
 
 // --- who loses? the first player with four letters -------------------------
 check('W1: nobody out yet -> -1', api.kwadLoserIndex([{ letters: '' }, { letters: 'KWA' }]) === -1);
@@ -312,12 +367,25 @@ api.kwadRound(false);                                    // Max KWA -> KWAD -> l
 check('G9: Max ends with KWAD', api.players()[0].letters === 'KWAD');
 check('G10: Max is the loser', api.kwadLoserIndex(api.players()) === 0);
 check('G11: the game is over (no further new trick)', api.newTrickCalls() === 3);
-check('G12: the result banner names the loser', els.kwadResult.hidden === false && els.kwadResult.textContent.indexOf('Max') === 0);
+check('G12: the result banner names the winner', els.kwadResult.hidden === false && els.kwadResult.textContent.indexOf('Lea') === 0);
 check('G12: the loser row is marked', els.kwadPlayers.children[0].classList.contains('is-out'));
 check('G14: the play buttons are disabled after the game', els.btnKwadDone.disabled === true && els.btnKwadFail.disabled === true);
 check('G15: the turn card is hidden once only one player is left', els.kwadTurnCard.hidden === true);
+check('G15a: the last remaining pilot gets one game win', api.kwadPlayerWins().Lea === 1 && !api.kwadPlayerWins().Max);
 api.kwadRound(false);                                    // must be ignored now
 check('G16: no letters change after the game is over', api.players()[1].letters === 'KWA');
+check('G17: a finished game cannot award the win twice', api.kwadPlayerWins().Lea === 1);
+
+api.setGame([{ name: 'Out', letters: 'KWAD' }, { name: 'Lea', letters: 'KWA' }, { name: 'Jo', letters: '' }], 2);
+api.kwadRound(false);                                    // Jo gets K; Lea's turn
+check('G18: a multi-player game continues after the first player is out', api.turn() === 1 && els.btnKwadFail.disabled === false);
+api.kwadRound(false);                                    // Lea gets D, Jo is the last one in
+check('G19: only the final survivor wins a multi-player game', api.kwadPlayerWins().Jo === 1 && !api.kwadPlayerWins().Lea);
+
+api.setGame([{ name: 'Max', letters: 'KWA' }, { name: 'Lea', letters: '' }], 0);
+api.kwadRound(false);                                    // Max loses; Lea wins
+api.kwadUndoPenalty();
+check('G20: undoing the final penalty also retracts the game win', !api.kwadPlayerWins().Lea);
 
 // --- a successful attempt adds no letter -----------------------------------
 api.setGame([{ name: 'A', letters: 'KW' }, { name: 'B', letters: '' }], 0);
@@ -363,7 +431,7 @@ check('C2b: the legacy gate value from v0.19 is mapped onto gap', api.kwadCheck(
 check('C3: an obstacle trick is recognised', api.kwadCheck({ check: 'obstacle' }) === 'obstacle');
 check('C4: an unknown value falls back to free flight', api.kwadCheck({ check: 'nonsense' }) === 'free');
 check('C5: the drawn pool passes the Prüfart through',
-  api.kwadBuildTrickPool().filter(t => t.check === 'obstacle').length === 1
+  api.kwadBuildTrickPool().filter(t => t.check === 'obstacle').length === 2
   && api.kwadBuildTrickPool().every(t => api.kwadCheck(t) === (t.check || 'free')));
 
 api.setGame([{ name: 'Max', letters: 'KW' }, { name: 'Lea', letters: '' }], 0);
@@ -392,7 +460,7 @@ api.renderKwad();
 check('C10: the fixed name is shown as plain text (no dropdown) and survives a render',
   els.kwadPickerName.textContent === 'Lea' && api.picker() === 'Lea');
 api.setGame([{ name: 'Max', letters: 'KWAD' }, { name: 'Lea', letters: '' }], 1);
-api.setTrick({ name: 'Wall Scrape', check: 'obstacle' });
+api.setTrick({ name: 'Wall Ride', check: 'obstacle' });
 api.renderKwad();
 check('C11: a player who is already out is never nominated', els.kwadPickerName.textContent === 'Lea');
 // A tie between the leaders is settled by lot — either leader may come up.
@@ -498,7 +566,7 @@ check('T2: a row shows name, description, difficulty and Prüfart',
   diveRow.children[1].children[0].textContent === 'Dive'
   && diveRow.children[1].children[1].textContent === 'Steiler Sturzflug'
   && diveRow.children[2].textContent === '★'
-  && diveRow.children[3].textContent === 'kwad_check_gap');
+  && diveRow.children[3].textContent === 'kwad_check_free');
 check('T3: every trick starts checked',
   tl.children[1].children[0].checked === true && tl.children[0].children[1].textContent === '5/5 kwad_tricks');
 api.setPool('basics', { name: 'Dive' }, false);
@@ -532,6 +600,7 @@ check('T10: the grid row still carries the category switch',
 api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
 api.setTrick({ name: 'Dive' });
 api.setPicker('Max');
+api.setPlayerWins({ Max: 1 });
 api.kwadRound(false);                                   // Max fails -> bucket Max/Dive
 api.kwadRecordStat('Ghost', 'Orbit', true);             // a bucket that is not in the game
 check('R1: the failing profile owns its attempt', api.kwadPlayerStats()['Max']['Dive'].attempted === 1);
@@ -540,6 +609,8 @@ check('R2: the global total counts it too', api.stats()['Dive'].attempted === 1 
 api.kwadRenameProfile('Max', 'Maxi');
 check('R3: the bucket moves to the new profile name',
   !api.kwadPlayerStats()['Max'] && api.kwadPlayerStats()['Maxi']['Dive'].attempted === 1);
+check('R3a: the game-win total follows a renamed profile',
+  !api.kwadPlayerWins().Max && api.kwadPlayerWins().Maxi === 1);
 check('R4: the running game carries the new name', api.players()[0].name === 'Maxi');
 check('R5: the tried list carries the new name', api.tried()[0] === 'Maxi');
 check('R6: the picker carries the new name', api.picker() === 'Maxi');
@@ -554,7 +625,8 @@ api.kwadRenameProfile('Maxi', 'Ghost');
 check('R9: renaming onto an existing bucket merges both',
   !api.kwadPlayerStats()['Maxi']
   && api.kwadPlayerStats()['Ghost']['Dive'].attempted === 1
-  && api.kwadPlayerStats()['Ghost']['Orbit'].succeeded === 1);
+  && api.kwadPlayerStats()['Ghost']['Orbit'].succeeded === 1
+  && api.kwadPlayerWins().Ghost === 1);
 
 api.kwadDropProfileStats('Ghost');
 check('R10: dropping a profile empties its bucket', !api.kwadPlayerStats()['Ghost']);
@@ -579,10 +651,10 @@ const realCategories = (() => {
 })();
 const builtIns = [];
 Object.values(realCategories).forEach(cat => (cat.tricks || []).forEach(trick => builtIns.push(trick)));
-check('X1: the built-in list keeps its four groups (4 + 6 + 6 + 5)',
-  realCategories.basics.tricks.length === 4 && realCategories.intermediate.tricks.length === 6
-  && realCategories.advanced.tricks.length === 6 && realCategories.pro.tricks.length === 5
-  && builtIns.length === 21);
+check('X1: the revised built-in list contains the agreed trick set',
+  realCategories.basics.tricks.length === 7 && realCategories.intermediate.tricks.length === 8
+  && realCategories.advanced.tricks.length === 7 && realCategories.pro.tricks.length === 3
+  && builtIns.length === 25);
 check('X2: "Level Pass" is gone and "Tight Gap" took its place',
   builtIns.every(trick => trick.name !== 'Level Pass')
   && realCategories.basics.tricks.some(trick => trick.name === 'Tight Gap'));
@@ -590,6 +662,14 @@ check('X3: "Gap Roll" is spelled with a Gap (no "Gate Roll")',
   builtIns.every(trick => trick.name !== 'Gate Roll') && builtIns.some(trick => trick.name === 'Gap Roll'));
 check('X4: no built-in trick names repeat',
   new Set(builtIns.map(trick => trick.name)).size === builtIns.length);
+check('X4b: Wall Scrape was renamed to Wall Ride and Wall Tap was added',
+  !builtIns.some(trick => trick.name === 'Wall Scrape')
+  && realCategories.intermediate.tricks.some(trick => trick.name === 'Wall Ride' && trick.check === 'obstacle')
+  && realCategories.intermediate.tricks.some(trick => trick.name === 'Wall Tap' && trick.check === 'obstacle'));
+check('X4c: Tornado was renamed to Inverted Yaw-spin',
+  !builtIns.some(trick => trick.name === 'Tornado')
+  && realCategories.pro.tricks.some(trick => trick.name === 'Inverted Yaw-spin'
+    && trick.en.name === 'Inverted Yaw-spin' && trick.check === 'free'));
 check('X5: every built-in trick carries an English name and description',
   builtIns.every(trick => trick.en && typeof trick.en.name === 'string' && trick.en.name.length
     && typeof trick.en.desc === 'string' && trick.en.desc.length));
@@ -615,19 +695,19 @@ const exportRows = api.trickListRows();
 const listedTricks = Object.values(KWAD_CATEGORIES)
   .reduce((sum, cat) => sum + api.kwadGroupTricks(cat.id).length, 0);
 check('X8: the export carries the header and one row per listed trick',
-  exportRows[0].join(',') === 'category,trick,description,difficulty,check,in_pool'
+  exportRows[0].join(',') === 'category,trick,description,difficulty,check,direction,in_pool'
   && exportRows.length === 1 + listedTricks
-  && exportRows.slice(1).every(row => row.length === 6));
+  && exportRows.slice(1).every(row => row.length === 7));
 const gapRollRow = exportRows.slice(1).find(row => row[1] === 'Gap Roll');
 check('X9: a row names group, trick, difficulty and Prüfart',
-  !!gapRollRow && gapRollRow[0] === 'kwad_category_basics' && gapRollRow[3] === 1
-  && gapRollRow[4] === 'kwad_check_gap' && gapRollRow[5] === 'yes');
+  !!gapRollRow && gapRollRow[0] === 'kwad_category_basics' && gapRollRow[3] === 2
+  && gapRollRow[4] === 'kwad_check_gap' && gapRollRow[5] === 'roll:left|right' && gapRollRow[6] === 'yes');
 api.setPool('basics', { name: 'Gap Roll' }, false);
 const offRow = api.trickListRows().slice(1).find(row => row[1] === 'Gap Roll');
-check('X10: a trick taken out of the pool is exported as in_pool = no', offRow[5] === 'no');
+check('X10: a trick taken out of the pool is exported as in_pool = no', offRow[6] === 'no');
 api.setPool('basics', { name: 'Gap Roll' }, true);
 check('X11: switching it back on is reflected again',
-  api.trickListRows().slice(1).find(row => row[1] === 'Gap Roll')[5] === 'yes');
+  api.trickListRows().slice(1).find(row => row[1] === 'Gap Roll')[6] === 'yes');
 
 // --- own tricks can be edited again afterwards (real form logic) -------------
 api.customTricks().splice(0);                            // start from an empty list
@@ -636,17 +716,20 @@ els.kwadCustomName.value = 'Snap';
 els.kwadCustomDesc.value = 'ein Schnapp';
 els.kwadCustomCheck.value = 'obstacle';
 els.kwadCustomDifficulty.value = '4';
+els.kwadCustomDirection.value = 'roll';
 els.kwadCustomCat.value = 'basics';
 api.addCustomTrick();
 check('Y1: the form adds an own trick', api.customTricks().length === 1 && api.customTricks()[0].name === 'Snap');
 check('Y2: it keeps check, difficulty and category',
-  api.customTricks()[0].check === 'obstacle' && api.customTricks()[0].difficulty === 4 && api.customTricks()[0].cat === 'basics');
+  api.customTricks()[0].check === 'obstacle' && api.customTricks()[0].difficulty === 4
+  && api.customTricks()[0].direction === 'roll' && api.customTricks()[0].cat === 'basics');
 check('Y3: the form is cleared and back in "add" mode', els.kwadCustomName.value === '' && api.editingIdx() === -1);
 
 api.editCustomTrick(0);
 check('Y4: editing loads the row back into the form',
   els.kwadCustomName.value === 'Snap' && els.kwadCustomDesc.value === 'ein Schnapp'
-  && els.kwadCustomCheck.value === 'obstacle' && els.kwadCustomDifficulty.value === '4' && els.kwadCustomCat.value === 'basics');
+  && els.kwadCustomCheck.value === 'obstacle' && els.kwadCustomDifficulty.value === '4'
+  && els.kwadCustomDirection.value === 'roll' && els.kwadCustomCat.value === 'basics');
 check('Y5: the save button offers to apply the change and cancel appears',
   els.btnKwadCustomSave.attrs['data-i18n'] === 'kwad_custom_update' && els.btnKwadCustomCancel.hidden === false);
 check('Y6: the row being edited is highlighted', api.customList().children[0].className.indexOf('is-editing') !== -1);
@@ -655,12 +738,14 @@ els.kwadCustomName.value = 'Snap 2';
 els.kwadCustomDesc.value = 'neu';
 els.kwadCustomCheck.value = 'free';
 els.kwadCustomDifficulty.value = '2';
+els.kwadCustomDirection.value = '';
 els.kwadCustomCat.value = 'advanced';
 api.addCustomTrick();
 check('Y7: saving updates the same row instead of adding one',
   api.customTricks().length === 1 && api.customTricks()[0].name === 'Snap 2'
   && api.customTricks()[0].desc === 'neu' && api.customTricks()[0].check === 'free'
-  && api.customTricks()[0].difficulty === 2 && api.customTricks()[0].cat === 'advanced');
+  && api.customTricks()[0].difficulty === 2 && api.customTricks()[0].direction === ''
+  && api.customTricks()[0].cat === 'advanced');
 check('Y8: the form returns to "add" mode after saving',
   api.editingIdx() === -1 && els.btnKwadCustomSave.attrs['data-i18n'] === 'kwad_custom_save' && els.btnKwadCustomCancel.hidden === true);
 
@@ -674,6 +759,7 @@ check('Y9: cancelling leaves the stored trick untouched',
 api.customTricks().splice(0);
 els.kwadCustomName.value = 'Loop'; els.kwadCustomDesc.value = 'd'; els.kwadCustomCheck.value = 'free';
 els.kwadCustomDifficulty.value = '3'; els.kwadCustomCat.value = 'custom';
+els.kwadCustomDirection.value = '';
 api.addCustomTrick();
 api.setPool('custom', { name: 'Loop' }, false);
 api.kwadRecordStat('Max', 'Loop', true);
@@ -686,6 +772,48 @@ check('Y11: a rename carries the global statistics over',
   !!api.stats()['Loop 2'] && api.stats()['Loop 2'].attempted === 1 && !api.stats()['Loop']);
 check('Y12: ... and the per-player bucket follows',
   api.kwadPlayerStats()['Max']['Loop 2'].attempted === 1 && !api.kwadPlayerStats()['Max']['Loop']);
+
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+api.setPool('basics', { name: 'Dive' }, false);
+api.kwadRecordStat('Max', 'Dive', true);
+api.startBuiltinEdit('basics/Dive');
+els.kwadCustomName.value = 'Dive Revised';
+els.kwadCustomDesc.value = 'Neue Beschreibung';
+els.kwadCustomCheck.value = 'free';
+els.kwadCustomDifficulty.value = '4';
+els.kwadCustomDirection.value = 'roll';
+api.addCustomTrick();
+check('Y13: a built-in trick can be renamed and edited from the shared form',
+  api.categories().basics.tricks.some(trick => trick.name === 'Dive Revised' && trick.desc === 'Neue Beschreibung'
+    && trick.check === 'free' && trick.difficulty === 4 && trick.direction === 'roll'));
+check('Y14: built-in edits preserve pool selection and statistics on rename',
+  api.pool()['basics/Dive Revised'] === false && !('basics/Dive' in api.pool())
+  && api.stats()['Dive Revised'].attempted === 1 && !api.stats().Dive);
+check('Y15: built-in overrides are recorded under their stable default ID',
+  api.builtinOverrides()['basics/Dive'].name === 'Dive Revised'
+  && api.builtinOverrides()['basics/Dive'].direction === 'roll');
+
+api.applyBuiltinOverrides({
+  'basics/Dive': { name: 'Dive Revised', desc: 'Neue Beschreibung', en: { name: 'Dive Updated', desc: 'Updated description' }, check: 'free', difficulty: 4 },
+  'basics/unknown': { name: 'Unknown' },
+});
+const revisedDive = api.categories().basics.tricks.find(trick => trick.name === 'Dive Revised');
+api.setLang('en');
+check('Z1: built-in overrides apply by stable default ID and retain both languages',
+  !!revisedDive && revisedDive.desc === 'Neue Beschreibung' && revisedDive.en.name === 'Dive Updated'
+  && revisedDive.en.desc === 'Updated description' && revisedDive.check === 'free' && revisedDive.difficulty === 4
+  && revisedDive.direction === 'roll');
+check('Z2: invalid override IDs are ignored',
+  !Object.prototype.hasOwnProperty.call(api.builtinOverrides(), 'basics/unknown'));
+api.renderTrickList();
+const revisedCsvRow = api.trickListRows().slice(1).find(row => row[1] === 'Dive Updated');
+check('Z3: the CSV export includes the edited built-in name, description and settings',
+  !!revisedCsvRow && revisedCsvRow[2] === 'Updated description'
+  && revisedCsvRow[3] === 4 && revisedCsvRow[4] === 'kwad_check_free' && revisedCsvRow[5] === 'roll:left|right');
+const previousPilotRefreshes = api.pilotStatRenders();
+api.kwadRecordStat('Lea', 'Dive Revised', true);
+check('Z4: recording a K.W.A.D attempt refreshes the Piloten screen and comparison',
+  api.pilotStatRenders() === previousPilotRefreshes + 2);
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

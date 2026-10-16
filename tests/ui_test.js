@@ -70,6 +70,12 @@ check('S3: the duplicate auto-start checkbox is gone from the whole page',
 check('S4: Runden/Satz stays in the timer menu', timerOverlay.includes('id="autoLaps"'));
 check('S5: Countdown stays in the timer menu', timerOverlay.includes('id="countdownInput"'));
 check('S6: race & audio group stays in the timer menu', timerOverlay.includes('data-i18n="g_audio"'));
+check('S6a: TTS controls are centralized in the main settings, not the timer menu',
+  ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice', 'kwadAnnounce']
+    .every(id => appOverlay.includes('id="' + id + '"'))
+  && ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice', 'kwadAnnounce']
+    .every(id => !timerOverlay.includes('id="' + id + '"'))
+  && !html.slice(html.indexOf('id="kwadSettingsOverlay"')).includes('id="kwadAnnounce"'));
 check('S7: the auto-start quick switch in the timer card is kept',
   html.includes('id="autoStartQuick"') && html.includes('id="autoLapsBadge"') && html.includes('id="countdownBadge"'));
 check('S8: the g_autostart i18n key was removed',
@@ -89,7 +95,14 @@ check('P2: the Piloten screen exists',
   html.includes('id="pilotsScreen"') && html.includes('id="pilotsScreenList"') && html.includes('id="pilotsScreenCompare"'));
 check('P3: the screen offers name + colour + save',
   html.includes('id="pilotScreenName"') && html.includes('id="pilotScreenColor"') && html.includes('id="btnPilotScreenAdd"'));
-check('P4: the screen offers a CSV export', html.includes('id="btnPilotExport"'));
+check('P4: the CSV export is inside the pilot management section, before the statistics comparison', (() => {
+  const pilots = html.indexOf('id="pilotsScreen"');
+  const add = html.indexOf('id="btnPilotScreenAdd"', pilots);
+  const exportButton = html.indexOf('id="btnPilotExport"', pilots);
+  const compare = html.indexOf('id="pilotsScreenCompare"', pilots);
+  return add !== -1 && exportButton > add && exportButton < compare
+    && html.indexOf('id="btnPilotExport"', compare) === -1;
+})());
 check('P5: the tile opens the Piloten screen',
   /els\.tilePilots\.addEventListener\('click', openPilots\)/.test(app));
 check('P6: the comparison table is shared with the sets card',
@@ -105,10 +118,12 @@ check('P8: every profile is a collapsible card with a leading summary',
 check('P9: an open profile shows the statistics of that player',
   /'pilot-profile-stats'/.test(app)
   && /kwadStatPanel\(t\('kwad_stats'\)/.test(app)
-  && /kwadPlayerStats\[name\] \|\| \{\}/.test(app));
+  && /kwadPlayerStats\[name\] \|\| \{\}/.test(app)
+  && /totals\.wins/.test(app));
 check('P10: the collapsed row shows attempts and rate at a glance',
   /'pilot-profile-meta'/.test(app)
-  && /t\('kwad_stats_attempted'\) \+ ' ' \+ totals\.attempted/.test(app));
+  && /t\('kwad_stats_attempted'\) \+ ' ' \+ totals\.attempted/.test(app)
+  && /t\('kwad_stats_won'\) \+ ' ' \+ totals\.wins/.test(app));
 check('P11: a profile can be renamed and its statistics follow',
   /function renamePilot\(/.test(app) && /kwadRenameProfile\(oldName, newName\)/.test(app));
 check('P12: deleting a profile asks first and takes its statistics with it',
@@ -117,7 +132,18 @@ check('P12: deleting a profile asks first and takes its statistics with it',
 check('P13: the statistics can be reset from inside the profile',
   /'pilot-stats-reset'/.test(app) && /askConfirm\(t\('pilot_reset_confirm'\)/.test(app));
 check('P14: the active star picks the pilot without rebuilding the list',
-  /'pilot-activate'/.test(app) && /syncPilotCards\(\)/.test(app));
+  !/'pilot-activate'/.test(app)
+  && /pilotEditingName = name;[\s\S]*?state\.currentPilot = name;/.test(app)
+  && /renameBtn\.textContent = t\(editing \? 'pilot_apply' : 'pilot_edit'\)/.test(app)
+  && /renameBtn\.disabled = !!pilotEditingName && !editing/.test(app)
+  && /input\.disabled = !editing/.test(app)
+  && /colorInput\.disabled = !editing/.test(app));
+check('P18: editing a profile never copies its name into the new-pilot fields',
+  !/els\.pilotName\.value = name/.test(app)
+  && !/els\.pilotScreenName\.value = name/.test(app)
+  && /pilotName: document\.getElementById\('pilotName'\)/.test(app)
+  && /pilotScreenName: document\.getElementById\('pilotScreenName'\)/.test(app)
+  && /pilot_name_taken: 'Ein Pilot mit dem Namen/.test(app));
 
 // --- 5) K.W.A.D 2x2 letter-grid logo ------------------------------------------
 const iconKwadPath = path.join(root, 'icon-kwad.svg');
@@ -285,7 +311,7 @@ check('S5: the custom-trick form lets you choose the Prüfart',
   /<select id="kwadCustomCheck">/.test(html)
   && (html.match(/data-i18n="kwad_check_(free|gap|obstacle)"/g) || []).length === 3);
 check('S6: every built-in trick carries a Prüfart',
-  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gap|obstacle)'[,}]/g) || []).length >= 18);
+  (app.match(/\{ name: '[^']+', desc: '[^']*'[^}]*check: '(free|gap|obstacle)'/g) || []).length >= 24);
 check('S7: at least one built-in trick is an obstacle trick',
   /check: 'obstacle'/.test(app));
 check('S8: an old/custom trick without a field counts as free flight, and v0.19 saves still say Gap',
@@ -306,8 +332,10 @@ check('S10: the statistics card sits at the bottom of the KWAD screen (outside t
   && /<div class="kwad-stats" id="kwadStatsGrid"><\/div>/.test(html)
   && html.indexOf('kwad-stats-card') > html.indexOf('id="btnKwadReset"')
   && html.indexOf('id="kwadStatsGrid"') < html.indexOf('id="kwadSettingsOverlay"'));
-check('S11: the settings offer a "Trickliste & Pool" section',
+check('S11: the settings offer a "Trick Liste" section',
   /<details class="settings-group">\s*<summary>\s*<h3 data-i18n="kwad_pool">/.test(html)
+  && /kwad_pool: 'Trick Liste'/.test(app)
+  && /kwad_pool: 'Trick List'/.test(app)
   && /<div class="trick-list" id="kwadTrickList"><\/div>/.test(html));
 check('S12: the trick list renders one switch per trick with its description',
   /function renderKwadTrickList\(\)/.test(app)
@@ -330,13 +358,27 @@ check('S17: the statistics are kept per player',
   /localStorage\.setItem\('kwad_player_stats'/.test(app)
   && /localStorage\.getItem\('kwad_player_stats'/.test(app)
   && /kwadRecordStat\(p\.name, currentTrickName/.test(app));
-check('S18: the stats panel renders a block per player plus the total',
-  /function kwadStatPanel\(title, color, stats, panelKey\)/.test(app)
-  && /grid\.appendChild\(kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total'\)\)/.test(app)
+check('S18: the stats panel renders attempts, successes, rate and wins per player',
+  /function kwadStatPanel\(title, color, stats, panelKey, gamesWon\)/.test(app)
+  && /kwadStatCell\(t\('kwad_stats_won'\), String\(gamesWon \|\| 0\)\)/.test(app)
+  && /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total', totalWins\)/.test(app)
   && /kwad_stats_total: 'Gesamt'/.test(app)
   && /kwad_stats_total: 'Total'/.test(app));
+check('S18b: the Piloten comparison includes per-pilot K.W.A.D attempts, successes and rate',
+  /pilot_kwad_compare: 'Game of K\.W\.A\.D – Spielstatistik'/.test(app)
+  && /function pilotCompareHTML\(\)/.test(app)
+  && /state\.pilots \|\| \[\]/.test(app)
+  && /Object\.keys\(kwadPlayerStats\)/.test(app)
+  && /Object\.keys\(kwadPlayerWins\)/.test(app)
+  && /kwad_stats_won/.test(app)
+  && /kwadTotalAttempts\(stats\)/.test(app)
+  && /kwadTotalSucceeded\(stats\)/.test(app)
+  && /kwadRate\(succeeded, attempted\)/.test(app)
+  && /renderPilotsScreen\(\);\s*renderPilotCompare\(\);/.test(app));
 check('S19: the player buckets and the pool travel with the backup',
   /playerStats: kwadPlayerStats,/.test(app)
+  && /playerWins: kwadPlayerWins,/.test(app)
+  && /data\.kwad\.playerWins/.test(app)
   && /pool: kwadPool,/.test(app)
   && /if \(data\.kwad\.playerStats && typeof data\.kwad\.playerStats === 'object'\)/.test(app)
   && /if \(data\.kwad\.pool && typeof data\.kwad\.pool === 'object'\)/.test(app));
@@ -347,6 +389,22 @@ check('S21: the random draw weights by the trick\'s own difficulty',
 check('S22: the trick list style rules exist',
   /\.trick-list-row\s*\{/.test(css) && /\.kwad-stat-panel\s*\{/.test(css)
   && /\.kwad-trick-meta\s*\{/.test(css));
+check('S40: optional direction types are editable, displayed, spoken and exported',
+  /<select id="kwadCustomDirection">/.test(html)
+  && /function kwadChooseDirection\(trick\)/.test(app)
+  && /kwadTrickDirection = kwadChooseDirection\(kwadTrickObj\)/.test(app)
+  && /kwad-meta-direction/.test(app)
+  && /kwad_direction_' \+ directionType/.test(app)
+  && /kwadAvailableDirections\(trick\)/.test(app)
+  && /'check', 'direction', 'in_pool'/.test(app));
+check('S41: the reviewed trick set includes flips and directional roll variants, but Power Loop has no direction',
+  /name: 'Frontflip'/.test(app) && /name: 'Backflip'/.test(app)
+  && /name: 'Double Frontflip'/.test(app) && /name: 'Double Backflip'/.test(app)
+  && /name: 'Barrel Roll'[^}]*direction: 'roll'/.test(app)
+  && /name: 'Corkscrew'[^}]*mindestens drei vollständige Rollen/.test(app)
+  && /name: 'Power Loop'[^}]*check: 'obstacle'/.test(app)
+  && !/name: 'Power Loop'[^}]*direction:/.test(app)
+  && !/name: 'Fakie Flip'/.test(app) && !/name: 'Alien'/.test(app));
 
 // --- 17) collapsible statistics, trick-list export, translations wherever ------
 check('S23: the trick list can be exported as CSV',
@@ -355,7 +413,7 @@ check('S23: the trick list can be exported as CSV',
   && /btnKwadExport: document\.getElementById\('btnKwadExport'\)/.test(app)
   && /function kwadTrickListRows\(\)/.test(app)
   && /downloadCsv\('fpv-kwad-tricks\.csv', rows\)/.test(app));
-check('S24: the export button now sits in the "Trickliste & Pool" summary, by the caret', (() => {
+check('S24: the export button now sits in the "Trick Liste" summary, by the caret', (() => {
   const from = html.indexOf('data-i18n="kwad_pool"');
   const to = html.indexOf('</summary>', from);
   const at = html.indexOf('id="btnKwadExport"');
@@ -386,14 +444,14 @@ check('S29: the statistics section itself is collapsible and keeps its hint',
   && /<p class="hint" data-i18n="kwad_stats_hint">/.test(html)
   && /\.kwad-card\.kwad-stats-card > \.card-body \{ margin-top: 0; \}/.test(css));
 check('S30: the statistics card is rendered in both the KWAD screen and the pilot profile',
-  /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total'\)/.test(app)
-  && /kwadStatPanel\(nm, color, kwadPlayerStats\[nm\] \|\| \{\}, nm\)/.test(app)
-  && /kwadStatPanel\(t\('kwad_stats'\), '', kwadPlayerStats\[name\] \|\| \{\}, 'profile:' \+ name\)/.test(app));
+  /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total', totalWins\)/.test(app)
+  && /kwadStatPanel\(nm, color, kwadPlayerStats\[nm\] \|\| \{\}, nm, kwadPlayerWins\[nm\] \|\| 0\)/.test(app)
+  && /kwadStatPanel\(t\('kwad_stats'\), '', kwadPlayerStats\[name\] \|\| \{\}, 'profile:' \+ name, totals\.wins\)/.test(app));
 check('S31: a statistics row translates its trick name',
   /function kwadTrickLabel\(name\)/.test(app) && /nm\.textContent = kwadTrickLabel\(trickName\);/.test(app));
 check('S32: built-in tricks carry their English name and description',
-  /en: \{ name: 'Dive', desc: 'Steep dive through the gap, then pull up' \}/.test(app)
-  && /en: \{ name: 'Tight Gap', desc: 'Fly through a narrow gap without losing height' \}/.test(app)
+  /en: \{ name: 'Dive', desc: 'Descend steeply nose-first or tail-first, then recover under control\.' \}/.test(app)
+  && /en: \{ name: 'Tight Gap', desc: 'Fly through a narrow opening without touching it\.' \}/.test(app)
   && /function kwadTrickName\(trick\)/.test(app)
   && /function kwadTrickDesc\(trick\)/.test(app));
 check('S33: "Tight Gap" replaced "Level Pass" and nothing says "Gate Roll"',
@@ -430,6 +488,17 @@ check('S38: an own trick can be edited again afterwards',
   && /kwad_custom_cancel: 'Abbrechen'/.test(app)
   && /kwad_custom_edit: 'Bearbeiten'/.test(app)
   && /kwad_custom_edit: 'Edit'/.test(app));
+check('S38b: built-in tricks can be locally edited, exported and reset to defaults',
+  /className = 'trick-list-edit btn'/.test(app)
+  && /edit\.addEventListener\('click', e => kwadEditBuiltinTrick/.test(app)
+  && /function kwadEditBuiltinTrick\(id\)/.test(app)
+  && /localStorage\.setItem\('kwad_builtin_overrides'/.test(app)
+  && /builtinOverrides: kwadBuiltinOverrides/.test(app)
+  && /function kwadResetBuiltinOverrides\(\)/.test(app)
+  && /id="btnKwadResetBuiltin"/.test(html)
+  && /els\.btnKwadResetBuiltin\.addEventListener\('click', kwadResetBuiltinOverrides\)/.test(app)
+  && /kwad_builtin_edit: 'Eingebauten Trick bearbeiten'/.test(app)
+  && /kwad_builtin_edit: 'Edit built-in trick'/.test(app));
 check('S39: the picker is nominated automatically for gap and obstacle tricks',
   /function kwadPickerKind\(trick\)/.test(app)
   && /function kwadChoosePicker\(\)/.test(app)
@@ -444,8 +513,8 @@ check('S40: the drawn trick can be read out loud, naming the picker for gap/obst
   && /let text = kwadTrickName\(kwadTrickObj\);/.test(app)
   && /t\(kind === 'obstacle' \? 'kwad_picker_obstacle' : 'kwad_picker_gap'\)/.test(app)
   && /if \(kwadAnnounce\) kwadAnnounceTrick\(\);/.test(app));
-check('S41: the announce option is a checkbox on the KWAD options and is remembered',
-  /<label class="check-row"><input type="checkbox" id="kwadAnnounce" \/> <span data-i18n="kwad_announce">/.test(html)
+check('S41: the announce option is a checkbox in main settings and is remembered',
+  appOverlay.includes('<input type="checkbox" id="kwadAnnounce"')
   && /kwadAnnounce: document\.getElementById\('kwadAnnounce'\)/.test(app)
   && /localStorage\.setItem\('kwad_announce'/.test(app)
   && /localStorage\.getItem\('kwad_announce'\) === '1'/.test(app)
@@ -469,15 +538,15 @@ check('P16: "Delete pilot" moved to the bottom-right of the profile, not the sum
 check('P17: the pilot colour is adjustable later from inside the profile',
   /colorInput\.type = 'color';/.test(app)
   && /'pilot-color-row'/.test(app)
-  && /state\.pilotColors\[name\] = e\.target\.value;/.test(app)
-  && /syncPilotCards\(\);/.test(app)
+  && /state\.pilotColors\[next\] = colorInput\.value;/.test(app)
+  && /colorInput\.disabled = !editing/.test(app)
   && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v55'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.23\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v61'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.29\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.23\.0"/.test(pkg));
+  /"version": "0\.29\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
@@ -487,7 +556,8 @@ function makePilotApi() {
   const factory = new Function(
     'state', 'pilotOpen', 'pilotColor', 'renderPilots', 'saveSettings',
     'kwadDropProfileStats', 'kwadRenameProfile',
-    extract('addPilot') + '\n' + extract('removePilot') + '\n' + extract('renamePilot')
+    'let pilotEditingName = "";'
+      + extract('addPilot') + '\n' + extract('removePilot') + '\n' + extract('renamePilot')
       + '\nreturn { addPilot, removePilot, renamePilot };'
   );
   const api = factory(
@@ -503,8 +573,10 @@ function makePilotApi() {
   check('L1: addPilot adds a new name', api.addPilot('Max', '#111') === true && state.pilots.includes('Max'));
   check('L2: addPilot stores the colour', state.pilotColors['Max'] === '#111');
   check('L3: addPilot selects the new pilot', state.currentPilot === 'Max');
-  api.addPilot('Max', '#222');
-  check('L4: adding an existing pilot does not duplicate it', state.pilots.length === 1 && state.pilotColors['Max'] === '#222');
+  const duplicateAdded = api.addPilot('Max', '#222');
+  check('L4: adding an existing pilot does not duplicate it or change its profile',
+    duplicateAdded === false && state.pilots.length === 1 && state.pilotColors['Max'] === '#111');
+  check('L4a: duplicate names are rejected regardless of case', api.addPilot('max', '#222') === false && state.pilots.length === 1);
   api.addPilot('   ', '#333');
   check('L5: an empty name is rejected', state.pilots.length === 1);
   api.addPilot('Lea', '#444');
