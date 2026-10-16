@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-10-16
+### Fixed
+- The context gear buttons (camera/timer settings) stayed hidden once a section was collapsed. They now live inside the `<summary>` — like the CSV/„Alle exportieren" buttons — so they remain reachable while the card is closed; the existing click guard keeps them from toggling the card
+- The collapsed timer card lost its live time: `applyLanguage()` sets `textContent` on every `[data-i18n]` element and the timer label sat on the `<summary>`, which wiped the `#timerSummary` span on every load. The label is now a child `<span>`, so the running time survives (new regression guard in `tests/ui_test.js`)
+- `tests/kwad_test.js`: the obstacle-picker checks leaked state from earlier random trick draws (the flake showed up in ~2 of 10 runs); each game setup now resets the picker
+
 ## [0.18.0] - 2026-10-16
 ### Added
 - Game of K.W.A.D: **Prüfart** per trick – Free flight (`free`), Gate (`gate`) or **Obstacle** (`obstacle`); every built-in trick ships with a sensible default
