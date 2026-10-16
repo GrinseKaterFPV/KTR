@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.30.6';
+  const APP_VERSION = '0.30.8';
 
   // ---------- i18n ----------
   const I18N = {
@@ -55,13 +55,25 @@
       track_pilot_records: 'Bestzeiten je Pilot',
       track_no_records: 'Für diese Strecke gibt es noch keine gespeicherten Zeiten.',
       track_unassigned_hint: 'Diese Sätze stammen aus der Zeit vor der Track-Verwaltung oder wurden ohne aktive Strecke gemessen.',
-      pilots_hint: 'Piloten verwalten und ihre Racing- sowie Game-of-K.W.A.D.-Statistiken vergleichen.',
-      pilots_active_hint: 'Mit „Bearbeiten“ änderst du Name und Farbe eines Profils. Das bearbeitete Profil wird aktiv.',
+      pilots_hint: 'Piloten verwalten, Track-Bestzeiten vergleichen und Game-of-K.W.A.D.-Statistiken ansehen.',
+      pilots_active_hint: 'Mit „Aktivieren“ wählst du den Piloten direkt in der Profilzeile. Name und Farbe änderst du über „Bearbeiten“.',
       export_pilots: 'Piloten exportieren (CSV)',
       pilot_export: 'Pilot exportieren (CSV)',
       pilot_delete: 'Pilot löschen',
       pilot_screen_empty: 'Noch keine Piloten angelegt.',
       pilot_active: 'aktiv',
+      pilot_set_active: 'Aktivieren',
+      pilot_is_active: 'Aktiver Pilot',
+      pilot_track_stats: 'Track-Bestzeiten',
+      pilot_tracks_with_records: 'Strecken mit Rekord',
+      pilot_ranked_sets: 'gewertete Sätze',
+      pilot_track_empty: 'Noch keine Track-Rekorde für diesen Piloten.',
+      pilot_track_best_lap: 'Beste Runde',
+      pilot_track_best_set: 'Schnellster Satz · {laps} Runden',
+      pilot_track_compare_title: 'Track-Bestzeiten vergleichen',
+      pilot_track_select: 'Strecke für den Vergleich',
+      pilot_track_compare_empty: 'Für diese Strecke gibt es noch keine Rekorde.',
+      pilot_track_compare_hint: 'Satzzeiten werden nur bei gleicher Rundenzahl verglichen.',
       pilot_manage: 'Profil verwalten',
       pilot_edit: 'Bearbeiten',
       pilot_apply: 'Änderungen übernehmen',
@@ -157,6 +169,13 @@
       stop_camera: 'Kamera stoppen',
       calibrate: 'Hintergrund kalibrieren',
       zone_hint: 'Ziehe einen Rahmen über den Start/Ziel-Bereich',
+      mask_draw: 'Maske zeichnen',
+      mask_draw_active: 'Maske zeichnen: aktiv',
+      mask_clear: 'Masken löschen',
+      mask_mode_on: 'Maskenmodus aktiv: Ziehe Rechtecke über Bereiche, die ignoriert werden sollen.',
+      mask_mode_off: 'Maskenmodus beendet.',
+      mask_draw_hint: 'Ziehe Rechtecke über Bereiche, die bei der Erkennung ignoriert werden sollen.',
+      mask_ignored: 'IGNORIERT',
       direction_btn_title: 'Erwartete Durchflug-Richtung – antippen zum Ändern',
       motion_in_gate: 'Bewegung im Tor',
       show_motion: 'Bewegung hervorheben (gelbe Pixel = erkannt, grüner Rahmen = Bereich)',
@@ -183,8 +202,8 @@
       th_between: 'Zwischen',
       g_detection: 'Kamera',
       diff_thresh: 'Diff-Schwelle',
-      enter_px: 'Enter (px)',
-      exit_px: 'Exit (px)',
+      enter_px: 'Enter-Schwelle (Pixel)',
+      exit_px: 'Exit-Schwelle (Pixel)',
       cooldown_ms: 'Cooldown (ms)',
       proc_res: 'Verarbeitungsauflösung',
       proc_fast: '320 x 240 (schnell)',
@@ -197,7 +216,15 @@
       dir_bt: 'Unten → Oben',
       drift_comp: 'Autofokus-/Belichtungsdrift ausgleichen (empfohlen)',
       cam_lock: 'Kamera fixieren (Fokus/Belichtung manuell) – nur einschalten, wenn das Bild zuverlässig hell bleibt',
-      hint_detection: 'Tipp: ROI (Rahmen) möglichst eng über das Tor stellen. Hintergrund bei leerem Tor kalibrieren. Eine Runde wird gezählt, wenn die Bewegung erst die Enter-Schwelle überschreitet und danach unter Exit fällt. Mit dem Pfeil-Button neben „Hintergrund kalibrieren“ legst du die erwartete Durchflugrichtung fest.',
+      hint_detection_title: 'Erkennung kurz erklärt',
+      hint_roi: 'ROI: Ziehe im Kamerabild einen engen Rahmen um den Durchflugbereich. Nur diese Pixel zählen.',
+      hint_mask: 'Maske: Aktiviere „Maske zeichnen“ und ziehe Rechtecke über störende Bereiche. Diese Pixel werden ignoriert. Du kannst mehrere Masken zeichnen und alle wieder löschen.',
+      hint_diff: 'Pixelabweichung: Wie stark sich ein Pixel vom kalibrierten Hintergrund unterscheiden muss, damit es als Bewegung zählt.',
+      hint_enter_exit: 'Enter/Exit: Enter ist die Mindestzahl bewegter Pixel zum Erkennen. Danach muss die Bewegung unter Exit sinken, damit der Durchflug abgeschlossen ist. Exit sollte kleiner als Enter sein.',
+      hint_cooldown: 'Cooldown: Sperrzeit nach einem erkannten Durchflug, damit derselbe Durchflug nicht doppelt zählt.',
+      hint_direction: 'Richtung: Optional wird geprüft, ob der Durchflug der eingestellten Richtung entspricht.',
+      hint_resolution: 'Auflösung: Höhere Verarbeitung kann genauer sein, braucht aber mehr Leistung. Die gemessene Pixelzahl ändert sich mit der Auflösung; Schwellenwerte dann ggf. neu einstellen.',
+      hint_calibration: 'Kalibriere den Hintergrund bei leerem Durchflugbereich. Drift-Ausgleich hilft bei langsamen Helligkeitsänderungen; Kamera fixieren verhindert Autofokus-/Belichtungswechsel, sofern das Bild dabei nicht zu dunkel wird.',
       g_audio: 'Rennen & Audio',
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
@@ -264,6 +291,8 @@
       auto_start: 'Timer automatisch beim ersten Durchflug starten (ohne Handy)',
       auto_laps: 'Runden pro Satz (0 = unbegrenzt)',
       waiting_first: 'Warte auf ersten Durchflug …',
+      waiting_first_speech: 'Warte auf den ersten Durchflug.',
+      waiting_for_pilot: 'Warte auf den ersten Durchflug von {name}.',
       overlay_waiting: 'Warte auf ersten Durchflug',
       set_word: 'Satz',
       set_laps_word: 'Runden',
@@ -382,13 +411,25 @@
       track_pilot_records: 'Best times by pilot',
       track_no_records: 'No times have been saved for this track yet.',
       track_unassigned_hint: 'These sets predate track management or were timed without an active track.',
-      pilots_hint: 'Manage pilots and compare their racing and Game of K.W.A.D. statistics.',
-      pilots_active_hint: 'Use “Edit” to change a profile name or colour. The profile being edited becomes active.',
+      pilots_hint: 'Manage pilots, compare track bests, and review Game of K.W.A.D. statistics.',
+      pilots_active_hint: 'Select a pilot with “Set active” directly in the profile row. Use “Edit” to change its name or colour.',
       export_pilots: 'Export pilots (CSV)',
       pilot_export: 'Export pilot (CSV)',
       pilot_delete: 'Delete pilot',
       pilot_screen_empty: 'No pilots yet.',
       pilot_active: 'active',
+      pilot_set_active: 'Set active',
+      pilot_is_active: 'Active pilot',
+      pilot_track_stats: 'Track bests',
+      pilot_tracks_with_records: 'Tracks with a record',
+      pilot_ranked_sets: 'ranked sets',
+      pilot_track_empty: 'This pilot has no track records yet.',
+      pilot_track_best_lap: 'Best lap',
+      pilot_track_best_set: 'Fastest set · {laps} laps',
+      pilot_track_compare_title: 'Compare track bests',
+      pilot_track_select: 'Track to compare',
+      pilot_track_compare_empty: 'There are no records for this track yet.',
+      pilot_track_compare_hint: 'Set times are compared only when the lap counts match.',
       pilot_manage: 'Manage profile',
       pilot_edit: 'Edit',
       pilot_apply: 'Apply changes',
@@ -484,6 +525,13 @@
       stop_camera: 'Stop camera',
       calibrate: 'Calibrate background',
       zone_hint: 'Drag a box over the start/finish area',
+      mask_draw: 'Draw mask',
+      mask_draw_active: 'Draw mask: on',
+      mask_clear: 'Clear masks',
+      mask_mode_on: 'Mask mode active: draw rectangles over areas to ignore.',
+      mask_mode_off: 'Mask mode ended.',
+      mask_draw_hint: 'Draw rectangles over areas to ignore during detection.',
+      mask_ignored: 'IGNORED',
       direction_btn_title: 'Expected crossing direction – tap to change',
       motion_in_gate: 'Motion in gate',
       show_motion: 'Highlight motion (yellow pixels = detected, green box = area)',
@@ -510,8 +558,8 @@
       th_between: 'Split',
       g_detection: 'Camera',
       diff_thresh: 'Diff threshold',
-      enter_px: 'Enter (px)',
-      exit_px: 'Exit (px)',
+      enter_px: 'Enter threshold (pixels)',
+      exit_px: 'Exit threshold (pixels)',
       cooldown_ms: 'Cooldown (ms)',
       proc_res: 'Processing resolution',
       proc_fast: '320 x 240 (fast)',
@@ -524,7 +572,15 @@
       dir_bt: 'Bottom → Top',
       drift_comp: 'Compensate autofocus/exposure drift (recommended)',
       cam_lock: 'Lock camera (manual focus/exposure) – only enable if the image stays reliably bright',
-      hint_detection: 'Tip: keep the ROI (box) as tight as possible over the gate. Calibrate the background with the gate empty. A lap is counted when motion first exceeds the Enter threshold and then drops below Exit. Use the arrow button next to “Calibrate background” to set the expected crossing direction.',
+      hint_detection_title: 'Detection at a glance',
+      hint_roi: 'ROI: Draw a tight box around the crossing area. Only pixels inside it count.',
+      hint_mask: 'Mask: Select “Draw mask” and draw rectangles over distracting areas. Those pixels are ignored. Draw multiple masks; clear them all with one button.',
+      hint_diff: 'Pixel difference: How much a pixel must differ from the calibrated background to count as motion.',
+      hint_enter_exit: 'Enter/Exit: Enter is the minimum moving-pixel count to detect a crossing. Motion must then fall below Exit to finish it. Keep Exit lower than Enter.',
+      hint_cooldown: 'Cooldown: Delay after a detected crossing, preventing the same pass from counting twice.',
+      hint_direction: 'Direction: Optionally require the crossing to match the selected direction.',
+      hint_resolution: 'Resolution: Higher processing resolution can be more precise but uses more resources. The moving-pixel count changes with resolution, so readjust thresholds if needed.',
+      hint_calibration: 'Calibrate with the crossing area empty. Drift compensation helps with gradual brightness changes; camera lock prevents autofocus/exposure changes if the image stays bright enough.',
       g_audio: 'Race & audio',
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
@@ -591,6 +647,8 @@
       auto_start: 'Start timer automatically on first crossing (no phone needed)',
       auto_laps: 'Laps per set (0 = unlimited)',
       waiting_first: 'Waiting for first crossing …',
+      waiting_first_speech: 'Waiting for the first crossing.',
+      waiting_for_pilot: 'Waiting for the first crossing from {name}.',
       overlay_waiting: 'Waiting for first crossing',
       set_word: 'Set',
       set_laps_word: 'laps',
@@ -729,6 +787,9 @@
     stream: null,
     devices: [],
     roi: null, // {x,y,w,h} in process coords
+    exclusionRects: [],
+    maskDrawing: false,
+    maskDraft: null,
     drawing: false,
     drawStart: null,
     background: null, // Float32Array
@@ -806,6 +867,8 @@
     camSelect: document.getElementById('camSelect'),
     btnStartCam: document.getElementById('btnStartCam'),
     btnCalibrate: document.getElementById('btnCalibrate'),
+    btnMaskMode: document.getElementById('btnMaskMode'),
+    btnClearMasks: document.getElementById('btnClearMasks'),
     meterFill: document.getElementById('meterFill'),
     metricValue: document.getElementById('metricValue'),
     metricState: document.getElementById('metricState'),
@@ -963,6 +1026,7 @@
   const maskCanvas = document.createElement('canvas');
   const maskCtx = maskCanvas.getContext('2d');
   let maskImage = null;
+  let excludedPixels = new Uint8Array(0);
   const overlayCtx = els.overlay.getContext('2d');
 
   function ensureMask() {
@@ -972,6 +1036,31 @@
       maskImage = maskCtx.createImageData(state.procW, state.procH);
     }
     return maskImage;
+  }
+  function rebuildExclusionMap() {
+    const size = state.procW * state.procH;
+    if (excludedPixels.length !== size) excludedPixels = new Uint8Array(size);
+    else excludedPixels.fill(0);
+    state.exclusionRects.forEach(rect => {
+      const x0 = Math.max(0, Math.floor(rect.x));
+      const y0 = Math.max(0, Math.floor(rect.y));
+      const x1 = Math.min(state.procW, Math.ceil(rect.x + rect.w));
+      const y1 = Math.min(state.procH, Math.ceil(rect.y + rect.h));
+      for (let y = y0; y < y1; y++) excludedPixels.fill(1, y * state.procW + x0, y * state.procW + x1);
+    });
+  }
+  function syncMaskControls() {
+    if (els.btnMaskMode) {
+      els.btnMaskMode.textContent = t(state.maskDrawing ? 'mask_draw_active' : 'mask_draw');
+      els.btnMaskMode.setAttribute('aria-pressed', String(state.maskDrawing));
+      els.btnMaskMode.classList.toggle('is-active', state.maskDrawing);
+    }
+    if (els.btnClearMasks) els.btnClearMasks.disabled = !state.exclusionRects.length;
+    if (els.zoneHint) {
+      const showHint = state.maskDrawing || !state.roi;
+      els.zoneHint.style.display = showHint ? 'block' : 'none';
+      els.zoneHint.textContent = state.maskDrawing ? t('mask_draw_hint') : t('zone_hint');
+    }
   }
 
   function kwadEditBuiltinTrick(id) {
@@ -1011,6 +1100,7 @@
       cooldownMs: state.cooldownMs,
       procRes: els.procRes.value,
       roi: state.roi,
+      exclusionRects: state.exclusionRects,
       pilots: state.pilots,
       currentPilot: state.currentPilot,
       pilotColors: state.pilotColors,
@@ -1131,11 +1221,13 @@
       if (!state.pilotColors[p]) state.pilotColors[p] = PILOT_PALETTE[i % PILOT_PALETTE.length];
     });
     state.roi = s.roi ?? null;
+    state.exclusionRects = Array.isArray(s.exclusionRects) ? s.exclusionRects : [];
+    state.enterThreshold = Math.max(20, Math.min(1000, Number(state.enterThreshold) || 120));
+    state.exitThreshold = Math.max(0, Math.min(500, state.enterThreshold - 5, Number(state.exitThreshold) || 0));
     if (s.procRes) els.procRes.value = s.procRes;
 
     els.diffThresh.value = state.diffThreshold; els.diffThreshVal.textContent = state.diffThreshold;
-    els.enterThresh.value = state.enterThreshold; els.enterThreshVal.textContent = state.enterThreshold;
-    els.exitThresh.value = state.exitThreshold; els.exitThreshVal.textContent = state.exitThreshold;
+    syncThresholdControls();
     els.cooldown.value = state.cooldownMs; els.cooldownVal.textContent = state.cooldownMs;
     state.showMotion = s.showMotion ?? true;
     if (els.showMotion) els.showMotion.checked = state.showMotion;
@@ -1219,6 +1311,7 @@
       const k = el.getAttribute('data-i18n-aria');
       if (k in dict) el.setAttribute('aria-label', dict[k]);
     });
+    syncMaskControls();
     document.title = t('title');
     updateDirectionButton();
     updateCamButtonText();
@@ -1240,6 +1333,9 @@
   function applyProcRes() {
     const v = els.procRes.value;
     const oldW = state.procW, oldH = state.procH;
+    state.exclusionRects = Array.isArray(state.exclusionRects)
+      ? state.exclusionRects.filter(rect => rect && typeof rect === 'object')
+      : [];
     if (v === '480x360') { state.procW = 480; state.procH = 360; }
     else { state.procW = 320; state.procH = 240; }
     procCanvas.width = state.procW; procCanvas.height = state.procH;
@@ -1262,11 +1358,45 @@
       state.roi.h = Math.min(state.roi.h, state.procH - state.roi.y);
       if (state.roi.w < 8 || state.roi.h < 8) state.roi = null;
     }
+    if (oldW && oldH && (oldW !== state.procW || oldH !== state.procH)) {
+      const rx = state.procW / oldW, ry = state.procH / oldH;
+      state.exclusionRects = state.exclusionRects.map(rect => ({
+        x: rect.x * rx, y: rect.y * ry, w: rect.w * rx, h: rect.h * ry,
+      }));
+    }
+    state.exclusionRects = state.exclusionRects.map(rect => {
+      const x = Math.max(0, Math.min(state.procW, Number(rect.x) || 0));
+      const y = Math.max(0, Math.min(state.procH, Number(rect.y) || 0));
+      return {
+        x, y,
+        w: Math.max(0, Math.min(state.procW - x, Number(rect.w) || 0)),
+        h: Math.max(0, Math.min(state.procH - y, Number(rect.h) || 0)),
+      };
+    }).filter(rect => rect.w >= 2 && rect.h >= 2);
+    rebuildExclusionMap();
+    syncMaskControls();
   }
 
+  function syncThresholdControls() {
+    if (!els.enterThresh || !els.exitThresh) return;
+    els.enterThresh.value = state.enterThreshold;
+    els.exitThresh.max = String(Math.max(0, Math.min(500, state.enterThreshold - 5)));
+    els.exitThresh.value = state.exitThreshold;
+    els.enterThreshVal.textContent = String(state.enterThreshold);
+    els.exitThreshVal.textContent = String(state.exitThreshold);
+  }
   els.diffThresh.addEventListener('input', e => { state.diffThreshold = +e.target.value; els.diffThreshVal.textContent = state.diffThreshold; saveSettings(); });
-  els.enterThresh.addEventListener('input', e => { state.enterThreshold = +e.target.value; els.enterThreshVal.textContent = state.enterThreshold; saveSettings(); });
-  els.exitThresh.addEventListener('input', e => { state.exitThreshold = +e.target.value; els.exitThreshVal.textContent = state.exitThreshold; saveSettings(); });
+  els.enterThresh.addEventListener('input', e => {
+    state.enterThreshold = Math.max(20, Math.min(1000, Number(e.target.value)));
+    if (state.exitThreshold > state.enterThreshold - 5) state.exitThreshold = Math.max(0, state.enterThreshold - 5);
+    syncThresholdControls();
+    saveSettings();
+  });
+  els.exitThresh.addEventListener('input', e => {
+    state.exitThreshold = Math.max(0, Math.min(500, state.enterThreshold - 5, Number(e.target.value)));
+    syncThresholdControls();
+    saveSettings();
+  });
   els.cooldown.addEventListener('input', e => { state.cooldownMs = +e.target.value; els.cooldownVal.textContent = state.cooldownMs; saveSettings(); });
   els.procRes.addEventListener('change', () => { applyProcRes(); saveSettings(); });
   if (els.showMotion) {
@@ -1957,6 +2087,7 @@
         cooldownMs: state.cooldownMs,
         procRes: els.procRes?.value,
         roi: state.roi,
+        exclusionRects: state.exclusionRects,
         pilots: state.pilots,
         currentPilot: state.currentPilot,
         pilotColors: state.pilotColors,
@@ -2030,9 +2161,12 @@
         Object.assign(state, data.settings);
         // Apply UI
         if (data.settings.procRes) els.procRes.value = data.settings.procRes;
+        state.exclusionRects = Array.isArray(data.settings.exclusionRects) ? data.settings.exclusionRects : [];
+        state.enterThreshold = Math.max(20, Math.min(1000, Number(state.enterThreshold) || 120));
+        state.exitThreshold = Math.max(0, Math.min(500, state.enterThreshold - 5, Number(state.exitThreshold) || 0));
+        applyProcRes();
         if (els.diffThresh) { els.diffThresh.value = data.settings.diffThreshold; els.diffThreshVal.textContent = data.settings.diffThreshold; }
-        if (els.enterThresh) { els.enterThresh.value = data.settings.enterThreshold; els.enterThreshVal.textContent = data.settings.enterThreshold; }
-        if (els.exitThresh) { els.exitThresh.value = data.settings.exitThreshold; els.exitThreshVal.textContent = data.settings.exitThreshold; }
+        syncThresholdControls();
         if (els.cooldown) { els.cooldown.value = data.settings.cooldownMs; els.cooldownVal.textContent = data.settings.cooldownMs; }
         if (els.showMotion) els.showMotion.checked = data.settings.showMotion;
         if (els.audioEnabled) els.audioEnabled.checked = data.settings.audioEnabled;
@@ -2280,7 +2414,7 @@
       await enumerateCameras();
       selectActiveCamera(activeId, facing, wanted);
       setStatus(t('cam_running'));
-      els.zoneHint.style.display = 'block';
+      syncMaskControls();
       updateCamButtonText();
       els.btnStartCam.classList.remove('primary');
       startLoop();
@@ -2305,7 +2439,7 @@
     overlayCtx.clearRect(0, 0, els.overlay.width, els.overlay.height);
     updateCamButtonText();
     els.btnStartCam.classList.add('primary');
-    els.zoneHint.style.display = 'block';
+    syncMaskControls();
     setStatus(t('cam_stopped'));
   }
 
@@ -2351,6 +2485,24 @@
   els.overlay.addEventListener('touchstart', e => { e.preventDefault(); startDraw(getPos(e)); }, { passive: false });
   els.overlay.addEventListener('touchmove', e => { e.preventDefault(); moveDraw(getPos(e)); }, { passive: false });
   els.overlay.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, { passive: false });
+  if (els.btnMaskMode) {
+    els.btnMaskMode.addEventListener('click', () => {
+      state.maskDrawing = !state.maskDrawing;
+      state.maskDraft = null;
+      syncMaskControls();
+      toast(t(state.maskDrawing ? 'mask_mode_on' : 'mask_mode_off'), 2600);
+    });
+  }
+  if (els.btnClearMasks) {
+    els.btnClearMasks.addEventListener('click', () => {
+      if (!state.exclusionRects.length) return;
+      state.exclusionRects = [];
+      state.maskDraft = null;
+      rebuildExclusionMap();
+      syncMaskControls();
+      saveSettings();
+    });
+  }
 
   function startDraw(pos) {
     // Without a running camera there is no image to map the ROI onto; drawing
@@ -2358,8 +2510,11 @@
     if (!state.stream || !els.video.videoWidth) { setStatus(t('start_camera_first')); return; }
     state.drawing = true;
     state.drawStart = toProc(pos);
-    state.roi = null;
-    saveSettings();
+    if (state.maskDrawing) {
+      state.maskDraft = { x: state.drawStart.x, y: state.drawStart.y, w: 0, h: 0 };
+    } else {
+      state.roi = null;
+    }
   }
   function moveDraw(pos) {
     if (!state.drawing) return;
@@ -2368,20 +2523,34 @@
     const y0 = Math.min(state.drawStart.y, cur.y);
     const w = Math.abs(cur.x - state.drawStart.x);
     const h = Math.abs(cur.y - state.drawStart.y);
-    state.roi = { x: x0, y: y0, w: Math.max(8, w), h: Math.max(8, h) };
+    const rect = { x: x0, y: y0, w: Math.max(2, w), h: Math.max(2, h) };
+    if (state.maskDrawing) state.maskDraft = rect;
+    else state.roi = { ...rect, w: Math.max(8, w), h: Math.max(8, h) };
   }
   function endDraw() {
     if (!state.drawing) return;
     state.drawing = false;
-    if (state.roi) {
+    if (state.maskDrawing && state.maskDraft) {
+      const rect = state.maskDraft;
+      rect.x = Math.max(0, Math.min(state.procW, rect.x));
+      rect.y = Math.max(0, Math.min(state.procH, rect.y));
+      rect.w = Math.max(0, Math.min(state.procW - rect.x, rect.w));
+      rect.h = Math.max(0, Math.min(state.procH - rect.y, rect.h));
+      if (rect.w >= 2 && rect.h >= 2) {
+        state.exclusionRects.push(rect);
+        rebuildExclusionMap();
+        saveSettings();
+      }
+      state.maskDraft = null;
+    } else if (state.roi) {
       state.roi.x = Math.max(0, Math.min(state.procW - 8, state.roi.x));
       state.roi.y = Math.max(0, Math.min(state.procH - 8, state.roi.y));
       state.roi.w = Math.min(state.roi.w, state.procW - state.roi.x);
       state.roi.h = Math.min(state.roi.h, state.procH - state.roi.y);
       if (state.roi.w < 8 || state.roi.h < 8) state.roi = null;
+      saveSettings();
     }
-    els.zoneHint.style.display = state.roi ? 'none' : 'block';
-    saveSettings();
+    syncMaskControls();
   }
 
   // ---------- processing loop ----------
@@ -2484,6 +2653,7 @@
     let changed = 0;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let sumX = 0, sumY = 0;
+    let roiArea = 0;
     const mask = ensureMask();
     if (mask) mask.data.fill(0);
     if (roi) {
@@ -2492,6 +2662,8 @@
         for (let x = Math.floor(roi.x); x < Math.floor(roi.x + roi.w); x++) {
           if (x < 0 || x >= state.procW) continue;
           const idx = y * state.procW + x;
+          if (excludedPixels[idx]) continue;
+          roiArea++;
           if (Math.abs(gray[idx] - state.background[idx]) > state.diffThreshold) {
             changed++;
             sumX += x; sumY += y;
@@ -2518,11 +2690,11 @@
 
     // How much of the frame changed? Autofocus / exposure shifts change a large
     // part of the WHOLE image, while a drone can only ever cover a small blob.
-    const roiArea = roi ? Math.max(1, Math.floor(roi.w) * Math.floor(roi.h)) : 0;
     let changedAll = 0, sampled = 0;
     if (state.background) {
       const nAll = state.procW * state.procH;
       for (let i = 0; i < nAll; i += 4) { // every 4th pixel is enough and cheap
+        if (excludedPixels[i]) continue;
         sampled++;
         if (Math.abs(gray[i] - state.background[i]) > state.diffThreshold) changedAll++;
       }
@@ -2537,7 +2709,9 @@
     if (state.driftComp && state.background) {
       const bg = state.background;
       const a = 0.01;
-      for (let i = 0; i < bg.length; i++) bg[i] += (gray[i] - bg[i]) * a;
+      for (let i = 0; i < bg.length; i++) {
+        if (!excludedPixels[i]) bg[i] += (gray[i] - bg[i]) * a;
+      }
     }
 
     // state machine
@@ -2699,6 +2873,15 @@
     speak(text);
   }
 
+  function waitingSpeechAnnouncement() {
+    if (state.announceMode === 'aus') return '';
+    const pilots = state.pilots || [];
+    if (state.multiplayer && pilots.length > 1 && state.currentPilot) {
+      return t('waiting_for_pilot').replace('{name}', state.currentPilot);
+    }
+    return t('waiting_first_speech');
+  }
+
   els.btnLapManual.addEventListener('click', () => {
     if (!state.raceActive) return;
     const recorded = recordLap(performance.now());
@@ -2743,8 +2926,9 @@
   }
 
   // Arm the timer and wait for the first gate crossing to start the race.
-  function armAutoWait(requireClear) {
+  function armAutoWait(requireClear, announceSpeech) {
     if (!state.stream || state.raceActive || state.countdownActive) return;
+    const shouldAnnounce = announceSpeech !== false && !state.awaitingStart;
     unlockAudio();
     primeSpeech();
     state.armed = true;
@@ -2771,6 +2955,10 @@
     // once before the next crossing may start the following set.
     state.needsClear = !!requireClear;
     setStatus(t('waiting_first'));
+    if (shouldAnnounce) {
+      const announcement = waitingSpeechAnnouncement();
+      if (announcement) speak(announcement);
+    }
   }
 
   // Start the race at a given timestamp (used by auto-start on first crossing).
@@ -2843,11 +3031,14 @@
       state.raceElapsed,
       state.laps
     );
+    const waitingAnnouncement = state.autoStart && state.stream
+      ? waitingSpeechAnnouncement()
+      : '';
     if (state.announceMode !== 'aus') {
-      speak([resultMessage, pilotChange && pilotChange.announcement].filter(Boolean).join(' '));
+      speak([resultMessage, pilotChange && pilotChange.announcement, waitingAnnouncement].filter(Boolean).join(' '));
     }
     if (state.autoStart && state.stream) {
-      armAutoWait(true);
+      armAutoWait(true, false);
       setStatus(
         (set ? (t('set_done') + ' · ' + t('set_word') + ' ' + set.n) : t('race_stopped')) +
         (pilotChange ? ' · ' + pilotChange.announcement : '') + ' · ' + t('waiting_first')
@@ -2890,11 +3081,14 @@
     const pilotChange = set ? advancePilotAfterSet(set.pilot) : null;
     const resultMessage = raceResultAnnouncement(t('set_end'), state.raceElapsed, state.laps);
     soundStop();
+    const waitingAnnouncement = state.autoStart && state.stream
+      ? waitingSpeechAnnouncement()
+      : '';
     if (state.announceMode !== 'aus') {
-      speak([resultMessage, pilotChange && pilotChange.announcement].filter(Boolean).join(' '));
+      speak([resultMessage, pilotChange && pilotChange.announcement, waitingAnnouncement].filter(Boolean).join(' '));
     }
     if (state.autoStart && state.stream) {
-      armAutoWait(true);
+      armAutoWait(true, false);
       setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : '') +
         (pilotChange ? ' · ' + pilotChange.announcement : '') + ' · ' + t('waiting_first'));
     } else {
@@ -3100,7 +3294,7 @@
     els.setPilotFilter.value = cur;
     if (els.btnExportAll) els.btnExportAll.textContent = state.setFilter ? t('export_filtered') : t('export_all');
   }
-  // Racing comparison for the timer and Piloten screens.
+  // The timer keeps an overall race-history comparison; pilot profiles compare track records.
   function pilotCompareHTML(titleKey) {
     if (!state.sets.length) return '';
     const names = [...new Set([
@@ -3128,6 +3322,61 @@
       `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
   }
 
+  let pilotCompareTrackId = '';
+  function pilotTrackCompareHTML() {
+    if (!state.tracks.length) return '';
+    let track = state.tracks.find(item => item.id === pilotCompareTrackId);
+    if (!track) {
+      track = state.tracks.find(item => item.id === state.activeTrackId) || state.tracks[0];
+      pilotCompareTrackId = track.id;
+    }
+    const options = state.tracks.map(item =>
+      `<option value="${esc(item.id)}"${item.id === track.id ? ' selected' : ''}>${esc(item.name)}</option>`
+    ).join('');
+    const records = trackRecords([], track.id);
+    const names = [...new Set([
+      ...(state.pilots || []),
+      ...records.pilots.map(record => record.pilot),
+    ])];
+    const recordByPilot = new Map(records.pilots.map(record => [record.pilot, record]));
+    names.sort((a, b) => {
+      const aBest = recordByPilot.get(a)?.bestLap;
+      const bBest = recordByPilot.get(b)?.bestLap;
+      if (aBest === null || aBest === undefined) return bBest === null || bBest === undefined
+        ? pilotLabel(a).localeCompare(pilotLabel(b))
+        : 1;
+      if (bBest === null || bBest === undefined) return -1;
+      return aBest - bBest;
+    });
+    const bestLap = records.bestLap?.duration ?? null;
+    const head =
+      `<tr><th>${t('th_pilot')}</th><th>${t('pilot_track_best_lap')}</th>` +
+      records.bestSets.map(set =>
+        `<th>${esc(t('pilot_track_best_set').replace('{laps}', set.lapCount))}</th>`
+      ).join('') + '</tr>';
+    const body = names.map(name => {
+      const record = recordByPilot.get(name);
+      const pilotSets = new Map((record?.bestSets || []).map(set => [set.lapCount, set.totalMs]));
+      const lap = record?.bestLap ?? null;
+      const cells = [
+        `<td><i class="dot" style="background:${pilotColor(name)}"></i>${esc(pilotLabel(name))}</td>`,
+        `<td class="num${lap !== null && lap === bestLap ? ' win' : ''}">${lap === null ? '–' : fmt(lap)}</td>`,
+        ...records.bestSets.map(set => {
+          const value = pilotSets.get(set.lapCount);
+          return `<td class="num${value !== undefined && value === set.totalMs ? ' win' : ''}">${value === undefined ? '–' : fmt(value)}</td>`;
+        }),
+      ];
+      return `<tr>${cells.join('')}</tr>`;
+    }).join('');
+    const table = records.pilots.length
+      ? `<div class="pilot-track-compare-table"><table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>` +
+        `<p class="hint">${t('pilot_track_compare_hint')}</p>`
+      : `<p class="hint">${t('pilot_track_compare_empty')}</p>`;
+    return `<section class="pilot-track-comparison"><h4>${t('pilot_track_compare_title')}</h4>` +
+      `<label class="pilot-track-compare-select"><span>${t('pilot_track_select')}</span>` +
+      `<select id="pilotCompareTrack" aria-label="${t('pilot_track_select')}">${options}</select></label>${table}</section>`;
+  }
+
   // K.W.A.D. comparison belongs to the Piloten screen, not the timer.
   function pilotKwadCompareHTML() {
     const kwadPilots = [...new Set([...(state.pilots || []), ...Object.keys(kwadPlayerStats), ...Object.keys(kwadPlayerWins)])]
@@ -3151,7 +3400,12 @@
   function renderPilotCompare() {
     if (els.pilotCompare) els.pilotCompare.innerHTML = pilotCompareHTML();
     if (els.pilotsScreenCompare) {
-      els.pilotsScreenCompare.innerHTML = [pilotCompareHTML('pilot_race_compare_title'), pilotKwadCompareHTML()].filter(Boolean).join('');
+      els.pilotsScreenCompare.innerHTML = [pilotTrackCompareHTML(), pilotKwadCompareHTML()].filter(Boolean).join('');
+      const trackSelect = els.pilotsScreenCompare.querySelector('#pilotCompareTrack');
+      if (trackSelect) trackSelect.addEventListener('change', () => {
+        pilotCompareTrackId = trackSelect.value;
+        renderPilotCompare();
+      });
     }
   }
 
@@ -3462,11 +3716,45 @@
     };
   }
 
-  function pilotRaceStatPanel(name) {
-    const totals = pilotRaceTotals(name);
+  function pilotTrackStats(name) {
+    const tracks = [];
+    state.tracks.forEach(track => {
+      const record = (track.records || []).find(item => item && item.pilot === name);
+      if (!record) return;
+      const bestLap = record.bestLapMs === null || record.bestLapMs === undefined
+        ? null
+        : Number(record.bestLapMs);
+      const bestSets = (Array.isArray(record.bestSets) ? record.bestSets : [])
+        .filter(item => item && Number.isInteger(Number(item.lapCount))
+          && Number(item.lapCount) >= 1 && Number(item.lapCount) <= 10
+          && Number.isFinite(Number(item.totalMs)))
+        .map(item => ({ lapCount: Number(item.lapCount), totalMs: Number(item.totalMs) }))
+        .sort((a, b) => a.lapCount - b.lapCount);
+      if (!Number.isFinite(bestLap) && !bestSets.length) return;
+      tracks.push({
+        id: track.id,
+        name: track.name,
+        bestLap: Number.isFinite(bestLap) ? bestLap : null,
+        bestSets,
+      });
+    });
+    const rankedSets = state.sets.filter(set => {
+      const lapCount = Number.isInteger(set.lapCount) && set.lapCount >= 0
+        ? set.lapCount
+        : (set.laps || []).length;
+      return (set.pilot || '') === name
+        && set.ranked !== false
+        && state.tracks.some(track => track.id === set.trackId)
+        && lapCount >= 1 && lapCount <= 10;
+    }).length;
+    return { tracks, rankedSets };
+  }
+
+  function pilotTrackStatPanel(name) {
+    const stats = pilotTrackStats(name);
     const panel = document.createElement('details');
     panel.className = 'kwad-stat-panel';
-    const panelKey = 'race-profile:' + name;
+    const panelKey = 'track-profile:' + name;
     if (!kwadStatClosed.has(panelKey)) panel.open = true;
     panel.addEventListener('toggle', () => {
       if (panel.isConnected === false) return;
@@ -3477,31 +3765,48 @@
     head.className = 'kwad-stat-head';
     const title = document.createElement('span');
     title.className = 'kwad-stat-name';
-    title.textContent = t('race_stats');
+    title.textContent = t('pilot_track_stats');
     head.appendChild(title);
     const folded = document.createElement('span');
     folded.className = 'kwad-stat-folded';
-    folded.textContent = totals.laps
-      ? `${totals.sets} ${t('race_stats_sets')} · ${totals.laps} ${t('race_stats_laps')} · ${t('race_stats_best')} ${fmt(totals.best)}`
-      : t('race_stats_empty');
+    folded.textContent = `${stats.tracks.length} ${t('pilot_tracks_with_records')} · ${stats.rankedSets} ${t('pilot_ranked_sets')}`;
     head.appendChild(folded);
     panel.appendChild(head);
 
     const summary = document.createElement('div');
-    summary.className = 'kwad-stat-summary pilot-race-stat-summary';
-    summary.appendChild(kwadStatCell(t('race_stats_sets'), String(totals.sets)));
-    summary.appendChild(kwadStatCell(t('race_stats_laps'), String(totals.laps)));
-    summary.appendChild(kwadStatCell(t('race_stats_best'), totals.best === null ? '–' : fmt(totals.best)));
-    summary.appendChild(kwadStatCell(t('race_stats_avg'), totals.laps ? fmt(totals.avg) : '–'));
-    summary.appendChild(kwadStatCell(t('race_stats_total'), totals.laps ? fmt(totals.total) : '–'));
+    summary.className = 'kwad-stat-summary pilot-track-stat-summary';
+    summary.appendChild(kwadStatCell(t('pilot_tracks_with_records'), String(stats.tracks.length)));
+    summary.appendChild(kwadStatCell(t('pilot_ranked_sets'), String(stats.rankedSets)));
     panel.appendChild(summary);
 
-    if (!totals.laps) {
+    if (!stats.tracks.length) {
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = t('race_stats_empty');
+      hint.textContent = t('pilot_track_empty');
       panel.appendChild(hint);
+      return panel;
     }
+
+    const trackList = document.createElement('div');
+    trackList.className = 'pilot-track-record-list';
+    stats.tracks.forEach(track => {
+      const item = document.createElement('section');
+      item.className = 'pilot-track-record';
+      const trackName = document.createElement('h5');
+      trackName.textContent = track.name;
+      item.appendChild(trackName);
+      const records = document.createElement('div');
+      records.className = 'track-record-overall';
+      if (track.bestLap !== null) appendTrackRecord(records, t('pilot_track_best_lap'), fmt(track.bestLap));
+      track.bestSets.forEach(set => appendTrackRecord(
+        records,
+        t('pilot_track_best_set').replace('{laps}', set.lapCount),
+        fmt(set.totalMs)
+      ));
+      item.appendChild(records);
+      trackList.appendChild(item);
+    });
+    panel.appendChild(trackList);
     return panel;
   }
 
@@ -3551,9 +3856,8 @@
     return true;
   }
 
-  // Dedicated "Piloten" screen: every profile expands to show its racing and
-  // K.W.A.D. statistics alongside profile-local management tools.
-  // followed by the comparison table and a CSV export.
+  // Dedicated "Piloten" screen: every profile expands to show track records
+  // and K.W.A.D. statistics alongside profile-local management tools.
   function renderPilotsScreen() {
     if (!els.pilotsScreenList) return;
     const list = els.pilotsScreenList;
@@ -3573,7 +3877,7 @@
       const active = state.currentPilot === name;
       const col = pilotColor(name);
       const totals = pilotStatTotals(name);
-      const raceTotals = pilotRaceTotals(name);
+      const trackStats = pilotTrackStats(name);
 
       const card = document.createElement('details');
       card.className = 'pilot-profile' + (active ? ' is-active' : '');
@@ -3610,15 +3914,31 @@
 
       // Show game wins alongside attempt volume and success rate.
       const meta = document.createElement('span');
-      meta.className = 'pilot-profile-meta' + (totals.attempted || raceTotals.laps ? '' : ' is-empty');
+      meta.className = 'pilot-profile-meta' + (totals.attempted || trackStats.tracks.length || trackStats.rankedSets ? '' : ' is-empty');
       meta.textContent = [
-        raceTotals.laps
-          ? `${t('race_stats_best')} ${fmt(raceTotals.best)} · ${raceTotals.laps} ${t('race_stats_laps')}`
+        trackStats.tracks.length || trackStats.rankedSets
+          ? `${trackStats.tracks.length} ${t('pilot_tracks_with_records')} · ${trackStats.rankedSets} ${t('pilot_ranked_sets')}`
           : '',
         totals.wins ? t('kwad_stats_won') + ' ' + totals.wins : '',
         totals.attempted ? t('kwad_stats_attempted') + ' ' + totals.attempted + ' · ' + t('kwad_stats_rate') + ' ' + totals.rate : '',
       ].filter(Boolean).join(' · ') || t('kwad_stats_empty');
       sum.appendChild(meta);
+
+      const activate = document.createElement('button');
+      activate.type = 'button';
+      activate.className = 'pilot-activate';
+      activate.textContent = t(active ? 'pilot_is_active' : 'pilot_set_active');
+      activate.disabled = active || !!pilotEditingName;
+      activate.setAttribute('aria-label', active ? `${t('pilot_is_active')}: ${name}` : `${t('pilot_set_active')}: ${name}`);
+      activate.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (active || pilotEditingName || !state.pilots.includes(name)) return;
+        state.currentPilot = name;
+        saveSettings();
+        renderPilots();
+      });
+      sum.appendChild(activate);
 
       card.appendChild(sum);
 
@@ -3627,7 +3947,7 @@
 
       const stats = document.createElement('div');
       stats.className = 'pilot-profile-stats';
-      stats.appendChild(pilotRaceStatPanel(name));
+      stats.appendChild(pilotTrackStatPanel(name));
       stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}, 'profile:' + name, totals.wins));
       body.appendChild(stats);
 
@@ -3658,8 +3978,6 @@
         if (!editing) {
           pilotEditingName = name;
           pilotOpen.add(name);
-          state.currentPilot = name;
-          saveSettings();
           renderPilots();
           const nextInput = els.pilotsScreenList.querySelector('.pilot-profile.is-editing .pilot-rename');
           if (nextInput) nextInput.focus();
@@ -3679,7 +3997,6 @@
         }
         if (next !== name && !renamePilot(name, next)) return;
         state.pilotColors[next] = colorInput.value;
-        state.currentPilot = next;
         pilotEditingName = '';
         pilotOpen.add(next);
         saveSettings();
@@ -4283,6 +4600,7 @@
     // The topbar gear is the app-settings gear for the home screen only.
     if (els.btnSettings) els.btnSettings.hidden = true;
     if (typeof renderPilotsScreen === 'function') renderPilotsScreen();
+    renderPilotCompare();
     els.pilotsScreen.scrollTop = 0;
   }
   if (els.tilePilots) els.tilePilots.addEventListener('click', openPilots);
@@ -4386,6 +4704,26 @@
       overlayCtx.lineWidth = 1.5;
       overlayCtx.stroke();
     }
+
+    const exclusionRects = state.maskDraft
+      ? [...state.exclusionRects, state.maskDraft]
+      : state.exclusionRects;
+    exclusionRects.forEach((rect, index) => {
+      const x = X(rect.x), y = Y(rect.y);
+      const width = rect.w * v.sx, height = rect.h * v.sy;
+      overlayCtx.fillStyle = 'rgba(255, 77, 77, 0.28)';
+      overlayCtx.fillRect(x, y, width, height);
+      overlayCtx.strokeStyle = '#ff4d4d';
+      overlayCtx.lineWidth = 2;
+      overlayCtx.setLineDash([5, 3]);
+      overlayCtx.strokeRect(x, y, width, height);
+      overlayCtx.setLineDash([]);
+      if (width > 36 && height > 18) {
+        overlayCtx.fillStyle = '#fff';
+        overlayCtx.font = 'bold 11px sans-serif';
+        overlayCtx.fillText(t('mask_ignored'), x + 4, y + 13);
+      }
+    });
 
     if (r) {
       // ROI border on top

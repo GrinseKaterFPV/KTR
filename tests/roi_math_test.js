@@ -31,18 +31,21 @@ const sandbox = {
     zoneHint: { style: {} },
   },
   procCanvas: { width: 0, height: 0 },
-  state: { procW: 320, procH: 240, roi: null, view: null },
+  state: { procW: 320, procH: 240, roi: null, exclusionRects: [], view: null },
   saveSettings: () => {},
+  rebuildExclusionMap: () => {},
+  syncMaskControls: () => {},
 };
 
 const code = [
   extract('computeView'), extract('currentView'), extract('toProc'), extract('applyProcRes'), extract('endDraw'),
 ].join('\n');
 const factory = new Function(
-  'els', 'procCanvas', 'state', 'saveSettings',
+  'els', 'procCanvas', 'state', 'saveSettings', 'rebuildExclusionMap', 'syncMaskControls',
   code + '\nreturn { computeView, currentView, toProc, applyProcRes, endDraw };'
 );
-const api = factory(sandbox.els, sandbox.procCanvas, sandbox.state, sandbox.saveSettings);
+const api = factory(sandbox.els, sandbox.procCanvas, sandbox.state, sandbox.saveSettings,
+  sandbox.rebuildExclusionMap, sandbox.syncMaskControls);
 const { state, els } = sandbox;
 // The app finalises a drawn ROI through endDraw() (clamping it to the image),
 // so the test must do the same instead of testing a raw hand-made rectangle.
@@ -79,6 +82,13 @@ state.roi = { x: Math.min(a0.x, a1.x), y: Math.min(a0.y, a1.y), w: Math.abs(a1.x
 finalizeRoi();
 const before = screenOfRoi();
 const preFixRoi = Object.assign({}, state.roi);   // same ROI, pre-rescale
+state.exclusionRects = [{ x: 20, y: 30, w: 40, h: 25 }];
+const beforeMask = {
+  x: api.currentView().dx + state.exclusionRects[0].x * api.currentView().sx,
+  y: api.currentView().dy + state.exclusionRects[0].y * api.currentView().sy,
+  w: state.exclusionRects[0].w * api.currentView().sx,
+  h: state.exclusionRects[0].h * api.currentView().sy,
+};
 check('A: drawn rect maps back onto the image', sameRect(before, expectedRect(100, 150, 260, 400)));
 
 els.procRes.value = '480x360';
@@ -86,6 +96,14 @@ api.applyProcRes();
 const after = screenOfRoi();
 check('A: 320x240 -> 480x360 keeps the same screen rect',
   near(after.x, before.x) && near(after.y, before.y) && near(after.w, before.w) && near(after.h, before.h));
+const scaledMask = state.exclusionRects[0];
+const afterMask = {
+  x: api.currentView().dx + scaledMask.x * api.currentView().sx,
+  y: api.currentView().dy + scaledMask.y * api.currentView().sy,
+  w: scaledMask.w * api.currentView().sx,
+  h: scaledMask.h * api.currentView().sy,
+};
+check('A: exclusion mask keeps the same screen rect when processing resolution changes', sameRect(beforeMask, afterMask));
 
 els.procRes.value = '320x240';
 api.applyProcRes();

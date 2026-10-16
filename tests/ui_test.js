@@ -54,6 +54,21 @@ check('C2: camera overlay carries the Kamera group', cameraOverlay.includes('dat
 check('C3: detection fields moved to camera overlay',
   ['diffThresh', 'enterThresh', 'exitThresh', 'cooldown', 'procRes', 'directionSelect', 'driftComp', 'camLock']
     .every(id => cameraOverlay.includes('id="' + id + '"')));
+check('C3a: camera threshold sliders have a tighter range and enforce hysteresis',
+  /id="enterThresh" min="20" max="1000" step="5"/.test(html)
+  && /id="exitThresh" min="0" max="500" step="5"/.test(html)
+  && /state\.enterThreshold - 5/.test(app)
+  && /state\.exitThreshold = Math\.max\(0, Math\.min\(500, state\.enterThreshold - 5/.test(app));
+check('C3b: detection guide explains the ROI, thresholds, timing, direction and resolution',
+  ['hint_roi', 'hint_mask', 'hint_diff', 'hint_enter_exit', 'hint_cooldown', 'hint_direction', 'hint_resolution', 'hint_calibration']
+    .every(key => cameraOverlay.includes(`data-i18n="${key}"`))
+  && ['Enter-Schwelle (Pixel)', 'Exit-Schwelle (Pixel)'].every(text => html.includes(text)));
+check('C3c: exclusion rectangles can be drawn, cleared and persist in settings and backups',
+  html.includes('id="btnMaskMode"') && html.includes('id="btnClearMasks"')
+  && /exclusionRects: state\.exclusionRects/.test(app)
+  && /state\.exclusionRects = Array\.isArray\(data\.settings\.exclusionRects\)/.test(app)
+  && /if \(excludedPixels\[idx\]\) continue;/.test(app)
+  && /if \(!excludedPixels\[i\]\) bg\[i\]/.test(app));
 check('C4: camera gear sits inside the camera summary (stays visible when collapsed)',
   /<summary class="card-summary">[^]*?id="btnCameraSettings"[^]*?<\/summary>/.test(html));
 check('C5: camera gear opens the camera overlay',
@@ -139,10 +154,12 @@ check('P4: the CSV export is inside the pilot management section, before the sta
 })());
 check('P5: the tile opens the Piloten screen',
   /els\.tilePilots\.addEventListener\('click', openPilots\)/.test(app));
-check('P6: the racing comparison is shared with the sets card and Piloten screen',
+check('P6: race comparison remains in the sets card and pilot comparison is track-specific',
   /function pilotCompareHTML\(titleKey\)/.test(app)
   && /if \(els\.pilotCompare\) els\.pilotCompare\.innerHTML = pilotCompareHTML\(\)/.test(app)
-  && /els\.pilotsScreenCompare\.innerHTML = \[pilotCompareHTML\('pilot_race_compare_title'\), pilotKwadCompareHTML\(\)\]/.test(app));
+  && /function pilotTrackCompareHTML\(\)/.test(app)
+  && /els\.pilotsScreenCompare\.innerHTML = \[pilotTrackCompareHTML\(\), pilotKwadCompareHTML\(\)\]/.test(app)
+  && /pilotCompareTrackId = trackSelect\.value;\s*renderPilotCompare\(\);/.test(app));
 check('P7: openHome / closeHome hide the Piloten screen',
   (app.match(/els\.pilotsScreen\) els\.pilotsScreen\.hidden = true/g) || []).length >= 3);
 
@@ -153,6 +170,10 @@ check('P8: every profile is a collapsible card with a leading summary',
   && /'pilot-profile-summary'/.test(app));
 check('P9: an open profile shows the statistics of that player',
   /'pilot-profile-stats'/.test(app)
+  && /function pilotTrackStatPanel\(name\)/.test(app)
+  && /stats\.appendChild\(pilotTrackStatPanel\(name\)\)/.test(app)
+  && /pilot_tracks_with_records/.test(app) && /pilot_ranked_sets/.test(app)
+  && /pilot_track_best_set/.test(app)
   && /kwadStatPanel\(t\('kwad_stats'\)/.test(app)
   && /kwadPlayerStats\[name\] \|\| \{\}/.test(app)
   && /totals\.wins/.test(app));
@@ -167,9 +188,17 @@ check('P12: deleting a profile asks first and takes its statistics with it',
   && /kwadDropProfileStats\(name\)/.test(app));
 check('P13: the statistics can be reset from inside the profile',
   /'pilot-stats-reset'/.test(app) && /askConfirm\(t\('pilot_reset_confirm'\)/.test(app));
-check('P14: the active star picks the pilot without rebuilding the list',
-  !/'pilot-activate'/.test(app)
-  && /pilotEditingName = name;[\s\S]*?state\.currentPilot = name;/.test(app)
+const pilotEditStart = app.indexOf('const applyChanges = () => {');
+const pilotEditEnd = app.indexOf('renameBtn.addEventListener', pilotEditStart);
+const pilotEditHandler = app.slice(pilotEditStart, pilotEditEnd);
+check('P14: a profile can be selected as active separately from editing it',
+  /className = 'pilot-activate'/.test(app)
+  && /pilot_set_active/.test(app) && /pilot_is_active/.test(app)
+  && /sum\.appendChild\(activate\);[\s\S]*?card\.appendChild\(sum\);/.test(app)
+  && /pilot-profile-summary > \.pilot-activate/.test(css)
+  && /e\.preventDefault\(\);\s*e\.stopPropagation\(\);/.test(app)
+  && /state\.currentPilot = name;[\s\S]*?saveSettings\(\);[\s\S]*?renderPilots\(\);/.test(app)
+  && !/state\.currentPilot/.test(pilotEditHandler)
   && /renameBtn\.textContent = t\(editing \? 'pilot_apply' : 'pilot_edit'\)/.test(app)
   && /renameBtn\.disabled = !!pilotEditingName && !editing/.test(app)
   && /input\.disabled = !editing/.test(app)
@@ -263,6 +292,8 @@ check('W2: the pilot row wraps instead of overflowing',
   /\.pilot-row \{ display: flex; flex-wrap: wrap; gap: 8px; \}/.test(css));
 check('W3: the "Pilot speichern" button stays on one line and shrinks last',
   /\.pilot-row button \{ flex: 0 1 auto; white-space: nowrap; \}/.test(css));
+check('W3a: the pilot colour picker matches the name and save control height',
+  /\.pilot-row input\[type="color"\] \{[^}]*height: 43px;/.test(css));
 check('W4: the K.W.A.D add row gets the same treatment (min-width: 0 + wrap)',
   /\.kwad-add \{ display: flex; flex-wrap: wrap; gap: 8px; \}/.test(css)
   && /\.kwad-add input \{ flex: 1 1 9rem; min-width: 0;/.test(css));
@@ -490,19 +521,23 @@ check('S30: K.W.A.D. statistics are shown in the KWAD screen and pilot profiles'
   /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total', totalWins\)/.test(app)
   && /kwadStatPanel\(nm, color, kwadPlayerStats\[nm\] \|\| \{\}, nm, kwadPlayerWins\[nm\] \|\| 0\)/.test(app)
   && /kwadStatPanel\(t\('kwad_stats'\), '', kwadPlayerStats\[name\] \|\| \{\}, 'profile:' \+ name, totals\.wins\)/.test(app));
-check('S30a: the timer comparison is racing-only while the Piloten screen also shows K.W.A.D.',
+check('S30a: the timer comparison is racing-only while the Piloten screen compares track and K.W.A.D. records',
   /if \(els\.pilotCompare\) els\.pilotCompare\.innerHTML = pilotCompareHTML\(\)/.test(app)
-  && /els\.pilotsScreenCompare\.innerHTML = \[pilotCompareHTML\('pilot_race_compare_title'\), pilotKwadCompareHTML\(\)\]/.test(app));
-check('S30b: each pilot profile shows saved racing totals and an empty-state hint',
-  /function pilotRaceTotals\(name\)/.test(app)
-  && /sets: sets\.length,\s*laps: laps\.length/.test(app)
-  && /function pilotRaceStatPanel\(name\)/.test(app)
-  && /pilotRaceStatPanel\(name\)/.test(app)
-  && /t\('race_stats_best'\)/.test(app)
-  && /t\('race_stats_empty'\)/.test(app));
-check('S30c: the Piloten menu labels its racing comparison as race data statistics',
-  /pilot_race_compare_title: 'Renndaten-Statistik'/.test(app)
-  && /pilot_race_compare_title: 'Race data statistics'/.test(app));
+  && /els\.pilotsScreenCompare\.innerHTML = \[pilotTrackCompareHTML\(\), pilotKwadCompareHTML\(\)\]/.test(app));
+check('S30b: each pilot profile shows per-track bests and meaningful activity totals',
+  /function pilotTrackStats\(name\)/.test(app)
+  && /function pilotTrackStatPanel\(name\)/.test(app)
+  && /pilotTrackStatPanel\(name\)/.test(app)
+  && /pilot_tracks_with_records/.test(app)
+  && /pilot_ranked_sets/.test(app)
+  && /pilot_track_empty/.test(app)
+  && /pilot_track_best_lap/.test(app)
+  && /pilot_track_best_set/.test(app));
+check('S30c: track comparisons select one track and use separate columns per lap count',
+  /id="pilotCompareTrack"/.test(app)
+  && /records\.bestSets\.map\(set =>/.test(app)
+  && /pilot_track_compare_hint/.test(app)
+  && /pilotCompareTrackId = trackSelect\.value/.test(app));
 check('S30d: the timer provides an undo-lap control, disabled without an active lap',
   /id="btnUndoLap"[^>]*data-i18n="undo_lap"[^>]*disabled/.test(html)
   && /els\.btnUndoLap\.addEventListener\('click', undoLap\)/.test(app)
@@ -510,8 +545,8 @@ check('S30d: the timer provides an undo-lap control, disabled without an active 
 check('S30e: race end announcements include total, average lap and fastest lap in order',
   /function raceResultAnnouncement\(prefix, totalMs, laps\)/.test(app)
   && /t\('lap_average'\)[\s\S]*t\('fastest_lap'\)/.test(app)
-  && /const resultMessage = raceResultAnnouncement\([\s\S]*state\.laps\s*\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app)
-  && /const resultMessage = raceResultAnnouncement\(t\('set_end'\), state\.raceElapsed, state\.laps\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app));
+  && /const resultMessage = raceResultAnnouncement\([\s\S]*state\.laps\s*\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement, waitingAnnouncement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app)
+  && /const resultMessage = raceResultAnnouncement\(t\('set_end'\), state\.raceElapsed, state\.laps\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement, waitingAnnouncement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app));
 check('S30f: timer and countdown keep updating without camera frames',
   /setInterval\(\(\) => \{\s*if \(!state\.countdownActive && !state\.raceActive\) return;\s*const now = performance\.now\(\);\s*updateCountdown\(now\);\s*updateTimers\(\);\s*\}, 50\)/.test(app));
 check('S30g: each completed set advances and announces the next pilot',
@@ -665,10 +700,10 @@ check('P17: the pilot colour is adjustable later from inside the profile',
   && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v69'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.30\.6'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v71'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.30\.8'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.30\.6"/.test(pkg));
+  /"version": "0\.30\.8"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

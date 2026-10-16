@@ -264,8 +264,8 @@ button, input, select { font: inherit; }
 }
 .kwad-stat-cell b { font-size: 16px; color: var(--accent); }
 .kwad-stat-cell span { font-size: 10px; text-transform: uppercase; color: var(--muted); text-align: center; }
-.pilot-race-stat-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.pilot-race-stat-summary .kwad-stat-cell { min-width: 0; padding: 6px 3px; }
+.pilot-track-stat-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pilot-track-stat-summary .kwad-stat-cell { min-width: 0; padding: 6px 3px; }
 .kwad-stat-rows { display: flex; flex-direction: column; gap: 4px; }
 .kwad-stat-row {
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center;
@@ -365,6 +365,9 @@ button, input, select { font: inherit; }
   text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pilot-profile-meta.is-empty { opacity: .75; }
+.pilot-profile-summary > .pilot-activate {
+  flex: 0 0 auto; padding: 5px 8px; font-size: 11px; white-space: nowrap;
+}
 .pilot-profile-body {
   padding: 0 10px 10px; border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 10px;
@@ -399,7 +402,7 @@ button, input, select { font: inherit; }
   .status { font-size: 12px; }
   .home-logo { width: 88px; height: 88px; }
   .home-app { font-size: 23px; }
-  .pilot-race-stat-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pilot-track-stat-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .layout {
@@ -484,6 +487,11 @@ summary.card-summary::marker {
   background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 8px;
   font-size: 12px; color: var(--muted); text-align: center;
 }
+.video-actions button.is-active { border-color: var(--danger); background: rgba(255, 77, 77, .18); color: #fff; }
+.detection-guide { line-height: 1.4; }
+.detection-guide strong { display: block; margin-bottom: 4px; color: var(--text); }
+.detection-guide ul { margin: 0; padding-left: 18px; }
+.detection-guide li + li { margin-top: 3px; }
 
 .video-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
 .video-actions select { flex: 1; min-width: 120px; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
@@ -520,7 +528,7 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
 .pilot-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .pilot-row input { flex: 1 1 9rem; min-width: 0; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
-.pilot-row input[type="color"] { flex: 0 0 46px; width: 46px; min-width: 46px; padding: 2px; cursor: pointer; }
+.pilot-row input[type="color"] { flex: 0 0 46px; width: 46px; min-width: 46px; height: 43px; padding: 2px; cursor: pointer; }
 .pilot-row button { flex: 0 1 auto; white-space: nowrap; }
 .pilots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pilot-chip {
@@ -544,6 +552,22 @@ button.btn-danger { background: transparent; color: var(--danger); border-color:
 .compare-table td.num { font-family: monospace; }
 .compare-table td.win { color: var(--accent); font-weight: 700; }
 .compare-table th { color: var(--muted); font-weight: 600; }
+.pilot-track-comparison { margin-bottom: 16px; }
+.pilot-track-comparison h4 { margin: 0 0 8px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.pilot-track-compare-select {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 6px 10px; background: var(--elev); border: 1px solid var(--border); border-radius: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.pilot-track-compare-select select {
+  flex: 1; min-width: 0; max-width: 70%; padding: 5px 8px;
+  background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+}
+.pilot-track-compare-table { overflow-x: auto; }
+.pilot-track-compare-table .compare-table { min-width: 380px; }
+.pilot-track-record-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.pilot-track-record { padding: 8px; background: var(--elev); border: 1px solid var(--border); border-radius: 10px; }
+.pilot-track-record h5 { margin: 0 0 6px; font-size: 13px; }
 .set-item { border: 1px solid var(--border); border-radius: 10px; background: var(--elev); overflow: hidden; }
 .set-summary { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; font-size: 13px; }
 .set-summary .set-name { font-weight: 700; }

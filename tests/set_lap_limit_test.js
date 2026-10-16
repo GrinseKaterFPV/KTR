@@ -39,7 +39,7 @@ check('S6: the lap limit is checked from both auto and manual lap paths',
   (src.match(/if \(setLapLimitReached\(recorded\)\) \{\s*finishAutoStint\(\);/g) || []).length === 2
   && /if \(state\.raceActive && v > 0 && state\.laps\.length >= v\) finishAutoStint\(\)/.test(src));
 check('S7: without a camera, finishing a set does not wait for another crossing',
-  /if \(state\.autoStart && state\.stream\) \{\s*armAutoWait\(true\)/.test(src));
+  /if \(state\.autoStart && state\.stream\) \{\s*armAutoWait\(true, false\)/.test(src));
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

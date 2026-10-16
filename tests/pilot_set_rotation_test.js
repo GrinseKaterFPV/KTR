@@ -58,8 +58,8 @@ check('P7: both manual and automatic set completion rotate only after saving the
   /const set = saveStint\(\);\s*const pilotChange = set \? advancePilotAfterSet\(set\.pilot\) : null;/.test(stopBody)
   && /const set = saveStint\(\);\s*const pilotChange = set \? advancePilotAfterSet\(set\.pilot\) : null;/.test(finishBody));
 check('P8: each announcement puts the race results before the next pilot announcement',
-  /speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(stopBody)
-  && /speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(finishBody));
+  /speak\(\[resultMessage, pilotChange && pilotChange\.announcement, waitingAnnouncement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(stopBody)
+  && /speak\(\[resultMessage, pilotChange && pilotChange\.announcement, waitingAnnouncement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(finishBody));
 check('P9: end-of-round announcements are localized',
   /pilot_next_set: 'Nächster Pilot: \{name\}\.'/u.test(src)
   && /pilot_cycle_done: 'Alle Piloten waren dran\. Neue Runde: \{name\} beginnt\.'/u.test(src)
