@@ -133,8 +133,8 @@
 
   <main class="layout">
     <details class="video-card card-collapsible" data-sec="camera" open>
+      <summary class="card-summary" data-i18n="sec_camera">Kamera</summary>
       <div class="card-header">
-        <summary class="card-summary" data-i18n="sec_camera">Kamera</summary>
         <button id="btnCameraSettings" class="gear-btn" type="button" data-i18n-title="settings_camera" data-i18n-aria="settings_camera" title="Kamera-Einstellungen" aria-label="Kamera-Einstellungen">⚙</button>
       </div>
       <div class="card-body">
@@ -163,8 +163,8 @@
     </details>
 
     <details class="timer-card card-collapsible" data-sec="timer" open>
+      <summary class="card-summary" data-i18n="sec_timer">Timer<span class="summary-value" id="timerSummary">00:00.000</span></summary>
       <div class="card-header">
-        <summary class="card-summary" data-i18n="sec_timer">Timer<span class="summary-value" id="timerSummary">00:00.000</span></summary>
         <button id="btnTimerSettings" class="gear-btn" type="button" data-i18n-title="settings_timer" data-i18n-aria="settings_timer" title="Timer-Einstellungen" aria-label="Timer-Einstellungen">⚙</button>
       </div>
       <div class="card-body">
@@ -399,11 +399,6 @@
         </details>
       </div>
     </div>
-  </main>
-
-  </div>
-    </div>
-  </main>
 
   <div class="settings-overlay" id="kwadSettingsOverlay" hidden>
     <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="kwad_settings" aria-label="KWAD Einstellungen">
@@ -446,6 +441,7 @@
       </details>
     </div>
   </div>
+  </main>
 
   <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
