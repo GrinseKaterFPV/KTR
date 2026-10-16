@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-10-16
+### Changed
+- Section headers: the ▾/▴ collapse caret and the context gear (plus the CSV/„Alle exportieren“ buttons) are now right-aligned inside the summary row, while the title stays on the left. The row is full width, so the caret ends up flush in the cell's right corner — same look as the settings groups
+
 ## [0.18.1] - 2026-10-16
 ### Fixed
 - The context gear buttons (camera/timer settings) stayed hidden once a section was collapsed. They now live inside the `<summary>` — like the CSV/„Alle exportieren" buttons — so they remain reachable while the card is closed; the existing click guard keeps them from toggling the card

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.18.1';
+  const APP_VERSION = '0.18.2';
 
   // ---------- i18n ----------
   const I18N = {
