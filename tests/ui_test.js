@@ -217,11 +217,37 @@ check('R4: a success clears the undo history',
 check('R5: undoing restores the previous player\'s turn',
   /kwadTurnIdx = playerIdx;/.test(app));
 
+// --- 15) Prüfart (check) + obstacle picker --------------------------------------
+check('S1: the KWAD screen has an obstacle card with a picker',
+  /<div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>/.test(html)
+  && /<select id="kwadObstaclePicker"><\/select>/.test(html));
+check('S2: the obstacle card is hidden until an obstacle trick comes up',
+  /els\.kwadObstacle\.hidden = !isObstacle/.test(app));
+check('S3: the picker is filled from the active players',
+  /const actives = kwadPlayers\.filter\(p => !kwadIsOut\(p\.letters\)\)\.map\(p => p\.name\)/.test(app));
+check('S4: the picker choice is persisted under its own key',
+  /localStorage\.setItem\('kwad_obstacle_picker'/.test(app)
+  && /localStorage\.getItem\('kwad_obstacle_picker'/.test(app));
+check('S5: the custom-trick form lets you choose the Prüfart',
+  /<select id="kwadCustomCheck">/.test(html)
+  && (html.match(/data-i18n="kwad_check_(free|gate|obstacle)"/g) || []).length === 3);
+check('S6: every built-in trick carries a Prüfart',
+  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gate|obstacle)' \}/g) || []).length >= 18);
+check('S7: at least one built-in trick is an obstacle trick',
+  /check: 'obstacle'/.test(app));
+check('S8: an old/custom trick without a field counts as free flight',
+  /function kwadCheck\(trick\)/.test(app)
+  && /return \(c === 'gate' \|\| c === 'obstacle'\) \? c : 'free';/.test(app));
+check('S9: the obstacle banner and picker label are translated',
+  /kwad_check: 'Prüfart'/.test(app) && /kwad_check: 'Check'/.test(app)
+  && /kwad_obstacle_picker: 'Hindernisauswähler'/.test(app)
+  && /kwad_obstacle_picker: 'Obstacle picker'/.test(app));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v47'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.17\.1'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v48'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.18\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.17\.1"/.test(pkg));
+  /"version": "0\.18\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

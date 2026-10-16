@@ -13,9 +13,10 @@ const KWAD_CATEGORIES = {
   basics: {
     id: 'basics', label: 'Basics', emoji: '🟢', difficulty: 1, enabled: true,
     tricks: [
-      { name: 'Dive', desc: 'Steiler Sturzflug' },
-      { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub' },
-      { name: 'Gate Roll', desc: 'Eine Rolle im Tor' },
+      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gate' },
+      { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub', check: 'free' },
+      { name: 'Gate Roll', desc: 'Eine Rolle im Tor', check: 'gate' },
+      { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis', check: 'obstacle' },
     ]
   },
   intermediate: {
@@ -53,7 +54,7 @@ function kwadBuildTrickPool() {
 }
 
 const body = [
-  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadLastPenalty = null;',
+  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadLastPenalty = null, kwadObstaclePicker = "";',
   'let newTrickCalls = 0;',
   'const KWAD_CATEGORIES = ' + JSON.stringify(KWAD_CATEGORIES) + ';',
   'function kwadBuildTrickPool() { const pool = []; Object.values(KWAD_CATEGORIES).forEach(cat => { if (cat.enabled && cat.tricks.length) { cat.tricks.forEach(t => pool.push({ ...t, category: cat.id })); } }); return pool; }',
@@ -62,6 +63,7 @@ const body = [
   extract('kwadIsOut'),
   extract('kwadNextLetter'),
   extract('kwadDrawIndex'),
+  extract('kwadCheck'),
   extract('kwadLoserIndex'),
   extract('kwadActiveFrom'),
   extract('kwadActiveCount'),
@@ -77,6 +79,10 @@ const body = [
     'var apiObj = {};',
     'apiObj.kwadNormalizeLetters = kwadNormalizeLetters;',
     'apiObj.kwadIsOut = kwadIsOut;',
+    'apiObj.kwadCheck = kwadCheck;',
+    'apiObj.setTrick = function(trick) { kwadTrick = trick.name; kwadTrickObj = trick; };',
+    'apiObj.obstaclePicker = function() { return kwadObstaclePicker; };',
+    'apiObj.setObstaclePicker = function(name) { kwadObstaclePicker = name; };',
     'apiObj.kwadNextLetter = kwadNextLetter;',
     'apiObj.kwadDrawIndex = kwadDrawIndex;',
     'apiObj.kwadLoserIndex = kwadLoserIndex;',
@@ -126,6 +132,10 @@ function makeEl(tag) {
     get() { return el._text; },
     set(v) { el._text = String(v); if (v === '') el.children = []; },
   });
+  Object.defineProperty(el, 'innerHTML', {
+    get() { return el._html || ''; },
+    set(v) { el._html = String(v); if (v === '') el.children = []; },
+  });
   return el;
 }
 const els = {
@@ -135,6 +145,8 @@ const els = {
   kwadResult: makeEl('div'),
   kwadTurnCard: makeEl('div'),
   kwadTurn: makeEl('div'),
+  kwadObstacle: makeEl('div'),
+  kwadObstaclePicker: makeEl('select'),
   btnKwadDone: makeEl('button'),
   btnKwadFail: makeEl('button'),
   btnKwadUndo: makeEl('button'),
@@ -260,6 +272,34 @@ check('U11: a finished game can still be undone', (function () {
   api.kwadUndoPenalty();
   return api.players()[0].letters === 'KWA' && api.kwadLoserIndex(api.players()) === -1 && els.btnKwadUndo.disabled === true;
 })());
+
+// --- Prüfart (check) + obstacle picker -------------------------------------
+check('C1: a trick without a check counts as free flight', api.kwadCheck({ name: 'X' }) === 'free');
+check('C2: a gate trick keeps its gate check', api.kwadCheck({ check: 'gate' }) === 'gate');
+check('C3: an obstacle trick is recognised', api.kwadCheck({ check: 'obstacle' }) === 'obstacle');
+check('C4: an unknown value falls back to free flight', api.kwadCheck({ check: 'nonsense' }) === 'free');
+check('C5: the drawn pool passes the Prüfart through',
+  api.kwadBuildTrickPool().filter(t => t.check === 'obstacle').length === 1
+  && api.kwadBuildTrickPool().every(t => api.kwadCheck(t) === (t.check || 'free')));
+
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+api.setTrick({ name: 'Orbit', check: 'obstacle' });
+api.renderKwad();
+check('C6: the obstacle card shows up for an obstacle trick', els.kwadObstacle.hidden === false);
+check('C7: the picker offers the blank entry plus both players', els.kwadObstaclePicker.children.length === 3);
+check('C8: the first active player is preselected', els.kwadObstaclePicker.value === 'Max');
+check('C9: the preselection is remembered in state', api.obstaclePicker() === 'Max');
+api.setObstaclePicker('Lea');
+api.renderKwad();
+check('C10: a saved picker choice survives the next render', els.kwadObstaclePicker.value === 'Lea');
+api.setTrick({ name: 'Yaw Spin', check: 'free' });
+api.renderKwad();
+check('C11: no obstacle card for a free-flight trick', els.kwadObstacle.hidden === true);
+api.setGame([{ name: 'Max', letters: 'KWAD' }, { name: 'Lea', letters: '' }], 1);
+api.setTrick({ name: 'Wall Scrape', check: 'obstacle' });
+api.renderKwad();
+check('C12: a player who is out is not offered as picker',
+  els.kwadObstaclePicker.children.length === 2 && els.kwadObstaclePicker.value === 'Lea');
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);
