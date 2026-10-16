@@ -603,6 +603,7 @@
     btnKwadNewTrick: document.getElementById('btnKwadNewTrick'),
     btnKwadDone: document.getElementById('btnKwadDone'),
     btnKwadFail: document.getElementById('btnKwadFail'),
+    btnKwadUndo: document.getElementById('btnKwadUndo'),
     btnKwadAdd: document.getElementById('btnKwadAdd'),
     btnKwadReset: document.getElementById('btnKwadReset'),
     btnKwadSettings: document.getElementById('btnKwadSettings'),
@@ -3280,6 +3281,7 @@
     if (els.kwadTurn) els.kwadTurn.textContent = active !== -1 ? kwadPlayers[active].name : t('kwad_no_players');
     if (els.btnKwadDone) els.btnKwadDone.disabled = !canPlay;
     if (els.btnKwadFail) els.btnKwadFail.disabled = !canPlay;
+    if (els.btnKwadUndo) els.btnKwadUndo.disabled = !kwadLastPenalty;
   }
 
   function kwadNewTrick() {
@@ -3360,7 +3362,7 @@
       const letter = kwadNextLetter(p.letters);
       if (letter) {
         p.letters = kwadNormalizeLetters(p.letters) + letter;
-        kwadLastPenalty = { playerIdx: active, letter };
+        kwadLastPenalty = { playerIdx: active, letter, trick: currentTrickName };
         if (typeof soundKwadPenalty === 'function') soundKwadPenalty();
       }
       kwadRecordStat(currentTrickName, false);
@@ -3393,6 +3395,30 @@
       return;
     }
     kwadTurnIdx = next;
+    renderKwad();
+  }
+
+  // Anti-cheat undo: take back only the penalty letter handed out last. It is
+  // cleared as soon as a new trick is drawn or somebody succeeds, so you can
+  // never rewind more than the very last letter.
+  function kwadUndoPenalty() {
+    if (!kwadLastPenalty) return;
+    const { playerIdx, letter, trick } = kwadLastPenalty;
+    kwadLastPenalty = null;
+    const p = kwadPlayers[playerIdx];
+    if (!p) { renderKwad(); return; }
+    const letters = kwadNormalizeLetters(p.letters);
+    p.letters = (letter && letters.slice(-1) === letter) ? letters.slice(0, -1) : letters;
+    // The player gets their go back at the same trick.
+    const at = kwadTried.indexOf(p.name);
+    if (at !== -1) kwadTried.splice(at, 1);
+    if (trick && kwadStats[trick] && kwadStats[trick].attempted > 0) {
+      kwadStats[trick].attempted--;
+      kwadSaveStats();
+    }
+    kwadTurnIdx = playerIdx;
+    kwadSave();
+    toast(t('kwad_undone').replace('{letter}', letter || '').replace('{name}', p.name), 2000);
     renderKwad();
   }
 
@@ -3430,6 +3456,7 @@
     kwadTurnIdx = 0;
     kwadTried = [];
     kwadTrick = '';
+    kwadLastPenalty = null;
     kwadSave();
     kwadNewTrick();
   }
@@ -3577,6 +3604,7 @@
   if (els.btnKwadNewTrick) els.btnKwadNewTrick.addEventListener('click', kwadNewTrick);
   if (els.btnKwadDone) els.btnKwadDone.addEventListener('click', () => kwadRound(true));
   if (els.btnKwadFail) els.btnKwadFail.addEventListener('click', () => kwadRound(false));
+  if (els.btnKwadUndo) els.btnKwadUndo.addEventListener('click', kwadUndoPenalty);
   if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', () => kwadAddPlayer());
   if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
   if (els.kwadPilotSelect) els.kwadPilotSelect.addEventListener('change', e => { if (e.target.value) kwadAddPlayer(e.target.value); });
