@@ -95,7 +95,7 @@ button, input, select { font: inherit; }
 .kwad-turn { font-size: 20px; font-weight: 700; }
 .kwad-actions { display: flex; gap: 8px; }
 .kwad-actions .btn { flex: 1; }
-.kwad-actions .kwad-undo { flex: 0 0 auto; width: 44px; padding: 8px 0; }
+.kwad-actions .kwad-undo { flex: 0 0 auto; width: 44px; padding: 8px 0; font-size: 19px; line-height: 1; }
 .kwad-actions .kwad-undo:disabled { opacity: .4; }
 .kwad-result {
   background: #2a1414; color: #ffdede; border: 1px solid var(--danger);
@@ -188,13 +188,32 @@ button, input, select { font: inherit; }
 .trick-list-desc { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trick-list-diff { color: var(--accent2); font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
 .trick-list-check { font-size: 11px; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.trick-list-export { margin-top: 10px; }
 
 /* ---- Per-player trick statistics (bottom of the KWAD screen) ---- */
 .kwad-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+/* The whole statistics card and every player panel are collapsible: the panel
+   is a <details> whose first child (its <summary>) is the foldable headline. */
+.kwad-card.kwad-stats-card > .card-body { margin-top: 0; }
 .kwad-stat-panel { padding: 10px; background: var(--elev); border: 1px solid var(--border); border-radius: 10px; }
-.kwad-stat-head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.kwad-stat-head {
+  display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px;
+  margin-bottom: 8px; cursor: pointer; list-style: none;
+}
+.kwad-stat-head::-webkit-details-marker,
+.kwad-stat-head::marker { display: none; }
+/* The caret sits at the right edge, the "12 · 58 %" hugs the name in front of it. */
+.kwad-stat-head::after { content: '▾'; color: var(--muted); font-size: 12px; line-height: 1; flex-shrink: 0; margin-left: auto; }
+.kwad-stat-panel[open] > .kwad-stat-head::after { content: '▴'; }
+.kwad-stat-panel:not([open]) > .kwad-stat-head { margin-bottom: 0; }
 .kwad-stat-head .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .kwad-stat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Compact numbers that only show while the panel is folded. */
+.kwad-stat-folded {
+  font-family: monospace; font-size: 12px; font-weight: 700;
+  color: var(--accent); white-space: nowrap; flex-shrink: 0;
+}
+.kwad-stat-panel[open] > .kwad-stat-head > .kwad-stat-folded { display: none; }
 .kwad-stat-summary { display: flex; gap: 8px; margin-bottom: 8px; }
 .kwad-stat-cell {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;

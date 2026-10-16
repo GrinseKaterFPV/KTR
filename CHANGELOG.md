@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **Trickliste als CSV exportieren** — der Knopf in „Trickliste & Pool" schreibt Gruppe, Trick, Beschreibung, Schwierigkeit, Prüfart und Pool-Status aller Tricks in `fpv-kwad-tricks.csv` (in der gerade gewählten Sprache)
+- Game of K.W.A.D: **jeder Trick liegt in beiden Sprachen vor** — eingebaute Tricks haben neben `name`/`desc` eine englische Fassung (`en.name`/`en.desc`); Anzeige, Ansage, Trickliste und Statistik-Zeilen folgen der eingestellten Sprache, die deutschen Namen bleiben dabei der interne Schlüssel für Pool und Statistik (eigene Tricks sind Freitext und bleiben unverändert)
+
+### Changed
+- Game of K.W.A.D: der Trick **„Level Pass" ist raus** — an seiner Stelle steht jetzt **„Tight Gap"** (durch ein enges Gap fliegen, ohne Höhe zu verlieren, Prüfart `gap`)
+- Game of K.W.A.D: die **Trick-Statistiken sind einklappbar** — die Sektion „Trick-Statistiken" ist eine aufklappbare Karte, und **jeder Spieler-Block darin ist einzeln auf-/zuklappbar**; eingeklappt steht neben dem Namen kompakt „Versuche · Quote", und ein manuell zugeklappter Block bleibt auch nach dem nächsten Versuch zugeklappt (gilt genauso im Pilotenprofil)
+- K.W.A.D: der **Rückgängig-Knopf ist jetzt nur noch das Symbol ↶** (der deutsche Text „Rückgängig" ragte aus dem 44-px-Feld heraus); Titel und Vorlesetext bleiben übersetzt
+
+### Fixed
+- Sprachumschaltung: letzte fest verdrahtete deutsche Texte übersetzt — „– Piloten aus App übernehmen –" (Spieler-Auswahl), die beiden Platzhalter im Formular für eigene Tricks („z.B. Mein Trick" / „Beschreibung des Tricks") und „↔ aus" am Richtungs-Knopf (englisch „↔ off")
+- `docs/game-of-kwad.md`: Trick-Tabelle an die App angeglichen — „Gate Roll" → **„Gap Roll"**, der Nicht-Trick „Punch Out" entfernt, „Tight Gap" ergänzt und die Begriffe Tor/Gate auf Gap umgestellt
+
 ## [0.20.0] - 2026-10-16
 ### Added
 - Piloten: **jedes Profil ist eine aufklappbare Karte** — in der eingeklappten Zeile stehen bereits Versuche und Quote, ausgeklappt zeigt die Karte die kompletten Trick-Statistiken dieses Spielers (Versucht / Geschafft / Quote plus eine Zeile pro Trick)

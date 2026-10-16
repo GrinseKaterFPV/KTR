@@ -13,8 +13,8 @@ const KWAD_CATEGORIES = {
   basics: {
     id: 'basics', label: 'Basics', emoji: '🟢', difficulty: 1, enabled: true,
     tricks: [
-      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gap' },
-      { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub', check: 'free' },
+      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gap', en: { name: 'Dive EN', desc: 'Steep dive' } },
+      { name: 'Yaw Spin', desc: 'Schnelle flache Drehung', check: 'free' },
       { name: 'Gap Roll', desc: 'Eine Rolle im Gap', check: 'gap' },
       { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis', check: 'obstacle' },
     ]
@@ -55,6 +55,8 @@ function kwadBuildTrickPool() {
 
 const body = [
   'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadPlayerStats = {}, kwadPool = {}, kwadLastPenalty = null, kwadObstaclePicker = "";',
+  'let kwadStatClosed = new Set();',
+  'var state = { lang: "de" };',
   'let newTrickCalls = 0;',
   'const KWAD_CATEGORIES = ' + JSON.stringify(KWAD_CATEGORIES) + ';',
   'function kwadBuildTrickPool() { const pool = []; Object.values(KWAD_CATEGORIES).forEach(cat => { if (cat.enabled && cat.tricks.length) { cat.tricks.forEach(t => pool.push({ ...t, category: cat.id })); } }); return pool; }',
@@ -64,6 +66,10 @@ const body = [
   extract('kwadNextLetter'),
   extract('kwadDrawIndex'),
   extract('kwadCheck'),
+  extract('kwadTrickName'),
+  extract('kwadTrickDesc'),
+  extract('kwadTrickByName'),
+  extract('kwadTrickLabel'),
   extract('kwadDifficulty'),
   extract('kwadTrickGroup'),
   extract('kwadTrickEnabled'),
@@ -73,6 +79,7 @@ const body = [
   extract('renderKwadTrickList'),
   extract('renderKwadCategories'),
   extract('kwadSetTrickEnabled'),
+  extract('kwadTrickListRows'),
   extract('kwadLoserIndex'),
   extract('kwadActiveFrom'),
   extract('kwadActiveCount'),
@@ -114,6 +121,11 @@ const body = [
     'apiObj.kwadPlayerStats = function() { return kwadPlayerStats; };',
     'apiObj.kwadPool = function() { return kwadPool; };',
     'apiObj.setPool = function(owner, trick, on) { kwadSetTrickEnabled(owner, trick, on); };',
+    'apiObj.trickListRows = kwadTrickListRows;',
+    'apiObj.trickName = kwadTrickName;',
+    'apiObj.trickDesc = kwadTrickDesc;',
+    'apiObj.trickLabel = kwadTrickLabel;',
+    'apiObj.setLang = function(l) { state.lang = l; };',
     'apiObj.trickList = function() { return els.kwadTrickList; };',
     'apiObj.renderTrickList = renderKwadTrickList;',
     'apiObj.categoryGrid = function() { return els.kwadCategoryGrid; };',
@@ -495,6 +507,72 @@ check('R11: ... and takes its attempts out of the global total',
   !api.stats()['Dive'] && !api.stats()['Orbit']);
 api.kwadDropProfileStats('nobody');
 check('R12: dropping an unknown profile is a harmless no-op', !api.kwadPlayerStats()['nobody']);
+
+// --- trick names/descriptions come in both languages (real app.js data) ------
+// The fixture above is a small copy; the built-in list is taken from app.js so
+// the shipped translations are the ones under test.
+const realCategories = (() => {
+  const start = src.indexOf('const KWAD_CATEGORIES = {');
+  if (start < 0) throw new Error('KWAD_CATEGORIES not found');
+  const open = src.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}') { depth--; if (depth === 0) return new Function('return ' + src.slice(open, i + 1))(); }
+  }
+  throw new Error('unbalanced KWAD_CATEGORIES');
+})();
+const builtIns = [];
+Object.values(realCategories).forEach(cat => (cat.tricks || []).forEach(trick => builtIns.push(trick)));
+check('X1: the built-in list keeps its four groups (4 + 6 + 6 + 5)',
+  realCategories.basics.tricks.length === 4 && realCategories.intermediate.tricks.length === 6
+  && realCategories.advanced.tricks.length === 6 && realCategories.pro.tricks.length === 5
+  && builtIns.length === 21);
+check('X2: "Level Pass" is gone and "Tight Gap" took its place',
+  builtIns.every(trick => trick.name !== 'Level Pass')
+  && realCategories.basics.tricks.some(trick => trick.name === 'Tight Gap'));
+check('X3: "Gap Roll" is spelled with a Gap (no "Gate Roll")',
+  builtIns.every(trick => trick.name !== 'Gate Roll') && builtIns.some(trick => trick.name === 'Gap Roll'));
+check('X4: no built-in trick names repeat',
+  new Set(builtIns.map(trick => trick.name)).size === builtIns.length);
+check('X5: every built-in trick carries an English name and description',
+  builtIns.every(trick => trick.en && typeof trick.en.name === 'string' && trick.en.name.length
+    && typeof trick.en.desc === 'string' && trick.en.desc.length));
+check('X6: a trick is displayed in the chosen language', (() => {
+  const dive = realCategories.basics.tricks[0];
+  api.setLang('de');
+  const de = api.trickName(dive) === dive.name && api.trickDesc(dive) === dive.desc;
+  api.setLang('en');
+  const en = api.trickName(dive) === dive.en.name && api.trickDesc(dive) === dive.en.desc;
+  api.setLang('de');
+  return de && en;
+})());
+check('X7: a statistics row shows its trick in the chosen language', (() => {
+  api.setLang('en');
+  const en = api.trickLabel('Dive') === 'Dive EN';
+  api.setLang('de');
+  return en && api.trickLabel('Dive') === 'Dive' && api.trickLabel('Unknown') === 'Unknown';
+})());
+
+// --- the trick-list export ---------------------------------------------------
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+const exportRows = api.trickListRows();
+const listedTricks = Object.values(KWAD_CATEGORIES)
+  .reduce((sum, cat) => sum + api.kwadGroupTricks(cat.id).length, 0);
+check('X8: the export carries the header and one row per listed trick',
+  exportRows[0].join(',') === 'category,trick,description,difficulty,check,in_pool'
+  && exportRows.length === 1 + listedTricks
+  && exportRows.slice(1).every(row => row.length === 6));
+const gapRollRow = exportRows.slice(1).find(row => row[1] === 'Gap Roll');
+check('X9: a row names group, trick, difficulty and Prüfart',
+  !!gapRollRow && gapRollRow[0] === 'kwad_category_basics' && gapRollRow[3] === 1
+  && gapRollRow[4] === 'kwad_check_gap' && gapRollRow[5] === 'yes');
+api.setPool('basics', { name: 'Gap Roll' }, false);
+const offRow = api.trickListRows().slice(1).find(row => row[1] === 'Gap Roll');
+check('X10: a trick taken out of the pool is exported as in_pool = no', offRow[5] === 'no');
+api.setPool('basics', { name: 'Gap Roll' }, true);
+check('X11: switching it back on is reflected again',
+  api.trickListRows().slice(1).find(row => row[1] === 'Gap Roll')[5] === 'yes');
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

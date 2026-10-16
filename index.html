@@ -88,7 +88,7 @@
         <div class="kwad-actions">
           <button id="btnKwadDone" class="btn btn-start" type="button" data-i18n="kwad_done">Geschafft</button>
           <button id="btnKwadFail" class="btn btn-danger" type="button" data-i18n="kwad_fail">Nicht geschafft</button>
-          <button id="btnKwadUndo" class="btn kwad-undo" type="button" data-i18n="kwad_undo" data-i18n-title="kwad_undo" title="Rückgängig" aria-label="Rückgängig">↶</button>
+          <button id="btnKwadUndo" class="btn kwad-undo" type="button" data-i18n-title="kwad_undo" data-i18n-aria="kwad_undo" title="Rückgängig" aria-label="Rückgängig">↶</button>
         </div>
       </div>
 
@@ -100,7 +100,7 @@
         <div class="kwad-import">
           <label><span data-i18n="filter_pilot">Pilot</span>
             <select id="kwadPilotSelect">
-              <option value="">– Piloten aus App übernehmen –</option>
+              <option value="" data-i18n="kwad_pilots_from_app">– Piloten aus App übernehmen –</option>
             </select>
           </label>
         </div>
@@ -112,11 +112,15 @@
 
       <button id="btnKwadReset" class="btn btn-danger" type="button" data-i18n="kwad_reset">Neues Spiel (Buchstaben zurücksetzen)</button>
 
-      <div class="card kwad-card kwad-stats-card">
-        <div class="small-label" data-i18n="kwad_stats">Trick-Statistiken</div>
-        <p class="hint" data-i18n="kwad_stats_hint">Pro Spieler, damit ihr euch direkt vergleichen könnt.</p>
-        <div class="kwad-stats" id="kwadStatsGrid"></div>
-      </div>
+      <details class="card kwad-card kwad-stats-card card-collapsible" open>
+        <summary class="card-summary">
+          <span class="summary-label" data-i18n="kwad_stats">Trick-Statistiken</span>
+        </summary>
+        <div class="card-body">
+          <p class="hint" data-i18n="kwad_stats_hint">Pro Spieler, damit ihr euch direkt vergleichen könnt.</p>
+          <div class="kwad-stats" id="kwadStatsGrid"></div>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -443,10 +447,10 @@
         <div class="settings-grid" id="kwadCustomTricksList"></div>
         <div class="settings-grid" style="margin-top:8px;">
           <label><span data-i18n="kwad_custom_name">Trick-Name</span>
-            <input type="text" id="kwadCustomName" placeholder="z.B. Mein Trick" />
+            <input type="text" id="kwadCustomName" data-i18n-ph="kwad_custom_name_ph" placeholder="z.B. Mein Trick" />
           </label>
           <label><span data-i18n="kwad_custom_desc">Beschreibung</span>
-            <input type="text" id="kwadCustomDesc" placeholder="Beschreibung des Tricks" />
+            <input type="text" id="kwadCustomDesc" data-i18n-ph="kwad_custom_desc_ph" placeholder="Beschreibung des Tricks" />
           </label>
           <label><span data-i18n="kwad_check">Prüfart</span>
             <select id="kwadCustomCheck">
@@ -480,6 +484,7 @@
         <summary><h3 data-i18n="kwad_pool">Trickliste &amp; Pool</h3></summary>
         <p class="hint" data-i18n="kwad_pool_hint">Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.</p>
         <div class="trick-list" id="kwadTrickList"></div>
+        <button id="btnKwadExport" class="btn trick-list-export" type="button" data-i18n="kwad_export_list">Trickliste exportieren (CSV)</button>
       </details>
     </div>
   </div>

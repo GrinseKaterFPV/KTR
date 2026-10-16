@@ -254,8 +254,10 @@ check('G3: the backup status line is wired (els map)',
   /backupStatus: document\.getElementById\('backupStatus'\)/.test(app));
 
 // --- 14) KWAD undo is actually wired --------------------------------------------
-check('R1: the KWAD undo button exists in the turn card',
-  /<button id="btnKwadUndo"[^>]*data-i18n="kwad_undo"/.test(html));
+check('R1: the KWAD undo button is an icon-only button (the German word would overflow it)',
+  /<button id="btnKwadUndo"[^>]*class="btn kwad-undo"[^>]*>\s*↶\s*<\/button>/.test(html)
+  && /<button id="btnKwadUndo"[^>]*data-i18n-title="kwad_undo"[^>]*data-i18n-aria="kwad_undo"/.test(html)
+  && !/<button id="btnKwadUndo"[^>]*data-i18n="/.test(html));
 check('R2: the undo button is wired to kwadUndoPenalty',
   /els\.btnKwadUndo\.addEventListener\('click', kwadUndoPenalty\)/.test(app));
 check('R3: undo is only offered while a penalty is pending',
@@ -280,7 +282,7 @@ check('S5: the custom-trick form lets you choose the Prüfart',
   /<select id="kwadCustomCheck">/.test(html)
   && (html.match(/data-i18n="kwad_check_(free|gap|obstacle)"/g) || []).length === 3);
 check('S6: every built-in trick carries a Prüfart',
-  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gap|obstacle)' \}/g) || []).length >= 18);
+  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gap|obstacle)'[,}]/g) || []).length >= 18);
 check('S7: at least one built-in trick is an obstacle trick',
   /check: 'obstacle'/.test(app));
 check('S8: an old/custom trick without a field counts as free flight, and v0.19 saves still say Gap',
@@ -294,7 +296,8 @@ check('S9: the obstacle banner and picker label are translated',
 
 // --- 16) trick list & pool, per-player statistics ------------------------------
 check('S10: the statistics card sits at the bottom of the KWAD screen (outside the settings)',
-  /<div class="card kwad-card kwad-stats-card">/.test(html)
+  /<details class="card kwad-card kwad-stats-card card-collapsible" open>/.test(html)
+  && /<span class="summary-label" data-i18n="kwad_stats">/.test(html)
   && /<div class="kwad-stats" id="kwadStatsGrid"><\/div>/.test(html)
   && html.indexOf('kwad-stats-card') > html.indexOf('id="btnKwadReset"')
   && html.indexOf('id="kwadStatsGrid"') < html.indexOf('id="kwadSettingsOverlay"'));
@@ -323,8 +326,8 @@ check('S17: the statistics are kept per player',
   && /localStorage\.getItem\('kwad_player_stats'/.test(app)
   && /kwadRecordStat\(p\.name, currentTrickName/.test(app));
 check('S18: the stats panel renders a block per player plus the total',
-  /function kwadStatPanel\(title, color, stats\)/.test(app)
-  && /grid\.appendChild\(kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats\)\)/.test(app)
+  /function kwadStatPanel\(title, color, stats, panelKey\)/.test(app)
+  && /grid\.appendChild\(kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total'\)\)/.test(app)
   && /kwad_stats_total: 'Gesamt'/.test(app)
   && /kwad_stats_total: 'Total'/.test(app));
 check('S19: the player buckets and the pool travel with the backup',
@@ -340,11 +343,75 @@ check('S22: the trick list style rules exist',
   /\.trick-list-row\s*\{/.test(css) && /\.kwad-stat-panel\s*\{/.test(css)
   && /\.kwad-trick-meta\s*\{/.test(css));
 
+// --- 17) collapsible statistics, trick-list export, translations wherever ------
+check('S23: the trick list can be exported as CSV',
+  /<button id="btnKwadExport" class="btn trick-list-export" type="button" data-i18n="kwad_export_list">/.test(html)
+  && /els\.btnKwadExport\.addEventListener\('click', kwadExportTrickList\)/.test(app)
+  && /btnKwadExport: document\.getElementById\('btnKwadExport'\)/.test(app)
+  && /function kwadTrickListRows\(\)/.test(app)
+  && /downloadCsv\('fpv-kwad-tricks\.csv', rows\)/.test(app));
+check('S24: the export button sits inside the "Trickliste & Pool" group', (() => {
+  const from = html.indexOf('data-i18n="kwad_pool_hint"');
+  const to = html.indexOf('</details>', from);
+  const at = html.indexOf('id="btnKwadExport"');
+  return from !== -1 && to !== -1 && at > from && at < to;
+})());
+check('S25: the export covers every group in the current language',
+  /Object\.values\(KWAD_CATEGORIES\)\.forEach\(cat => \{/.test(app)
+  && /kwadGroupTricks\(cat\.id\)\.forEach\(/.test(app)
+  && /t\('kwad_category_' \+ cat\.id\)/.test(app)
+  && /kwadTrickName\(trick\)/.test(app)
+  && /kwadTrickDesc\(trick\)/.test(app)
+  && /kwadTrickEnabled\(owner, trick\) \? 'yes' : 'no'/.test(app));
+check('S26: each player panel folds itself (a <details> whose first child is its summary)',
+  /const panel = document\.createElement\('details'\);/.test(app)
+  && /const head = document\.createElement\('summary'\);/.test(app)
+  && /kwad-stat-panel\[open\] > \.kwad-stat-head::after \{ content: '▴'; \}/.test(css));
+check('S27: a folded panel still shows the numbers',
+  /const folded = document\.createElement\('span'\);/.test(app)
+  && /folded\.className = 'kwad-stat-folded';/.test(app)
+  && /\.kwad-stat-panel\[open\] > \.kwad-stat-head > \.kwad-stat-folded \{ display: none; \}/.test(css));
+check('S28: a manual fold survives the next re-render',
+  /let kwadStatClosed = new Set\(\)/.test(app)
+  && /if \(!kwadStatClosed\.has\(panelKey\)\) panel\.open = true;/.test(app)
+  && /panel\.addEventListener\('toggle', \(\) => \{/.test(app)
+  && /kwadStatClosed\.add\(panelKey\)/.test(app));
+check('S29: the statistics section itself is collapsible and keeps its hint',
+  /kwad-stats-card card-collapsible" open>/.test(html)
+  && /<p class="hint" data-i18n="kwad_stats_hint">/.test(html)
+  && /\.kwad-card\.kwad-stats-card > \.card-body \{ margin-top: 0; \}/.test(css));
+check('S30: the statistics card is rendered in both the KWAD screen and the pilot profile',
+  /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total'\)/.test(app)
+  && /kwadStatPanel\(nm, color, kwadPlayerStats\[nm\] \|\| \{\}, nm\)/.test(app)
+  && /kwadStatPanel\(t\('kwad_stats'\), '', kwadPlayerStats\[name\] \|\| \{\}, 'profile:' \+ name\)/.test(app));
+check('S31: a statistics row translates its trick name',
+  /function kwadTrickLabel\(name\)/.test(app) && /nm\.textContent = kwadTrickLabel\(trickName\);/.test(app));
+check('S32: built-in tricks carry their English name and description',
+  /en: \{ name: 'Dive', desc: 'Steep dive through the gap, then pull up' \}/.test(app)
+  && /en: \{ name: 'Tight Gap', desc: 'Fly through a narrow gap without losing height' \}/.test(app)
+  && /function kwadTrickName\(trick\)/.test(app)
+  && /function kwadTrickDesc\(trick\)/.test(app));
+check('S33: "Tight Gap" replaced "Level Pass" and nothing says "Gate Roll"',
+  !/Level Pass/.test(app) && /name: 'Tight Gap'/.test(app) && !/Gate Roll/.test(app));
+check('S34: the obstacle picker\'s "from the app" entry and the two placeholders are translated',
+  /<option value="" data-i18n="kwad_pilots_from_app">/.test(html)
+  && /blank\.setAttribute\('data-i18n', 'kwad_pilots_from_app'\);/.test(app)
+  && /data-i18n-ph="kwad_custom_name_ph"/.test(html)
+  && /data-i18n-ph="kwad_custom_desc_ph"/.test(html)
+  && /kwad_export_list: 'Trickliste exportieren \(CSV\)'/.test(app)
+  && /kwad_export_list: 'Export trick list \(CSV\)'/.test(app)
+  && /kwad_pilots_from_app: '– Piloten aus App übernehmen –'/.test(app)
+  && /kwad_pilots_from_app: '– use pilots from the app –'/.test(app));
+check('S35: the direction button says "aus"/"off" in the selected language',
+  /function dirLabel\(dir\)/.test(app)
+  && /if \(dir === 'aus'\) return '↔ ' \+ t\('dir_off_short'\);/.test(app)
+  && /dir_off_short: 'aus'/.test(app) && /dir_off_short: 'off'/.test(app));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v52'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.20\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v53'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.21\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.20\.0"/.test(pkg));
+  /"version": "0\.21\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

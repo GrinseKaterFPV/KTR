@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.20.0';
+  const APP_VERSION = '0.21.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -40,6 +40,7 @@
       kwad_done: 'Geschafft',
       kwad_fail: 'Nicht geschafft',
       kwad_add: 'Spieler hinzufügen',
+      kwad_pilots_from_app: '– Piloten aus App übernehmen –',
       kwad_reset: 'Neues Spiel (Buchstaben zurücksetzen)',
       kwad_remove: 'Spieler entfernen',
       kwad_loses: 'verliert!',
@@ -57,6 +58,8 @@
       kwad_add_custom: 'Eigenen Trick hinzufügen',
       kwad_custom_name: 'Trick-Name',
       kwad_custom_desc: 'Beschreibung',
+      kwad_custom_name_ph: 'z.B. Mein Trick',
+      kwad_custom_desc_ph: 'Beschreibung des Tricks',
       kwad_custom_save: 'Speichern',
       kwad_custom_delete: 'Löschen',
       kwad_stats: 'Trick-Statistiken',
@@ -69,6 +72,7 @@
       kwad_pool: 'Trickliste & Pool',
       kwad_pool_hint: 'Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.',
       kwad_pool_toggle: 'Trick im Pool',
+      kwad_export_list: 'Trickliste exportieren (CSV)',
       kwad_tricks: 'Tricks',
       kwad_custom_cat: 'Kategorie',
       kwad_category_basics: 'Basics',
@@ -122,6 +126,7 @@
       proc_fast: '320 x 240 (schnell)',
       expected_direction: 'Erwartete Richtung',
       dir_off: 'Aus (keine Prüfung)',
+      dir_off_short: 'aus',
       dir_lr: 'Links → Rechts',
       dir_rl: 'Rechts → Links',
       dir_tb: 'Oben → Unten',
@@ -269,6 +274,7 @@
       kwad_done: 'Made it',
       kwad_fail: 'Did not make it',
       kwad_add: 'Add player',
+      kwad_pilots_from_app: '– use pilots from the app –',
       kwad_reset: 'New game (reset letters)',
       kwad_remove: 'Remove player',
       kwad_loses: 'loses!',
@@ -286,6 +292,8 @@
       kwad_add_custom: 'Add Custom Trick',
       kwad_custom_name: 'Trick Name',
       kwad_custom_desc: 'Description',
+      kwad_custom_name_ph: 'e.g. my trick',
+      kwad_custom_desc_ph: 'Description of the trick',
       kwad_custom_save: 'Save',
       kwad_custom_delete: 'Delete',
       kwad_stats: 'Trick Statistics',
@@ -298,6 +306,7 @@
       kwad_pool: 'Trick list & pool',
       kwad_pool_hint: 'Checked = trick is in the draw pool. Unchecked tricks stay listed but are never drawn.',
       kwad_pool_toggle: 'Trick in pool',
+      kwad_export_list: 'Export trick list (CSV)',
       kwad_tricks: 'Tricks',
       kwad_custom_cat: 'Category',
       kwad_category_basics: 'Basics',
@@ -351,6 +360,7 @@
       proc_fast: '320 x 240 (fast)',
       expected_direction: 'Expected direction',
       dir_off: 'Off (no check)',
+      dir_off_short: 'off',
       dir_lr: 'Left → Right',
       dir_rl: 'Right → Left',
       dir_tb: 'Top → Bottom',
@@ -667,6 +677,7 @@
     kwadCustomCat: document.getElementById('kwadCustomCat'),
     btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
     kwadTrickList: document.getElementById('kwadTrickList'),
+    btnKwadExport: document.getElementById('btnKwadExport'),
     kwadTrickMeta: document.getElementById('kwadTrickMeta'),
     kwadStatsGrid: document.getElementById('kwadStatsGrid'),
     versionBadge: document.getElementById('versionBadge'),
@@ -1032,9 +1043,15 @@
   // ---------- direction control ----------
   const DIRECTION_ORDER = ['aus', 'lr', 'rl', 'tb', 'bt'];
   const DIRECTION_LABEL = { aus: '↔ aus', lr: '→', rl: '←', tb: '↓', bt: '↑' };
+  // Short symbol label of the expected crossing direction. 'aus'/'off' is the
+  // only part of it that is language dependent.
+  function dirLabel(dir) {
+    if (dir === 'aus') return '↔ ' + t('dir_off_short');
+    return DIRECTION_LABEL[dir] || '';
+  }
   function updateDirectionButton() {
     if (els.btnDirection) {
-      els.btnDirection.textContent = DIRECTION_LABEL[state.direction] || '↔ aus';
+      els.btnDirection.textContent = dirLabel(state.direction) || '↔ ' + t('dir_off_short');
       els.btnDirection.title = t('direction_btn_title') + ' (' + dirText(state.direction) + ')';
     }
     if (els.directionSelect) els.directionSelect.value = state.direction;
@@ -2948,7 +2965,7 @@
 
       const stats = document.createElement('div');
       stats.className = 'pilot-profile-stats';
-      stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}));
+      stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}, 'profile:' + name));
       body.appendChild(stats);
 
       const tools = document.createElement('div');
@@ -3177,7 +3194,7 @@
 
     // Direction-change toast (short feedback when tapping the direction button)
     if (state.directionToastUntil && nowp < state.directionToastUntil) {
-      const label = (DIRECTION_LABEL[state.direction] || '') + '  ' + dirText(state.direction);
+      const label = (dirLabel(state.direction) || '') + '  ' + dirText(state.direction);
       overlayCtx.save();
       overlayCtx.font = 'bold ' + Math.round(h * 0.075) + 'px sans-serif';
       overlayCtx.textAlign = 'center';
@@ -3246,6 +3263,9 @@
   // --- Trick Categories with difficulty (1-5), descriptions, and default enabled state ---
   // `check` is the Prüfart: 'free' (Freiflug), 'gap' (Gap), 'obstacle' (Hindernis).
   // A trick marked 'obstacle' makes the game ask the group who picks the obstacle.
+  // `name`/`desc` are the canonical German text and are also the identity of a
+  // trick (pool switch, statistics). `en` is the English variant used for display
+  // whenever the app runs in English — see kwadTrickName()/kwadTrickDesc().
   const KWAD_CATEGORIES = {
     basics: {
       id: 'basics',
@@ -3254,10 +3274,14 @@
       difficulty: 1,
       enabled: true,
       tricks: [
-        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gap' },
-        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gap' },
-        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gap' },
-        { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen', check: 'free' },
+        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gap',
+          en: { name: 'Dive', desc: 'Steep dive through the gap, then pull up' } },
+        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gap',
+          en: { name: 'Gap Roll', desc: 'A roll (barrel roll) right in the gap' } },
+        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gap',
+          en: { name: 'Straight Pass', desc: 'Clean straight flight through the gap' } },
+        { name: 'Tight Gap', desc: 'Durch ein enges Gap fliegen, ohne Höhe zu verlieren', check: 'gap',
+          en: { name: 'Tight Gap', desc: 'Fly through a narrow gap without losing height' } },
       ]
     },
     intermediate: {
@@ -3267,12 +3291,18 @@
       difficulty: 2,
       enabled: true,
       tricks: [
-        { name: 'Power Loop', desc: 'Looping über das Gap (Rückwärts-Loop)', check: 'gap' },
-        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll', check: 'free' },
-        { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis (Flagge, Tor, Baum)', check: 'obstacle' },
-        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse', check: 'free' },
-        { name: 'Wall Scrape', desc: 'Nah an einem Hindernis entlangschrappen (Wand, Tor, Boden)', check: 'obstacle' },
-        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)', check: 'free' },
+        { name: 'Power Loop', desc: 'Looping über das Gap (Rückwärts-Loop)', check: 'gap',
+          en: { name: 'Power Loop', desc: 'Loop over the gap (backwards loop)' } },
+        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll', check: 'free',
+          en: { name: 'Split-S', desc: 'Half loop down, then half roll' } },
+        { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis (Flagge, Tor, Baum)', check: 'obstacle',
+          en: { name: 'Orbit', desc: 'Circling an obstacle (flag, gate, tree)' } },
+        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse', check: 'free',
+          en: { name: 'Yaw Spin', desc: 'Fast 360° spin around the yaw axis' } },
+        { name: 'Wall Scrape', desc: 'Nah an einem Hindernis entlangschrappen (Wand, Tor, Boden)', check: 'obstacle',
+          en: { name: 'Wall Scrape', desc: 'Scraping along an obstacle (wall, gate, ground)' } },
+        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)', check: 'free',
+          en: { name: 'Corkscrew', desc: 'Combination of loop and roll' } },
       ]
     },
     advanced: {
@@ -3282,12 +3312,18 @@
       difficulty: 3,
       enabled: true,
       tricks: [
-        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)', check: 'free' },
-        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)', check: 'free' },
-        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig', check: 'free' },
-        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Gap', check: 'gap' },
-        { name: 'Backwards Pass', desc: 'Rückwärts durch das Gap fliegen', check: 'gap' },
-        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Gap', check: 'gap' },
+        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)', check: 'free',
+          en: { name: 'Matty Flip', desc: 'Backwards flip with 180° yaw (Matty Stuntz style)' } },
+        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)', check: 'free',
+          en: { name: 'Juicy Flick', desc: 'Fast pitch + roll + yaw combo (freestyle classic)' } },
+        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig', check: 'free',
+          en: { name: 'Trippy Spin', desc: 'Multiple rotations around several axes at once' } },
+        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Gap', check: 'gap',
+          en: { name: 'Inverted Pass', desc: 'Through the gap on your back (inverted)' } },
+        { name: 'Backwards Pass', desc: 'Rückwärts durch das Gap fliegen', check: 'gap',
+          en: { name: 'Backwards Pass', desc: 'Flying backwards through the gap' } },
+        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Gap', check: 'gap',
+          en: { name: 'Knife Edge', desc: 'Through the gap on your side (90° roll)' } },
       ]
     },
     pro: {
@@ -3297,11 +3333,16 @@
       difficulty: 4,
       enabled: false,
       tricks: [
-        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw', check: 'free' },
-        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander', check: 'free' },
-        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position', check: 'free' },
-        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll', check: 'free' },
-        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation', check: 'free' },
+        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw', check: 'free',
+          en: { name: 'Rubik\'s Cube', desc: '3 axes one after another: roll → pitch → yaw' } },
+        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander', check: 'free',
+          en: { name: 'Double Backflip', desc: 'Two backwards loops right after each other' } },
+        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position', check: 'free',
+          en: { name: 'Fakie Flip', desc: 'Backwards flip from an inverted position' } },
+        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll', check: 'free',
+          en: { name: 'Tornado', desc: 'Fast yaw spin during a loop/roll' } },
+        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation', check: 'free',
+          en: { name: 'Alien', desc: 'Inverted yaw spin with pitch variation' } },
       ]
     },
     custom: {
@@ -3321,6 +3362,39 @@
     const c = trick && trick.check;
     if (c === 'gate') return 'gap';
     return (c === 'gap' || c === 'obstacle') ? c : 'free';
+  }
+
+  // Display name/description of a trick in the current language. Built-in tricks
+  // carry an `en` variant next to their canonical German text; own tricks are
+  // user input and simply fall back to what was typed. `state` is only read
+  // through typeof so the extracted helpers stay usable in the tests.
+  function kwadTrickName(trick) {
+    if (!trick) return '';
+    const en = trick.en;
+    if (typeof state !== 'undefined' && state.lang === 'en' && en && en.name) return en.name;
+    return trick.name || '';
+  }
+  function kwadTrickDesc(trick) {
+    if (!trick) return '';
+    const en = trick.en;
+    if (typeof state !== 'undefined' && state.lang === 'en' && en && en.desc) return en.desc;
+    return trick.desc || '';
+  }
+  // Find a built-in/custom trick by its canonical name — the key used in the
+  // pool switches and the statistics.
+  function kwadTrickByName(name) {
+    const cats = Object.values(KWAD_CATEGORIES);
+    for (let i = 0; i < cats.length; i++) {
+      const found = (cats[i].tricks || []).find(trick => trick.name === name);
+      if (found) return found;
+    }
+    return null;
+  }
+  // Label for a statistics row: a trick name (canonical) shown in the current
+  // language; names without a matching trick stay as they are.
+  function kwadTrickLabel(name) {
+    const trick = kwadTrickByName(name);
+    return trick ? kwadTrickName(trick) : name;
   }
 
   // Difficulty 1-5 of a trick: its own value wins, otherwise the one of its
@@ -3403,6 +3477,7 @@
   let kwadStats = {}; // global aggregate: { trickName: { attempted, succeeded } }
   let kwadPlayerStats = {}; // per profile: { playerName: { trickName: { attempted, succeeded } } }
   let kwadPool = {}; // per-trick draw switch: { 'category/trickName': false }
+  let kwadStatClosed = new Set(); // statistics panels the user folded (per key)
   let kwadCategoryFilter = null; // deprecated, use category.enabled
 
   // -- pure helpers (unit-tested in tests/kwad_test.js) --
@@ -3558,7 +3633,12 @@
     // Populate pilot select from main pilots list
     if (els.kwadPilotSelect) {
       const current = els.kwadPilotSelect.value;
-      els.kwadPilotSelect.innerHTML = '<option value="">– Piloten aus App übernehmen –</option>';
+      els.kwadPilotSelect.innerHTML = '';
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.setAttribute('data-i18n', 'kwad_pilots_from_app');
+      blank.textContent = t('kwad_pilots_from_app');
+      els.kwadPilotSelect.appendChild(blank);
       state.pilots.forEach(name => {
         const opt = document.createElement('option');
         opt.value = name;
@@ -3575,7 +3655,7 @@
     const active = loser === -1 ? kwadActiveFrom(kwadTurnIdx) : -1;
     const canPlay = loser === -1 && kwadActiveCount() >= 2;
 
-    if (els.kwadTrick) els.kwadTrick.textContent = kwadTrick || '—';
+    if (els.kwadTrick) els.kwadTrick.textContent = kwadTrickObj ? kwadTrickName(kwadTrickObj) : (kwadTrick || '—');
 
     // Short description, difficulty and Prüfart of the drawn trick.
     if (els.kwadTrickMeta) {
@@ -3601,7 +3681,7 @@
         if (kwadTrickObj.desc) {
           const descEl = document.createElement('p');
           descEl.className = 'kwad-meta-desc';
-          descEl.textContent = kwadTrickObj.desc;
+          descEl.textContent = kwadTrickDesc(kwadTrickObj);
           els.kwadTrickMeta.appendChild(descEl);
         }
       } else {
@@ -4009,7 +4089,7 @@
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = on;
-        cb.setAttribute('aria-label', t('kwad_pool_toggle') + ': ' + trick.name);
+        cb.setAttribute('aria-label', t('kwad_pool_toggle') + ': ' + kwadTrickName(trick));
         cb.addEventListener('change', e => {
           kwadSetTrickEnabled(owner, trick, e.target.checked);
         });
@@ -4018,10 +4098,10 @@
         info.className = 'trick-list-info';
         const name = document.createElement('span');
         name.className = 'trick-list-name';
-        name.textContent = trick.name;
+        name.textContent = kwadTrickName(trick);
         const desc = document.createElement('span');
         desc.className = 'trick-list-desc';
-        desc.textContent = trick.desc || '—';
+        desc.textContent = kwadTrickDesc(trick) || '—';
         info.appendChild(name);
         info.appendChild(desc);
 
@@ -4062,6 +4142,31 @@
     renderKwadCategories();
   }
 
+  // The whole trick list (built-ins plus own tricks filed into a group) as CSV
+  // rows. Headers stay English/machine-readable, the rows follow the current
+  // language, so a group can print or share the list it actually flies.
+  function kwadTrickListRows() {
+    const rows = [['category', 'trick', 'description', 'difficulty', 'check', 'in_pool']];
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      kwadGroupTricks(cat.id).forEach(({ trick, owner }) => {
+        rows.push([
+          t('kwad_category_' + cat.id),
+          kwadTrickName(trick),
+          kwadTrickDesc(trick),
+          kwadDifficulty(trick, owner),
+          t('kwad_check_' + kwadCheck(trick)),
+          kwadTrickEnabled(owner, trick) ? 'yes' : 'no',
+        ]);
+      });
+    });
+    return rows;
+  }
+  function kwadExportTrickList() {
+    const rows = kwadTrickListRows();
+    if (rows.length <= 1) return;
+    downloadCsv('fpv-kwad-tricks.csv', rows);
+  }
+
   function renderKwadCustomTricks() {
     if (!els.kwadCustomTricksList) return;
     els.kwadCustomTricksList.innerHTML = '';
@@ -4072,8 +4177,8 @@
       const check = kwadCheck(trick);
       const stars = '★'.repeat(kwadDifficulty(trick, 'custom'));
       item.innerHTML = `
-        <span class="custom-name">${trick.name}</span>
-        <span class="custom-desc">${trick.desc || '—'}</span>
+        <span class="custom-name">${esc(kwadTrickName(trick))}</span>
+        <span class="custom-desc">${esc(kwadTrickDesc(trick) || '—')}</span>
         <span class="custom-diff" title="${t('kwad_difficulty')}">${stars}</span>
         <span class="custom-check" data-i18n="kwad_check_${check}">${t('kwad_check_' + check)}</span>
         <span class="custom-cat">${t('kwad_category_' + group)}</span>
@@ -4142,18 +4247,28 @@
     cell.appendChild(l);
     return cell;
   }
-  // One panel: headline numbers on top, then the per-trick rows.
-  function kwadStatPanel(title, color, stats) {
+  // One collapsible panel: the headline row (name plus the key numbers, so a
+  // folded panel still says something), then the summary numbers and the
+  // per-trick rows. `panelKey` identifies the panel, so a manual fold survives
+  // the re-render that every attempt triggers.
+  function kwadStatPanel(title, color, stats, panelKey) {
     const attempted = kwadTotalAttempts(stats);
     const succeeded = kwadTotalSucceeded(stats);
+    const rate = kwadRate(succeeded, attempted);
     const entries = Object.entries(stats || {})
       .filter(([, s]) => s && s.attempted > 0)
       .sort((a, b) => (b[1].succeeded / b[1].attempted) - (a[1].succeeded / a[1].attempted));
 
-    const panel = document.createElement('div');
+    const panel = document.createElement('details');
     panel.className = 'kwad-stat-panel';
+    if (!kwadStatClosed.has(panelKey)) panel.open = true;
+    panel.addEventListener('toggle', () => {
+      // A detached panel can still fire a queued toggle — ignore it.
+      if (panel.isConnected === false) return;
+      if (panel.open) kwadStatClosed.delete(panelKey); else kwadStatClosed.add(panelKey);
+    });
 
-    const head = document.createElement('div');
+    const head = document.createElement('summary');
     head.className = 'kwad-stat-head';
     if (color) {
       const dot = document.createElement('span');
@@ -4165,13 +4280,18 @@
     titleEl.className = 'kwad-stat-name';
     titleEl.textContent = title;
     head.appendChild(titleEl);
+    // Shown only while the panel is folded (see styles.css).
+    const folded = document.createElement('span');
+    folded.className = 'kwad-stat-folded';
+    folded.textContent = attempted ? attempted + ' · ' + rate : '–';
+    head.appendChild(folded);
     panel.appendChild(head);
 
     const summary = document.createElement('div');
     summary.className = 'kwad-stat-summary';
     summary.appendChild(kwadStatCell(t('kwad_stats_attempted'), String(attempted)));
     summary.appendChild(kwadStatCell(t('kwad_stats_succeeded'), String(succeeded)));
-    summary.appendChild(kwadStatCell(t('kwad_stats_rate'), kwadRate(succeeded, attempted)));
+    summary.appendChild(kwadStatCell(t('kwad_stats_rate'), rate));
     panel.appendChild(summary);
 
     if (!entries.length) {
@@ -4198,7 +4318,7 @@
       row.className = 'kwad-stat-row';
       const nm = document.createElement('div');
       nm.className = 'kwad-stat-trick';
-      nm.textContent = trickName;
+      nm.textContent = kwadTrickLabel(trickName);
       const at = document.createElement('div');
       at.className = 'kwad-stat-num';
       at.textContent = String(s.attempted);
@@ -4238,12 +4358,12 @@
       return;
     }
 
-    grid.appendChild(kwadStatPanel(t('kwad_stats_total'), '', kwadStats));
+    grid.appendChild(kwadStatPanel(t('kwad_stats_total'), '', kwadStats, 'total'));
     inGame.concat(others).forEach(nm => {
       const idx = inGame.indexOf(nm);
       const color = (idx !== -1 && kwadPlayers[idx].color) ||
         (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[nm]) || '';
-      grid.appendChild(kwadStatPanel(nm, color, kwadPlayerStats[nm] || {}));
+      grid.appendChild(kwadStatPanel(nm, color, kwadPlayerStats[nm] || {}, nm));
     });
   }
 
@@ -4285,6 +4405,7 @@
   if (els.kwadSettingsOverlay) els.kwadSettingsOverlay.addEventListener('click', e => { if (e.target === els.kwadSettingsOverlay) closeKwadSettings(); });
   if (els.kwadModeSelect) els.kwadModeSelect.addEventListener('change', e => { kwadMode = e.target.value; kwadSaveMode(); if (kwadMode === 'roundRobinCategory') { kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id); kwadCategoryIdx = 0; } renderKwadMode(); });
   if (els.btnKwadCustomSave) els.btnKwadCustomSave.addEventListener('click', kwadAddCustomTrick);
+  if (els.btnKwadExport) els.btnKwadExport.addEventListener('click', kwadExportTrickList);
   kwadLoad();
 
   // ---------- init ----------

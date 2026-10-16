@@ -82,23 +82,29 @@ ein Split-S oder ein Matty Flip geflogen wurde. Deshalb:
 
 ## 6. Trick-Pool (Vorschlag)
 
-„Durchflug" = kann die App automatisch am Tor prüfen. „Selbst" = nur per Bestätigung.
+„Durchflug" = kann die App automatisch am Gap prüfen. „Selbst" = nur per Bestätigung.
 
 | Trick | Beschreibung (Ansagetext) | Schwierigkeit | Prüfung |
 | --- | --- | --- | --- |
-| Punch Out | Steil nach oben durch das Tor aussteigen | 1 | Durchflug |
-| Yaw Spin | Eine schnelle flache Drehung um die Hochachse, direkt nach dem Tor | 1 | Selbst |
-| Dive | Spitzwinklig von oben kommend durch das Tor stürzen | 2 | Durchflug (Richtung sinnvoll) |
-| Gate Roll | Eine Rolle genau im Moment des Tordurchflugs | 2 | Durchflug |
-| Orbit | Das Tor eng umkreisen (mind. 1 voller Kreis) und dann durchfliegen | 2 | Durchflug |
-| Juicy Flick / Flick | Kurzer, harter Yaw-Flick knapp über dem Tor, durchfliegen | 2 | Durchflug |
+| Yaw Spin | Eine schnelle flache Drehung um die Hochachse, direkt nach dem Gap | 1 | Selbst |
+| Dive | Spitzwinklig von oben kommend durch das Gap stürzen | 2 | Durchflug (Richtung sinnvoll) |
+| Gap Roll | Eine Rolle genau im Moment des Gap-Durchflugs | 2 | Durchflug |
+| Tight Gap | Durch ein enges Gap fliegen, ohne Höhe zu verlieren | 2 | Durchflug |
+| Orbit | Das Gap eng umkreisen (mind. 1 voller Kreis) und dann durchfliegen | 2 | Durchflug |
+| Juicy Flick / Flick | Kurzer, harter Yaw-Flick knapp über dem Gap, durchfliegen | 2 | Durchflug |
 | Wall Scrape | Knapp an einer Wand/einem Hindernis entlang, ohne Berührung | 2 | Selbst |
-| Power Loop | Loop über oder durch das Tor, danach sauber weiterfliegen | 3 | Durchflug |
-| Split-S | Rolle mit halber Rolle: Richtung umkehren und durch das Tor | 3 | Durchflug |
-| Matty Flip | Rückwärts-Loop über das Tor, durchfliegen | 4 | Durchflug |
-| Trippy Spin / Rubik's Cube | Orbit mit dauerhaftem Yaw um das Tor | 4 | Durchflug |
-| Inverted Pass | Invertiert (auf dem Kopf) durch das Tor | 4 | Durchflug |
-| Backwards Pass | Rückwärts durch das Tor | 4 | Durchflug |
+| Power Loop | Loop über oder durch das Gap, danach sauber weiterfliegen | 3 | Durchflug |
+| Split-S | Rolle mit halber Rolle: Richtung umkehren und durch das Gap | 3 | Durchflug |
+| Matty Flip | Rückwärts-Loop über das Gap, durchfliegen | 4 | Durchflug |
+| Trippy Spin / Rubik's Cube | Orbit mit dauerhaftem Yaw um das Gap | 4 | Durchflug |
+| Inverted Pass | Invertiert (auf dem Kopf) durch das Gap | 4 | Durchflug |
+| Backwards Pass | Rückwärts durch das Gap | 4 | Durchflug |
+
+> Diese Tabelle ist der ursprüngliche **Vorschlag**. Verbindlich ist die gepflegte Liste in der
+> App: **KWAD-Einstellungen → „Trickliste & Pool"**. Dort stehen alle eingebauten Tricks mit
+> Prüfart und Schwierigkeit, sie lässt sich seit v0.21 **als CSV exportieren**
+> (`Trickliste exportieren`). Ein Trick ohne Tor/Gap — z. B. „Tight Gap" statt des früheren
+> „Level Pass" — trägt dort die Prüfart **Gap** bzw. **Freiflug**.
 
 Zum Pool:
 
@@ -109,6 +115,9 @@ Zum Pool:
 - **Namentliche Kurzform** für die Ansage (z. B. „Power Loop" statt der ganzen Beschreibung).
 - Neue Tricks lassen sich als reine Datenliste ergänzen (Name, Text, Schwierigkeit, Prüfart) —
   ohne Logikänderung.
+- Jeder Trick liegt in **beiden Sprachen** vor (deutsch/englisch): `name`/`desc` sind der
+  kanonische (deutsche) Text und zugleich der Schlüssel für Pool und Statistik, `en.name`/`en.desc`
+  liefern die englische Anzeige. Eigene Tricks sind Freitext und bleiben unverändert.
 
 ### 6.1 Umgesetzt (ab v0.18.0): Prüfart und Hindernisauswähler
 
