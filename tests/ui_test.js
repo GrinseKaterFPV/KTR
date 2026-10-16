@@ -179,6 +179,31 @@ check('W4: the K.W.A.D add row gets the same treatment (min-width: 0 + wrap)',
   /\.kwad-add \{ display: flex; flex-wrap: wrap; gap: 8px; \}/.test(css)
   && /\.kwad-add input \{ flex: 1 1 9rem; min-width: 0;/.test(css));
 
+// --- 12) collapsible card structure (real <summary> + repair) -------------------
+check('D1: the camera summary is the first child of its <details>',
+  /<details class="video-card card-collapsible" data-sec="camera" open>\s*<summary class="card-summary"/.test(html));
+check('D2: the timer summary is the first child of its <details>',
+  /<details class="timer-card card-collapsible" data-sec="timer" open>\s*<summary class="card-summary"/.test(html));
+check('D3: exactly one </main> (no stray closing tags)',
+  (html.match(/<\/main>/g) || []).length === 1);
+check('D4: no "Details" hack is left (they killed the ▾/▴ caret)',
+  !/content: none !important/.test(css) && !/Nuclear option/.test(css));
+check('D5: the gear button is pinned to the card corner',
+  /\.card-header \{[^}]*position: absolute; top: 0; right: 0;/.test(css));
+check('D6: the summary leaves room for the pinned gear',
+  /\.card-collapsible > \.card-summary \{[^}]*min-height: 36px; padding-right: 46px;/.test(css));
+check('D7: the ▾/▴ caret rules are intact',
+  /\.card-collapsible > \.card-summary::after \{ content: '▾'/.test(css)
+  && /\.card-collapsible\[open\] > \.card-summary::after \{ content: '▴'/.test(css));
+
+// --- 13) backup / restore is actually wired -------------------------------------
+check('G1: the backup button is wired (els map)',
+  /btnBackup: document\.getElementById\('btnBackup'\)/.test(app));
+check('G2: the restore file input is wired (els map)',
+  /fileRestore: document\.getElementById\('fileRestore'\)/.test(app));
+check('G3: the backup status line is wired (els map)',
+  /backupStatus: document\.getElementById\('backupStatus'\)/.test(app));
+
 // --- cache / version bookkeeping ---------------------------------------------
 check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
 check('V2: app version was bumped', /APP_VERSION = '0\.17\.0'/.test(app));
