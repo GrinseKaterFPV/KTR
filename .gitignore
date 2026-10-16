@@ -1,5 +1,6 @@
 node_modules/
 android/
+HANDOFF.md
 www/
 *.log
 *.key
