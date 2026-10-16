@@ -46,6 +46,7 @@ function overlayBlock(marker) {
 const appOverlay = overlayBlock('<div class="settings-overlay" id="settingsOverlay"');
 const timerOverlay = overlayBlock('<div class="settings-overlay" id="timerSettingsOverlay"');
 const cameraOverlay = overlayBlock('<div class="settings-overlay" id="cameraSettingsOverlay"');
+const kwadOverlay = overlayBlock('<div class="settings-overlay" id="kwadSettingsOverlay"');
 
 // --- 1) camera settings live in their own overlay ---------------------------
 check('C1: camera overlay exists', cameraOverlay.length > 200);
@@ -70,12 +71,41 @@ check('S3: the duplicate auto-start checkbox is gone from the whole page',
 check('S4: Runden/Satz stays in the timer menu', timerOverlay.includes('id="autoLaps"'));
 check('S5: Countdown stays in the timer menu', timerOverlay.includes('id="countdownInput"'));
 check('S6: race & audio group stays in the timer menu', timerOverlay.includes('data-i18n="g_audio"'));
-check('S6a: TTS controls are centralized in the main settings, not the timer menu',
-  ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice', 'kwadAnnounce']
+check('S6a: speech controls are in app or KWAD settings, not the timer menu',
+  ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice']
     .every(id => appOverlay.includes('id="' + id + '"'))
-  && ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice', 'kwadAnnounce']
+  && ['voiceSelect', 'announceMode', 'announceRate', 'btnTestVoice']
     .every(id => !timerOverlay.includes('id="' + id + '"'))
-  && !html.slice(html.indexOf('id="kwadSettingsOverlay"')).includes('id="kwadAnnounce"'));
+  && !appOverlay.includes('id="kwadAnnounce"')
+  && kwadOverlay.includes('id="kwadAnnounce"'));
+check('S6b: language and speech share one category, and app options are nested under App Settings',
+  (appOverlay.match(/data-i18n="g_language_speech"/g) || []).length === 1
+  && appOverlay.includes('id="langSelect"') && appOverlay.includes('id="voiceSelect"')
+  && /data-i18n="g_app_settings"[^]*?class="settings-subgroups"[^]*?data-i18n="g_look"[^]*?data-i18n="g_backup"/.test(appOverlay)
+  && !appOverlay.includes('data-i18n="g_app"')
+  && /class="settings-modal-head"[^]*?id="btnForceUpdate"/.test(appOverlay)
+  && /label class="file-input-wrap"[^]*?<span class="btn" data-i18n="restore_now"/.test(appOverlay)
+  && /g_app_settings: 'App-Einstellungen'/.test(app)
+  && /g_backup: 'Datensicherung & Wiederherstellung'/.test(app)
+  && /restore_now: 'Aus Datei wiederherstellen'/.test(app)
+  && !appOverlay.includes('data-i18n="g_language"')
+  && !appOverlay.includes('data-i18n="g_speech"'));
+check('S6c: appearance preferences include contrast, gradient backgrounds, and image upload',
+  ['highContrast', 'backgroundTheme', 'backgroundImage', 'backgroundRemove'].every(id => appOverlay.includes('id="' + id + '"'))
+  && ['default', 'ocean', 'violet', 'sunset', 'forest', 'custom-image'].every(theme => appOverlay.includes(`value="${theme}"`))
+  && /function saveBackgroundImage\(file\)/.test(app)
+  && /file\.size > 20 \* 1024 \* 1024/.test(app)
+  && /background_file_too_large: 'The image is too large\. Please choose a file under 20 MB\.'/.test(app)
+  && /indexedDB\.open\(APPEARANCE_DB, 1\)/.test(app)
+  && /function applyAppearance\(\)/.test(app)
+  && /body\.high-contrast/.test(css)
+  && /body\[data-background-theme="custom-image"\]/.test(css)
+  && /backgroundTheme: state\.backgroundTheme/.test(app)
+  && /highContrast: state\.highContrast/.test(app));
+check('S6d: timer and lap values are larger on desktop and narrow screens',
+  /\.timer-time \{ font-size: 64px;/.test(css)
+  && /\.current-lap, \.last-lap, \.best-lap \{ font-family: monospace; font-size: 21px;/.test(css)
+  && /@media \(max-width: 639px\) \{\s*\.timer-time \{ font-size: clamp\(38px, 11vw, 50px\);/.test(css));
 check('S7: the auto-start quick switch in the timer card is kept',
   html.includes('id="autoStartQuick"') && html.includes('id="autoLapsBadge"') && html.includes('id="countdownBadge"'));
 check('S7a: timer quick switches use two columns only when there is enough room',
@@ -528,6 +558,17 @@ check('S30k: Ranked Mode gates track bests and the track description is editable
   && /ranked_mode_hint/.test(html)
   && /ranked_mode: 'Ranked Mode'/.test(app)
   && /ranked_mode: 'Ranked mode'/.test(app));
+check('S30l: track records can be cleared and exported globally or individually',
+  /id="btnTrackClearAll"/.test(html)
+  && /id="btnTrackExportAll"/.test(html)
+  && /function clearTrackRecords\(id\)/.test(app)
+  && /function clearAllTrackRecords\(\)/.test(app)
+  && /function exportTracksCsv\(tracks(?:, all = false)?\)/.test(app)
+  && /function migrateTrackRecords\(\)/.test(app)
+  && /if \(!track\) sets\.forEach/.test(app)
+  && /clearTrackRecords\(track\.id\)/.test(app)
+  && /exportTracksCsv\(\[track\]\)/.test(app)
+  && /data-track-clear/.test(app));
 check('S31: a statistics row translates its trick name',
   /function kwadTrickLabel\(name\)/.test(app) && /nm\.textContent = kwadTrickLabel\(trickName\);/.test(app));
 check('S32: built-in tricks carry their English name and description',
@@ -594,8 +635,8 @@ check('S40: the drawn trick can be read out loud, naming the picker for gap/obst
   && /let text = kwadTrickName\(kwadTrickObj\);/.test(app)
   && /t\(kind === 'obstacle' \? 'kwad_picker_obstacle' : 'kwad_picker_gap'\)/.test(app)
   && /if \(kwadAnnounce\) kwadAnnounceTrick\(\);/.test(app));
-check('S41: the announce option is a checkbox in main settings and is remembered',
-  appOverlay.includes('<input type="checkbox" id="kwadAnnounce"')
+check('S41: the announce option is a checkbox in KWAD settings and is remembered',
+  kwadOverlay.includes('<input type="checkbox" id="kwadAnnounce"')
   && /kwadAnnounce: document\.getElementById\('kwadAnnounce'\)/.test(app)
   && /localStorage\.setItem\('kwad_announce'/.test(app)
   && /localStorage\.getItem\('kwad_announce'\) === '1'/.test(app)
@@ -624,10 +665,10 @@ check('P17: the pilot colour is adjustable later from inside the profile',
   && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v64'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.30\.1'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v69'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.30\.6'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.30\.1"/.test(pkg));
+  /"version": "0\.30\.6"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

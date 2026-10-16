@@ -20,7 +20,15 @@ const check = (name, condition) => {
   console.log((condition ? 'PASS ' : 'FAIL ') + name);
 };
 
-const recordState = { tracks: [{ id: 'track-main', records: [] }] };
+const recordState = {
+  tracks: [{
+    id: 'track-main',
+    records: [
+      { pilot: 'Ari', bestLapMs: 3600, bestSets: [{ lapCount: 2, totalMs: 8000 }, { lapCount: 3, totalMs: 11000 }] },
+      { pilot: 'Bo', bestLapMs: 3800, bestSets: [{ lapCount: 2, totalMs: 8200 }, { lapCount: 3, totalMs: 12000 }] },
+    ],
+  }],
+};
 const records = new Function('state', extract('trackRecords') + '\nreturn trackRecords;')(recordState);
 const sets = [
   { pilot: 'Ari', trackId: 'track-main', totalMs: 9000, bestMs: 4000, lapCount: 2, laps: [{ duration: 4000 }, { duration: 5000 }] },
@@ -32,7 +40,7 @@ const sets = [
   { pilot: 'Ari', trackId: 'track-main', totalMs: 5000, bestMs: 1000, lapCount: 2, ranked: false, laps: [{ duration: 1000 }, { duration: 4000 }] },
   { pilot: 'Ari', trackId: 'track-main', totalMs: 11000, bestMs: 500, lapCount: 11, laps: Array.from({ length: 11 }, () => ({ duration: 500 })) },
 ];
-const result = records(sets);
+const result = records(sets, 'track-main');
 check('R1: fastest lap is independent of set lap counts',
   result.bestLap.pilot === 'Ari' && result.bestLap.duration === 3600);
 check('R2: fastest sets are ranked separately by count, ignoring worse and unranked times',
@@ -46,17 +54,89 @@ check('R3: each pilot has a separate fastest set for each lap count',
   && result.pilots.find(pilot => pilot.pilot === 'Bo').bestLap === 3800
   && result.pilots.find(pilot => pilot.pilot === 'Bo').bestSets.find(best => best.lapCount === 2).totalMs === 8200
   && result.pilots.find(pilot => pilot.pilot === 'Bo').bestSets.find(best => best.lapCount === 3).totalMs === 12000);
-check('R4: empty input has no best times', records([]).bestLap === null && records([]).bestSets.length === 0);
-const longOnly = records([
+const emptyRecords = new Function(
+  'state', extract('trackRecords') + '\nreturn trackRecords;'
+)({ tracks: [{ id: 'track-main', records: [] }] });
+check('R4: empty input has no best times', emptyRecords([], 'track-main').bestLap === null
+  && emptyRecords([], 'track-main').bestSets.length === 0);
+const longOnly = emptyRecords([
   { pilot: 'Long', trackId: 'track-main', totalMs: 100, bestMs: 1, lapCount: 11, laps: Array.from({ length: 11 }, () => ({ duration: 1 })) },
-]);
+], 'track-main');
 check('R5: sets longer than 10 laps do not contribute even to best-lap records',
   longOnly.bestLap === null && longOnly.bestSets.length === 0);
-const legacyRecords = records([
-  { pilot: 'Legacy', trackId: 'track-main', totalMs: 9000, bestMs: 4000, laps: [{ duration: 4000 }, { duration: 5000 }] },
-]);
-check('R6: older saved sets are grouped using their recorded lap arrays',
-  legacyRecords.bestSets.length === 1 && legacyRecords.bestSets[0].lapCount === 2);
+const migrationState = {
+  tracks: [{ id: 'track-main' }],
+  sets: [{ pilot: 'Legacy', trackId: 'track-main', totalMs: 9000, bestMs: 4000, laps: [{ duration: 4000 }, { duration: 5000 }] }],
+};
+let migrationSaves = 0;
+const migrate = new Function(
+  'state', 'updateTrackRecord', 'saveSettings',
+  extract('migrateTrackRecords') + '\nreturn migrateTrackRecords;'
+)(migrationState, new Function(
+  'state', 'saveSettings', extract('updateTrackRecord') + '\nreturn updateTrackRecord;'
+)(migrationState, () => {}), () => { migrationSaves++; });
+migrate();
+const migratedRecords = new Function(
+  'state', extract('trackRecords') + '\nreturn trackRecords;'
+)(migrationState)(migrationState.sets, 'track-main');
+check('R6: legacy sets migrate once into stored track records',
+  migratedRecords.bestSets.length === 1 && migratedRecords.bestSets[0].lapCount === 2
+  && migrationSaves === 1);
+let clearSaves = 0;
+const clearTrack = new Function(
+  'state', 'timerBusy', 't', 'askConfirm', 'saveSettings', 'renderTracks',
+  extract('clearTrackRecords') + '\nreturn clearTrackRecords;'
+)(migrationState, () => false, key => key, () => true, () => { clearSaves++; }, () => {});
+clearTrack('track-main');
+migrate();
+const clearedRecords = new Function(
+  'state', extract('trackRecords') + '\nreturn trackRecords;'
+)(migrationState)(migrationState.sets, 'track-main');
+check('R7: clearing records persists and historical sets do not repopulate them',
+  migrationState.sets.length === 1 && clearedRecords.bestLap === null && !clearedRecords.bestSets.length
+  && clearSaves === 1 && migrationSaves === 1);
+const allClearState = {
+  tracks: [
+    { id: 'one', records: [{ pilot: 'A', bestLapMs: 3000, bestSets: [] }] },
+    { id: 'two', records: [{ pilot: 'B', bestLapMs: 4000, bestSets: [] }] },
+  ],
+  sets: [{ trackId: 'one', pilot: 'A' }],
+};
+let allClearSaves = 0;
+const clearAll = new Function(
+  'state', 'timerBusy', 't', 'askConfirm', 'saveSettings', 'renderTracks',
+  extract('clearAllTrackRecords') + '\nreturn clearAllTrackRecords;'
+)(allClearState, () => false, key => key, () => true, () => { allClearSaves++; }, () => {});
+clearAll();
+check('R8: clearing all records leaves tracks and race history intact',
+  allClearState.tracks.length === 2 && allClearState.tracks.every(track => track.records.length === 0)
+  && allClearState.sets.length === 1 && allClearSaves === 1);
+let exportedFilename = '';
+let exportedRows = [];
+const exportTracks = new Function(
+  'downloadCsv', extract('exportTracksCsv') + '\nreturn exportTracksCsv;'
+)((filename, rows) => { exportedFilename = filename; exportedRows = rows; });
+const exportData = [
+  {
+    id: 'one', name: 'Hill Track', description: 'Upper section',
+    records: [{ pilot: 'Ari', bestLapMs: 3650, bestSets: [{ lapCount: 2, totalMs: 8200 }] }],
+  },
+  { id: 'two', name: 'Empty', description: '', records: [] },
+];
+exportTracks(exportData);
+check('R9: all-track CSV export includes metadata, personal bests, and empty tracks',
+  exportedFilename === 'fpv-tracks.csv' && exportedRows.length === 4
+  && exportedRows[0].join(',') === 'track_name,description,pilot,record_type,lap_count,time_ms'
+  && exportedRows.some(row => row[0] === 'Hill Track' && row[1] === 'Upper section' && row[3] === 'best_lap' && row[5] === 3650)
+  && exportedRows.some(row => row[0] === 'Hill Track' && row[3] === 'best_set' && row[4] === 2 && row[5] === 8200)
+  && exportedRows.some(row => row[0] === 'Empty' && row[3] === 'track'));
+exportTracks([exportData[0]]);
+check('R10: individual CSV export is scoped to one track',
+  exportedFilename === 'track-Hill-Track.csv' && exportedRows.length === 3
+  && exportedRows.every(row => row[0] === 'track_name' || row[0] === 'Hill Track'));
+exportTracks([exportData[0]], true);
+check('R11: export-all keeps its filename even when only one track exists',
+  exportedFilename === 'fpv-tracks.csv' && exportedRows.length === 3);
 
 const updateState = { tracks: [{ id: 'track-main', records: [] }] };
 let recordSaves = 0;
@@ -65,18 +145,18 @@ const updateRecord = new Function(
 )(updateState, () => { recordSaves++; });
 updateRecord({ pilot: 'Ari', trackId: 'track-main', ranked: true, lapCount: 2, bestMs: 3800, totalMs: 8000, laps: [{ duration: 4200 }, { duration: 3800 }] });
 updateRecord({ pilot: 'Ari', trackId: 'track-main', ranked: true, lapCount: 2, bestMs: 4100, totalMs: 9000, laps: [{ duration: 4900 }, { duration: 4100 }] });
-check('R7: a slower ranked run does not overwrite the pilot personal best',
+check('R12: a slower ranked run does not overwrite the pilot personal best',
   updateState.tracks[0].records[0].bestLapMs === 3800
   && updateState.tracks[0].records[0].bestSets[0].totalMs === 8000
   && recordSaves === 1);
 updateRecord({ pilot: 'Ari', trackId: 'track-main', ranked: true, lapCount: 2, bestMs: 3700, totalMs: 7900, laps: [{ duration: 4200 }, { duration: 3700 }] });
-check('R8: a new personal best updates only its better record',
+check('R13: a new personal best updates only its better record',
   updateState.tracks[0].records[0].bestLapMs === 3700
   && updateState.tracks[0].records[0].bestSets[0].totalMs === 7900
   && recordSaves === 2);
 updateRecord({ pilot: 'Ari', trackId: 'track-main', ranked: false, lapCount: 2, bestMs: 1000, totalMs: 1000, laps: [{ duration: 1000 }] });
 updateRecord({ pilot: 'Ari', trackId: 'track-main', ranked: true, lapCount: 11, bestMs: 1000, totalMs: 1000, laps: Array.from({ length: 11 }, () => ({ duration: 1000 })) });
-check('R9: unranked and over-10-lap runs cannot change personal records',
+check('R14: unranked and over-10-lap runs cannot change personal records',
   updateState.tracks[0].records[0].bestLapMs === 3700
   && updateState.tracks[0].records[0].bestSets[0].totalMs === 7900
   && recordSaves === 2);
@@ -85,11 +165,11 @@ recordState.tracks[0].records = [{ pilot: 'Ari', bestLapMs: 3600, bestSets: [{ l
 const retained = records([
   { pilot: 'Ari', trackId: 'track-main', totalMs: 9000, bestMs: 4000, lapCount: 2, laps: [{ duration: 4000 }, { duration: 5000 }] },
 ]);
-check('R10: stored personal bests do not regress when slower attempts remain in history',
+check('R15: stored personal bests do not regress when slower attempts remain in history',
   retained.bestLap.pilot === 'Ari' && retained.bestLap.duration === 3600
   && retained.bestSets[0].totalMs === 7600);
 const retainedWithoutHistory = records([], 'track-main');
-check('R11: stored personal bests remain after race-history entries are removed',
+check('R16: stored personal bests remain after race-history entries are removed',
   retainedWithoutHistory.bestLap.duration === 3600 && retainedWithoutHistory.bestSets[0].totalMs === 7600);
 
 const state = {

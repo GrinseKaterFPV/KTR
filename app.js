@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.30.1';
+  const APP_VERSION = '0.30.6';
 
   // ---------- i18n ----------
   const I18N = {
@@ -45,6 +45,12 @@
       track_description_placeholder: 'Beschreibung der Strecke (optional)',
       ranked_mode: 'Ranked Mode',
       ranked_mode_hint: 'Nur mit aktivem Ranked Mode werden Track-Bestzeiten aktualisiert; Trainingsläufe bleiben im Rennverlauf.',
+      track_export_all: 'Alle Tracks exportieren (CSV)',
+      track_export: 'Track exportieren (CSV)',
+      track_clear_all: 'Alle Streckenrekorde löschen',
+      track_clear: 'Rekorde löschen',
+      track_clear_all_confirm: 'Alle gespeicherten Streckenrekorde löschen? Der Rennverlauf bleibt erhalten.',
+      track_clear_confirm: 'Alle Rekorde für „{name}“ löschen? Der Rennverlauf bleibt erhalten.',
       track_pilot: 'Pilot',
       track_pilot_records: 'Bestzeiten je Pilot',
       track_no_records: 'Für diese Strecke gibt es noch keine gespeicherten Zeiten.',
@@ -80,7 +86,7 @@
       kwad_round_done: 'Alle dran – neuer Trick.',
       kwad_undo: 'Rückgängig',
       kwad_undone: 'Rückgängig: {letter} entfernt bei {name}',
-      kwad_settings: 'KWAD Einstellungen',
+      kwad_settings: 'KWAD-Einstellungen',
       kwad_categories: 'Trick-Kategorien',
       kwad_mode: 'Zieh-Modus',
       kwad_mode_random: 'Zufällig (gewichtet)',
@@ -196,20 +202,21 @@
       prep_time: 'Vorbereitungszeit (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio-Feedback (Countdown, Runden)',
-      g_speech: 'Sprachausgabe',
+      g_language_speech: 'Sprache & Sprachausgabe',
+      g_kwad_announcements: 'Ansagen',
       speech_announce: 'Sprachansage',
       ann_off: 'Aus',
       ann_every: 'Jede Runde',
       ann_best: 'Nur beste Runde',
       speech_rate: 'Sprechtempo',
       test_voice: 'Stimme testen',
-      g_language: 'Sprache',
       ui_language: 'App-Sprache',
       lang_de: 'Deutsch',
       lang_en: 'English',
       voice: 'Sprachstimme',
       voice_auto: 'Automatisch',
       g_app: 'App',
+      g_app_settings: 'App-Einstellungen',
       force_update: 'App aktualisieren (Cache leeren)',
       status_ready: 'Bereit',
       status_cam_not_started: 'Kamera: nicht gestartet',
@@ -287,6 +294,20 @@
       g_look: 'Aussehen',
       accent_color: 'Akzentfarbe',
       accent_custom: 'Eigene Farbe',
+      appearance_contrast: 'Hoher Kontrast',
+      appearance_background: 'Hintergrund',
+      background_default: 'Standard',
+      background_ocean: 'Ozean',
+      background_violet: 'Violett',
+      background_sunset: 'Sonnenuntergang',
+      background_forest: 'Wald',
+      background_image: 'Eigenes Bild',
+      background_upload: 'Hintergrundbild auswählen',
+      background_remove: 'Hintergrundbild entfernen',
+      background_image_error: 'Das Hintergrundbild konnte nicht gespeichert werden: {error}',
+      background_file_invalid: 'Bitte wähle eine Bilddatei aus.',
+      background_file_too_large: 'Das Bild ist zu groß. Bitte wähle eine Datei unter 20 MB.',
+      background_image_loaded: 'Hintergrundbild gespeichert.',
       filter_pilot: 'Pilot',
       all_pilots: 'Alle Piloten',
       no_pilot: 'Ohne Pilot',
@@ -304,12 +325,12 @@
       th_sets: 'Sätze',
       storage_trimmed: 'Speicher fast voll – ältere Sätze wurden entfernt, damit neue gespeichert werden können.',
       storage_full: 'Speicher voll – Speichern fehlgeschlagen. Bitte ältere Sätze löschen.',
-      g_backup: 'Backup & Restore',
-      backup_now: 'Backup erstellen (JSON)',
-      restore_now: 'Restore aus Datei',
-      backup_done: 'Backup erstellt: {name}',
-      restore_done: 'Restore erfolgreich – App wird neu geladen',
-      restore_error: 'Fehler beim Restore: {error}',
+      g_backup: 'Datensicherung & Wiederherstellung',
+      backup_now: 'Datensicherung erstellen (JSON)',
+      restore_now: 'Aus Datei wiederherstellen',
+      backup_done: 'Datensicherung erstellt: {name}',
+      restore_done: 'Wiederherstellung erfolgreich – App wird neu geladen',
+      restore_error: 'Fehler bei der Wiederherstellung: {error}',
     },
     en: {
       title: 'KTR',
@@ -351,6 +372,12 @@
       track_description_placeholder: 'Track description (optional)',
       ranked_mode: 'Ranked mode',
       ranked_mode_hint: 'Track bests update only in Ranked Mode; training runs remain in race history.',
+      track_export_all: 'Export all tracks (CSV)',
+      track_export: 'Export track (CSV)',
+      track_clear_all: 'Clear all track records',
+      track_clear: 'Clear records',
+      track_clear_all_confirm: 'Delete all saved track records? Race history will be kept.',
+      track_clear_confirm: 'Delete all records for “{name}”? Race history will be kept.',
       track_pilot: 'Pilot',
       track_pilot_records: 'Best times by pilot',
       track_no_records: 'No times have been saved for this track yet.',
@@ -386,7 +413,7 @@
       kwad_round_done: 'Everyone had a go – new trick.',
       kwad_undo: 'Undo',
       kwad_undone: 'Undone: {letter} removed for {name}',
-      kwad_settings: 'KWAD Settings',
+      kwad_settings: 'KWAD settings',
       kwad_categories: 'Trick Categories',
       kwad_mode: 'Draw Mode',
       kwad_mode_random: 'Random (weighted)',
@@ -502,20 +529,21 @@
       prep_time: 'Preparation time (s)',
       cd_row: 'Countdown',
       audio_feedback: 'Audio feedback (countdown, laps)',
-      g_speech: 'Speech',
+      g_language_speech: 'Language & Speech',
+      g_kwad_announcements: 'Announcements',
       speech_announce: 'Voice announcement',
       ann_off: 'Off',
       ann_every: 'Every lap',
       ann_best: 'Best lap only',
       speech_rate: 'Speech rate',
       test_voice: 'Test voice',
-      g_language: 'Language',
       ui_language: 'App language',
       lang_de: 'Deutsch',
       lang_en: 'English',
       voice: 'Voice',
       voice_auto: 'Automatic',
       g_app: 'App',
+      g_app_settings: 'App settings',
       force_update: 'Update app (clear cache)',
       status_ready: 'Ready',
       status_cam_not_started: 'Camera: not started',
@@ -593,6 +621,20 @@
       g_look: 'Appearance',
       accent_color: 'Accent colour',
       accent_custom: 'Custom colour',
+      appearance_contrast: 'High contrast',
+      appearance_background: 'Background',
+      background_default: 'Default',
+      background_ocean: 'Ocean',
+      background_violet: 'Violet',
+      background_sunset: 'Sunset',
+      background_forest: 'Forest',
+      background_image: 'Custom image',
+      background_upload: 'Choose background image',
+      background_remove: 'Remove background image',
+      background_image_error: 'Could not save the background image: {error}',
+      background_file_invalid: 'Please choose an image file.',
+      background_file_too_large: 'The image is too large. Please choose a file under 20 MB.',
+      background_image_loaded: 'Background image saved.',
       filter_pilot: 'Pilot',
       all_pilots: 'All pilots',
       no_pilot: 'No pilot',
@@ -744,6 +786,9 @@
     stintSaved: false,
     setFilter: '',
     accent: '#ff7a1a',
+    highContrast: false,
+    backgroundTheme: 'default',
+    backgroundImageUrl: '',
     sections: {},
     lang: 'de',
     voiceURI: '',
@@ -826,6 +871,10 @@
     timerSummary: document.getElementById('timerSummary'),
     accentSwatches: document.getElementById('accentSwatches'),
     accentCustom: document.getElementById('accentCustom'),
+    highContrast: document.getElementById('highContrast'),
+    backgroundTheme: document.getElementById('backgroundTheme'),
+    backgroundImage: document.getElementById('backgroundImage'),
+    backgroundRemove: document.getElementById('backgroundRemove'),
     langSelect: document.getElementById('langSelect'),
     voiceSelect: document.getElementById('voiceSelect'),
     btnSettings: document.getElementById('btnSettings'),
@@ -856,6 +905,8 @@
     tracksScreen: document.getElementById('tracksScreen'),
     trackNameInput: document.getElementById('trackNameInput'),
     btnTrackAdd: document.getElementById('btnTrackAdd'),
+    btnTrackExportAll: document.getElementById('btnTrackExportAll'),
+    btnTrackClearAll: document.getElementById('btnTrackClearAll'),
     tracksList: document.getElementById('tracksList'),
     btnTracksHome: document.getElementById('btnTracksHome'),
     activeTrackSelect: document.getElementById('activeTrackSelect'),
@@ -981,6 +1032,8 @@
       autoLaps: state.autoLaps,
       setFilter: state.setFilter,
       accent: state.accent,
+      highContrast: state.highContrast,
+      backgroundTheme: state.backgroundTheme,
       sections: state.sections,
       lang: state.lang,
       voiceURI: state.voiceURI,
@@ -1113,7 +1166,7 @@
           description: typeof track.description === 'string' ? track.description : '',
           records: Array.isArray(track.records)
             ? track.records.filter(record => record && typeof record.pilot === 'string')
-            : [],
+            : null,
         }))
       : [];
     state.activeTrackId = state.tracks.some(track => track.id === s.activeTrackId)
@@ -1127,13 +1180,19 @@
     state.setFilter = s.setFilter || '';
     state.sections = (s.sections && typeof s.sections === 'object') ? s.sections : {};
     state.accent = s.accent || '#ff7a1a';
+    state.highContrast = s.highContrast ?? false;
+    state.backgroundTheme = ['default', 'ocean', 'violet', 'sunset', 'forest', 'custom-image'].includes(s.backgroundTheme)
+      ? s.backgroundTheme
+      : 'default';
     state.sets = loadSets();
-    state.sets.forEach(set => updateTrackRecord(set, false));
+    migrateTrackRecords();
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
     applyProcRes();
     applyAccent(state.accent, false);
+    applyAppearance();
+    if (state.backgroundTheme === 'custom-image') loadStoredBackgroundImage();
     initSections();
     if (els.pilotColor) els.pilotColor.hidden = true;
     renderPilots();
@@ -1517,6 +1576,156 @@
     els.accentCustom.addEventListener('input', e => applyAccent(e.target.value, true));
   }
 
+  const APPEARANCE_DB = 'ktr-appearance';
+  const APPEARANCE_STORE = 'assets';
+  const BACKGROUND_KEY = 'custom-background';
+  function openAppearanceDb() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(APPEARANCE_DB, 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains(APPEARANCE_STORE)) {
+          request.result.createObjectStore(APPEARANCE_STORE);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('IndexedDB could not be opened'));
+    });
+  }
+  async function loadStoredBackgroundImage() {
+    try {
+      const db = await openAppearanceDb();
+      const transaction = db.transaction(APPEARANCE_STORE, 'readonly');
+      const request = transaction.objectStore(APPEARANCE_STORE).get(BACKGROUND_KEY);
+      const imageBlob = await new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error || new Error('Background image could not be read'));
+      });
+      db.close();
+      if (!(imageBlob instanceof Blob)) {
+        state.backgroundTheme = 'default';
+        if (els.backgroundTheme) els.backgroundTheme.value = state.backgroundTheme;
+        applyAppearance();
+        saveSettings();
+        return;
+      }
+      state.backgroundImageUrl = URL.createObjectURL(imageBlob);
+      if (els.backgroundTheme) {
+        const imageOption = els.backgroundTheme.querySelector('option[value="custom-image"]');
+        if (imageOption) imageOption.hidden = false;
+        els.backgroundTheme.value = state.backgroundTheme;
+      }
+      applyAppearance();
+      if (els.backgroundRemove) els.backgroundRemove.disabled = false;
+    } catch (error) {
+      console.error('Background image load error:', error);
+      toast(t('background_image_error').replace('{error}', error.message || String(error)));
+    }
+  }
+  function applyAppearance() {
+    document.body.classList.toggle('high-contrast', state.highContrast);
+    document.body.dataset.backgroundTheme = state.backgroundTheme;
+    if (state.backgroundImageUrl && state.backgroundTheme === 'custom-image') {
+      document.documentElement.style.setProperty('--custom-background-image', `url("${state.backgroundImageUrl}")`);
+    } else {
+      document.documentElement.style.removeProperty('--custom-background-image');
+    }
+    if (els.highContrast) els.highContrast.checked = state.highContrast;
+    if (els.backgroundTheme) els.backgroundTheme.value = state.backgroundTheme;
+    const imageOption = els.backgroundTheme?.querySelector('option[value="custom-image"]');
+    if (imageOption) imageOption.hidden = !state.backgroundImageUrl;
+    if (els.backgroundRemove) els.backgroundRemove.disabled = !state.backgroundImageUrl;
+  }
+  function setBackgroundTheme(theme) {
+    const validThemes = ['default', 'ocean', 'violet', 'sunset', 'forest', 'custom-image'];
+    if (!validThemes.includes(theme) || (theme === 'custom-image' && !state.backgroundImageUrl)) return;
+    state.backgroundTheme = theme;
+    applyAppearance();
+    saveSettings();
+  }
+  async function saveBackgroundImage(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      toast(t('background_file_invalid'));
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast(t('background_file_too_large'));
+      return;
+    }
+    let bitmap;
+    let db;
+    try {
+      bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 1920 / bitmap.width, 1080 / bitmap.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Image canvas is unavailable');
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const imageBlob = await new Promise((resolve, reject) => {
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Image could not be encoded')), 'image/webp', 0.82);
+      });
+      db = await openAppearanceDb();
+      const transaction = db.transaction(APPEARANCE_STORE, 'readwrite');
+      transaction.objectStore(APPEARANCE_STORE).put(imageBlob, BACKGROUND_KEY);
+      await new Promise((resolve, reject) => {
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error('Image could not be saved'));
+        transaction.onabort = () => reject(transaction.error || new Error('Image save was cancelled'));
+      });
+      if (state.backgroundImageUrl) URL.revokeObjectURL(state.backgroundImageUrl);
+      state.backgroundImageUrl = URL.createObjectURL(imageBlob);
+      state.backgroundTheme = 'custom-image';
+      applyAppearance();
+      saveSettings();
+      toast(t('background_image_loaded'));
+    } catch (error) {
+      console.error('Background image save error:', error);
+      toast(t('background_image_error').replace('{error}', error.message || String(error)));
+    } finally {
+      if (bitmap) bitmap.close();
+      if (db) db.close();
+      if (els.backgroundImage) els.backgroundImage.value = '';
+    }
+  }
+  async function removeBackgroundImage() {
+    let db;
+    try {
+      db = await openAppearanceDb();
+      const transaction = db.transaction(APPEARANCE_STORE, 'readwrite');
+      transaction.objectStore(APPEARANCE_STORE).delete(BACKGROUND_KEY);
+      await new Promise((resolve, reject) => {
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error('Image could not be removed'));
+        transaction.onabort = () => reject(transaction.error || new Error('Image removal was cancelled'));
+      });
+      if (state.backgroundImageUrl) URL.revokeObjectURL(state.backgroundImageUrl);
+      state.backgroundImageUrl = '';
+      state.backgroundTheme = 'default';
+      applyAppearance();
+      saveSettings();
+    } catch (error) {
+      console.error('Background image removal error:', error);
+      toast(t('background_image_error').replace('{error}', error.message || String(error)));
+    } finally {
+      if (db) db.close();
+    }
+  }
+  if (els.highContrast) {
+    els.highContrast.addEventListener('change', () => {
+      state.highContrast = els.highContrast.checked;
+      applyAppearance();
+      saveSettings();
+    });
+  }
+  if (els.backgroundTheme) {
+    els.backgroundTheme.addEventListener('change', () => setBackgroundTheme(els.backgroundTheme.value));
+  }
+  if (els.backgroundImage) {
+    els.backgroundImage.addEventListener('change', () => saveBackgroundImage(els.backgroundImage.files?.[0]));
+  }
+  if (els.backgroundRemove) els.backgroundRemove.addEventListener('click', removeBackgroundImage);
+
   // ---------- collapsible main sections ----------
   function initSections() {
     document.querySelectorAll('details.card-collapsible').forEach(d => {
@@ -1769,6 +1978,8 @@
         autoLaps: state.autoLaps,
         setFilter: state.setFilter,
         accent: state.accent,
+        highContrast: state.highContrast,
+        backgroundTheme: state.backgroundTheme,
         sections: state.sections,
         lang: state.lang,
         voiceURI: state.voiceURI,
@@ -1841,7 +2052,7 @@
               description: typeof track.description === 'string' ? track.description : '',
               records: Array.isArray(track.records)
                 ? track.records.filter(record => record && typeof record.pilot === 'string')
-                : [],
+                : null,
             }))
           : [];
         state.activeTrackId = state.tracks.some(track => track.id === data.settings.activeTrackId)
@@ -1851,10 +2062,16 @@
         if (els.autoLaps) els.autoLaps.value = data.settings.autoLaps;
         if (els.setPilotFilter) els.setPilotFilter.value = data.settings.setFilter;
         if (els.accentCustom) els.accentCustom.value = data.settings.accent;
+        state.highContrast = data.settings.highContrast ?? false;
+        state.backgroundTheme = ['default', 'ocean', 'violet', 'sunset', 'forest', 'custom-image'].includes(data.settings.backgroundTheme)
+          ? data.settings.backgroundTheme
+          : 'default';
         if (els.langSelect) els.langSelect.value = data.settings.lang;
         if (els.voiceSelect) els.voiceSelect.value = data.settings.voiceURI || '';
         state.accent = data.settings.accent;
         applyAccent(state.accent, false);
+        applyAppearance();
+        if (state.backgroundTheme === 'custom-image' && !state.backgroundImageUrl) loadStoredBackgroundImage();
         if (data.settings.lang) { state.lang = data.settings.lang; if (els.langSelect) els.langSelect.value = state.lang; }
         applyLanguage();
         renderTracks();
@@ -1866,6 +2083,7 @@
         state.sets = data.sets;
         saveSets();
       }
+      migrateTrackRecords();
       if (Array.isArray(data.laps)) {
         state.laps = data.laps;
         renderLaps();
@@ -2825,7 +3043,10 @@
     } catch { return ''; }
   }
   function downloadCsv(filename, rows) {
-    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const csv = rows.map(r => r.map(v => {
+      const value = typeof v === 'string' && /^[\t\r ]*[=+\-@]/.test(v) ? `'${v}` : String(v);
+      return `"${value.replace(/"/g,'""')}"`;
+    }).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -3615,6 +3836,18 @@
     if (changed && persist) saveSettings();
     return changed;
   }
+  function migrateTrackRecords() {
+    let migrated = false;
+    state.tracks.forEach(track => {
+      if (Array.isArray(track.records)) return;
+      track.records = [];
+      state.sets.forEach(set => {
+        if (set.trackId === track.id) updateTrackRecord(set, false);
+      });
+      migrated = true;
+    });
+    if (migrated) saveSettings();
+  }
   function trackRecords(sets, trackId) {
     const pilots = new Map();
     let bestLap = null;
@@ -3657,15 +3890,15 @@
         setPilotBest(pilot, lapCount, lapTime, totalTime);
       });
     });
-    sets.forEach(set => {
+    if (!track) sets.forEach(set => {
       if (set.ranked === false) return;
       const pilot = set.pilot || '';
       const lapTimes = (set.laps || []).map(lap => Number(lap.duration)).filter(Number.isFinite);
-      const bestLapTime = lapTimes.length ? Math.min(...lapTimes) : Number(set.bestMs);
       const lapCount = Number.isInteger(set.lapCount) && set.lapCount >= 0
         ? set.lapCount
         : (set.laps || []).length;
       if (lapCount > 10) return;
+      const bestLapTime = lapTimes.length ? Math.min(...lapTimes) : Number(set.bestMs);
       const totalTime = Number.isFinite(Number(set.totalMs))
         ? Number(set.totalMs)
         : (set.laps || []).reduce((sum, lap) => sum + (Number(lap.duration) || 0), 0);
@@ -3681,7 +3914,7 @@
           bestSet.totalMs = totalTime;
           bestSet.pilot = pilot;
         }
-        let pilotBest = bestSet.pilots.get(pilot);
+        const pilotBest = bestSet.pilots.get(pilot);
         if (pilotBest === undefined || totalTime < pilotBest) bestSet.pilots.set(pilot, totalTime);
       }
       setPilotBest(pilot, lapCount, bestLapTime, totalTime);
@@ -3789,9 +4022,11 @@
       els.rankedToggle.disabled = busy;
     }
     if (els.btnTrackAdd) els.btnTrackAdd.disabled = busy;
+    if (els.btnTrackClearAll) els.btnTrackClearAll.disabled = busy || !state.tracks.some(track => track.records?.length);
     if (els.tracksList) {
-      els.tracksList.querySelectorAll('[data-track-select], [data-track-delete]').forEach(button => {
-        button.disabled = busy;
+      els.tracksList.querySelectorAll('[data-track-select], [data-track-delete], [data-track-clear]').forEach(button => {
+        button.disabled = busy || (button.hasAttribute('data-track-clear')
+          && !state.tracks.find(track => track.id === button.dataset.trackClear)?.records?.length);
       });
     }
   }
@@ -3846,15 +4081,11 @@
       }
       const actions = document.createElement('div');
       actions.className = 'track-actions';
-      if (track.id !== state.activeTrackId) {
-        const activate = document.createElement('button');
-        activate.type = 'button';
-        activate.dataset.trackSelect = '';
-        activate.textContent = t('track_make_active');
-        activate.disabled = timerBusy();
-        activate.addEventListener('click', () => activateTrack(track.id));
-        actions.appendChild(activate);
-      }
+      const exportTrack = document.createElement('button');
+      exportTrack.type = 'button';
+      exportTrack.textContent = t('track_export');
+      exportTrack.addEventListener('click', () => exportTracksCsv([track]));
+      actions.appendChild(exportTrack);
       const edit = document.createElement('button');
       edit.type = 'button';
       edit.textContent = t(editing ? 'track_save' : 'track_edit');
@@ -3882,17 +4113,26 @@
         }
       });
       actions.appendChild(edit);
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'track-delete';
-      remove.dataset.trackDelete = '';
-      remove.textContent = t('track_delete');
-      remove.disabled = timerBusy();
-      remove.addEventListener('click', () => deleteTrack(track.id));
-      actions.appendChild(remove);
-      head.appendChild(actions);
+      if (track.id !== state.activeTrackId) {
+        const activate = document.createElement('button');
+        activate.type = 'button';
+        activate.dataset.trackSelect = '';
+        activate.textContent = t('track_make_active');
+        activate.disabled = timerBusy();
+        activate.addEventListener('click', () => activateTrack(track.id));
+        actions.appendChild(activate);
+      }
+      const clearRecords = document.createElement('button');
+      clearRecords.type = 'button';
+      clearRecords.className = 'track-delete';
+      clearRecords.dataset.trackClear = track.id;
+      clearRecords.textContent = t('track_clear');
+      clearRecords.disabled = timerBusy() || !track.records?.length;
+      clearRecords.addEventListener('click', () => clearTrackRecords(track.id));
+      actions.appendChild(clearRecords);
       card.appendChild(head);
       if (editing || track.description) card.appendChild(descriptionInput);
+      card.appendChild(actions);
       const records = document.createElement('div');
       records.className = 'track-records';
       renderTrackRecords(records, trackSets(track.id), track.id);
@@ -3923,6 +4163,7 @@
       list.appendChild(empty);
     }
     if (els.btnTrackAdd) els.btnTrackAdd.disabled = timerBusy();
+    if (els.btnTrackExportAll) els.btnTrackExportAll.disabled = !state.tracks.length;
   }
   function addTrack(name) {
     name = (name || '').trim();
@@ -3935,7 +4176,7 @@
     let id;
     do { id = 'track-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
     while (state.tracks.some(track => track.id === id));
-    state.tracks.push({ id, name, description: '' });
+    state.tracks.push({ id, name, description: '', records: [] });
     state.activeTrackId = id;
     trackEditingId = '';
     saveSettings();
@@ -3963,6 +4204,46 @@
     renderTracks();
     renderSets();
   }
+  function clearTrackRecords(id) {
+    const track = state.tracks.find(item => item.id === id);
+    if (!track || timerBusy() || !track.records?.length) return;
+    if (!askConfirm(t('track_clear_confirm').replace('{name}', track.name))) return;
+    track.records = [];
+    saveSettings();
+    renderTracks();
+  }
+  function clearAllTrackRecords() {
+    if (timerBusy() || !state.tracks.some(track => track.records?.length)) return;
+    if (!askConfirm(t('track_clear_all_confirm'))) return;
+    state.tracks.forEach(track => { track.records = []; });
+    saveSettings();
+    renderTracks();
+  }
+  function exportTracksCsv(tracks, all = false) {
+    const rows = [['track_name', 'description', 'pilot', 'record_type', 'lap_count', 'time_ms']];
+    tracks.forEach(track => {
+      let hasRows = false;
+      (Array.isArray(track.records) ? track.records : []).forEach(record => {
+        const pilot = record.pilot || '';
+        if (record.bestLapMs !== null && record.bestLapMs !== undefined && Number.isFinite(Number(record.bestLapMs))) {
+          rows.push([track.name, track.description || '', pilot, 'best_lap', '', Math.round(Number(record.bestLapMs))]);
+          hasRows = true;
+        }
+        (Array.isArray(record.bestSets) ? record.bestSets : []).forEach(setRecord => {
+          const lapCount = Number(setRecord.lapCount);
+          const totalMs = Number(setRecord.totalMs);
+          if (!Number.isInteger(lapCount) || lapCount < 1 || lapCount > 10 || !Number.isFinite(totalMs)) return;
+          rows.push([track.name, track.description || '', pilot, 'best_set', lapCount, Math.round(totalMs)]);
+          hasRows = true;
+        });
+      });
+      if (!hasRows) rows.push([track.name, track.description || '', '', 'track', '', '']);
+    });
+    const filename = !all && tracks.length === 1
+      ? `track-${tracks[0].name.replace(/[^\w-]+/g, '-').replace(/^-|-$/g, '') || 'export'}.csv`
+      : 'fpv-tracks.csv';
+    downloadCsv(filename, rows);
+  }
   function openTracks() {
     if (!els.tracksScreen) return;
     if (els.homeScreen) els.homeScreen.hidden = true;
@@ -3986,6 +4267,8 @@
   if (els.btnTrackAdd) els.btnTrackAdd.addEventListener('click', () => {
     if (addTrack(els.trackNameInput.value)) els.trackNameInput.value = '';
   });
+  if (els.btnTrackExportAll) els.btnTrackExportAll.addEventListener('click', () => exportTracksCsv(state.tracks, true));
+  if (els.btnTrackClearAll) els.btnTrackClearAll.addEventListener('click', clearAllTrackRecords);
   if (els.trackNameInput) els.trackNameInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); if (els.btnTrackAdd) els.btnTrackAdd.click(); }
   });

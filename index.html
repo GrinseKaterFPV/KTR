@@ -161,6 +161,10 @@
           <input id="trackNameInput" type="text" data-i18n-ph="track_name_placeholder" placeholder="Name der Strecke" />
           <button id="btnTrackAdd" type="button" data-i18n="track_add">Strecke anlegen</button>
         </div>
+        <div class="track-manager-actions">
+          <button id="btnTrackExportAll" type="button" data-i18n="track_export_all">Alle Tracks exportieren (CSV)</button>
+          <button id="btnTrackClearAll" class="track-delete" type="button" data-i18n="track_clear_all">Alle Streckenrekorde löschen</button>
+        </div>
         <div id="tracksList" class="tracks-list"></div>
       </div>
     </div>
@@ -330,10 +334,13 @@
       <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="settings" aria-label="Einstellungen">
         <div class="settings-modal-head">
           <h2 class="settings-title" data-i18n="settings">Einstellungen</h2>
-          <button id="btnSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+          <div class="settings-header-actions">
+            <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
+            <button id="btnSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
+          </div>
         </div>
         <details class="settings-group">
-          <summary><h3 data-i18n="g_language">Sprache</h3></summary>
+          <summary><h3 data-i18n="g_language_speech">Sprache &amp; Sprachausgabe</h3></summary>
           <div class="settings-grid">
             <label><span data-i18n="ui_language">App-Sprache</span>
               <select id="langSelect">
@@ -341,11 +348,6 @@
                 <option value="en" data-i18n="lang_en">English</option>
               </select>
             </label>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_speech">Sprachausgabe</h3></summary>
-          <div class="settings-grid">
             <label><span data-i18n="voice">Sprachstimme</span>
               <select id="voiceSelect"></select>
             </label>
@@ -358,42 +360,58 @@
             </label>
             <label><span data-i18n="speech_rate">Sprechtempo</span> <input type="range" id="announceRate" min="0.7" max="1.4" step="0.05" value="1" /><span id="announceRateVal">1.00</span></label>
             <button id="btnTestVoice" type="button" data-i18n="test_voice">Stimme testen</button>
-            <label class="check-row"><input type="checkbox" id="kwadAnnounce" /> <span data-i18n="kwad_announce">Trick ansagen</span></label>
           </div>
         </details>
         <details class="settings-group">
-          <summary><h3 data-i18n="g_look">Aussehen</h3></summary>
-          <div class="settings-grid">
-            <label><span data-i18n="accent_color">Akzentfarbe</span></label>
-            <div class="swatches" id="accentSwatches">
-              <button type="button" data-color="#ff7a1a" style="--sw:#ff7a1a" aria-label="#ff7a1a"></button>
-              <button type="button" data-color="#20c4c4" style="--sw:#20c4c4" aria-label="#20c4c4"></button>
-              <button type="button" data-color="#4ade80" style="--sw:#4ade80" aria-label="#4ade80"></button>
-              <button type="button" data-color="#60a5fa" style="--sw:#60a5fa" aria-label="#60a5fa"></button>
-              <button type="button" data-color="#a78bfa" style="--sw:#a78bfa" aria-label="#a78bfa"></button>
-              <button type="button" data-color="#ff4d8d" style="--sw:#ff4d8d" aria-label="#ff4d8d"></button>
-              <button type="button" data-color="#ffd23c" style="--sw:#ffd23c" aria-label="#ffd23c"></button>
-              <button type="button" data-color="#4dd6a0" style="--sw:#4dd6a0" aria-label="#4dd6a0"></button>
-            </div>
-            <label><span data-i18n="accent_custom">Eigene Farbe</span> <input type="color" id="accentCustom" value="#ff7a1a" /></label>
+          <summary><h3 data-i18n="g_app_settings">App-Einstellungen</h3></summary>
+          <div class="settings-subgroups">
+            <details class="settings-subgroup">
+              <summary><h4 data-i18n="g_look">Aussehen</h4></summary>
+              <div class="settings-grid">
+                <label><span data-i18n="accent_color">Akzentfarbe</span></label>
+                <div class="swatches" id="accentSwatches">
+                  <button type="button" data-color="#ff7a1a" style="--sw:#ff7a1a" aria-label="#ff7a1a"></button>
+                  <button type="button" data-color="#20c4c4" style="--sw:#20c4c4" aria-label="#20c4c4"></button>
+                  <button type="button" data-color="#4ade80" style="--sw:#4ade80" aria-label="#4ade80"></button>
+                  <button type="button" data-color="#60a5fa" style="--sw:#60a5fa" aria-label="#60a5fa"></button>
+                  <button type="button" data-color="#a78bfa" style="--sw:#a78bfa" aria-label="#a78bfa"></button>
+                  <button type="button" data-color="#ff4d8d" style="--sw:#ff4d8d" aria-label="#ff4d8d"></button>
+                  <button type="button" data-color="#ffd23c" style="--sw:#ffd23c" aria-label="#ffd23c"></button>
+                  <button type="button" data-color="#4dd6a0" style="--sw:#4dd6a0" aria-label="#4dd6a0"></button>
+                </div>
+                <label><span data-i18n="accent_custom">Eigene Farbe</span> <input type="color" id="accentCustom" value="#ff7a1a" /></label>
+                <label class="check-row"><input type="checkbox" id="highContrast" /> <span data-i18n="appearance_contrast">Hoher Kontrast</span></label>
+                <label><span data-i18n="appearance_background">Hintergrund</span>
+                  <select id="backgroundTheme">
+                    <option value="default" data-i18n="background_default">Standard</option>
+                    <option value="ocean" data-i18n="background_ocean">Ozean</option>
+                    <option value="violet" data-i18n="background_violet">Violett</option>
+                    <option value="sunset" data-i18n="background_sunset">Sonnenuntergang</option>
+                    <option value="forest" data-i18n="background_forest">Wald</option>
+                    <option value="custom-image" data-i18n="background_image" hidden>Eigenes Bild</option>
+                  </select>
+                </label>
+                <div class="appearance-background-actions">
+                  <label class="file-input-wrap" for="backgroundImage">
+                    <input type="file" id="backgroundImage" accept="image/*" hidden />
+                    <span class="btn" data-i18n="background_upload">Hintergrundbild auswählen</span>
+                  </label>
+                  <button id="backgroundRemove" type="button" data-i18n="background_remove">Hintergrundbild entfernen</button>
+                </div>
+              </div>
+            </details>
+            <details class="settings-subgroup">
+              <summary><h4 data-i18n="g_backup">Datensicherung &amp; Wiederherstellung</h4></summary>
+              <div class="settings-grid">
+                <button id="btnBackup" class="btn" type="button" data-i18n="backup_now">Datensicherung erstellen (JSON)</button>
+                <label class="file-input-wrap" for="fileRestore">
+                  <input type="file" id="fileRestore" accept=".json" hidden />
+                  <span class="btn" data-i18n="restore_now">Aus Datei wiederherstellen</span>
+                </label>
+              </div>
+              <p id="backupStatus" class="hint" hidden></p>
+            </details>
           </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_app">App</h3></summary>
-          <div class="settings-grid">
-            <button id="btnForceUpdate" type="button" data-i18n="force_update">App aktualisieren (Cache leeren)</button>
-          </div>
-        </details>
-        <details class="settings-group">
-          <summary><h3 data-i18n="g_backup">Backup & Restore</h3></summary>
-          <div class="settings-grid">
-            <button id="btnBackup" class="btn" type="button" data-i18n="backup_now">Backup erstellen (JSON)</button>
-            <label class="file-input-wrap">
-              <input type="file" id="fileRestore" accept=".json" hidden />
-              <span class="btn" data-i18n="restore_now">Restore aus Datei</span>
-            </label>
-          </div>
-          <p id="backupStatus" class="hint" hidden></p>
         </details>
       </div>
     </div>
@@ -454,9 +472,15 @@
   <div class="settings-overlay" id="kwadSettingsOverlay" hidden>
     <div class="settings-modal" role="dialog" aria-modal="true" data-i18n-aria="kwad_settings" aria-label="KWAD Einstellungen">
       <div class="settings-modal-head">
-        <h2 class="settings-title" data-i18n="kwad_settings">KWAD Einstellungen</h2>
+        <h2 class="settings-title" data-i18n="kwad_settings">KWAD-Einstellungen</h2>
         <button id="btnKwadSettingsClose" class="gear-btn" type="button" data-i18n-title="close" data-i18n-aria="close" title="Schließen" aria-label="Schließen">✕</button>
       </div>
+      <details class="settings-group">
+        <summary><h3 data-i18n="g_kwad_announcements">Ansagen</h3></summary>
+        <div class="settings-grid">
+          <label class="check-row"><input type="checkbox" id="kwadAnnounce" /> <span data-i18n="kwad_announce">Trick ansagen</span></label>
+        </div>
+      </details>
       <details class="settings-group">
         <summary><h3 data-i18n="kwad_categories">Trick-Kategorien</h3></summary>
         <div class="settings-grid" id="kwadCategoryGrid"></div>
