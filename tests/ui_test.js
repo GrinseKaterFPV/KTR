@@ -269,11 +269,59 @@ check('S9: the obstacle banner and picker label are translated',
   && /kwad_obstacle_picker: 'Hindernisauswähler'/.test(app)
   && /kwad_obstacle_picker: 'Obstacle picker'/.test(app));
 
+// --- 16) trick list & pool, per-player statistics ------------------------------
+check('S10: the statistics card sits at the bottom of the KWAD screen (outside the settings)',
+  /<div class="card kwad-card kwad-stats-card">/.test(html)
+  && /<div class="kwad-stats" id="kwadStatsGrid"><\/div>/.test(html)
+  && html.indexOf('kwad-stats-card') > html.indexOf('id="btnKwadReset"')
+  && html.indexOf('id="kwadStatsGrid"') < html.indexOf('id="kwadSettingsOverlay"'));
+check('S11: the settings offer a "Trickliste & Pool" section',
+  /<summary><h3 data-i18n="kwad_pool">/.test(html)
+  && /<div class="trick-list" id="kwadTrickList"><\/div>/.test(html));
+check('S12: the trick list renders one switch per trick with its description',
+  /function renderKwadTrickList\(\)/.test(app)
+  && /kwadTrickEnabled\(owner, trick\)/.test(app)
+  && /trick-list-desc/.test(app));
+check('S13: the pool switch is persisted under its own key',
+  /localStorage\.setItem\('kwad_trick_pool'/.test(app)
+  && /localStorage\.getItem\('kwad_trick_pool'/.test(app));
+check('S14: a custom trick may be filed into a built-in group',
+  /<select id="kwadCustomCat">/.test(html)
+  && /function kwadTrickGroup\(catId, trick\)/.test(app)
+  && /data-i18n="kwad_category_(custom|basics)"/.test(html));
+check('S15: the custom-trick form asks for the difficulty',
+  /<select id="kwadCustomDifficulty">/.test(html)
+  && /function kwadDifficulty\(trick, catId\)/.test(app));
+check('S16: the drawn trick shows its description and meta line',
+  /<div class="kwad-trick-meta" id="kwadTrickMeta" hidden><\/div>/.test(html)
+  && /descEl\.className = 'kwad-meta-desc';/.test(app));
+check('S17: the statistics are kept per player',
+  /localStorage\.setItem\('kwad_player_stats'/.test(app)
+  && /localStorage\.getItem\('kwad_player_stats'/.test(app)
+  && /kwadRecordStat\(p\.name, currentTrickName/.test(app));
+check('S18: the stats panel renders a block per player plus the total',
+  /function kwadStatPanel\(title, color, stats\)/.test(app)
+  && /grid\.appendChild\(kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats\)\)/.test(app)
+  && /kwad_stats_total: 'Gesamt'/.test(app)
+  && /kwad_stats_total: 'Total'/.test(app));
+check('S19: the player buckets and the pool travel with the backup',
+  /playerStats: kwadPlayerStats,/.test(app)
+  && /pool: kwadPool,/.test(app)
+  && /if \(data\.kwad\.playerStats && typeof data\.kwad\.playerStats === 'object'\)/.test(app)
+  && /if \(data\.kwad\.pool && typeof data\.kwad\.pool === 'object'\)/.test(app));
+check('S20: a custom trick filed into a group only plays while that group is on',
+  /if \(group !== cat\.id && !\(KWAD_CATEGORIES\[group\] && KWAD_CATEGORIES\[group\]\.enabled\)\) return;/.test(app));
+check('S21: the random draw weights by the trick\'s own difficulty',
+  /const weights = kwadTrickPool\.map\(t => 1 \/ kwadDifficulty\(t, t\.category\)\);/.test(app));
+check('S22: the trick list style rules exist',
+  /\.trick-list-row\s*\{/.test(css) && /\.kwad-stat-panel\s*\{/.test(css)
+  && /\.kwad-trick-meta\s*\{/.test(css));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v50'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.18\.2'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v51'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.19\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.18\.2"/.test(pkg));
+  /"version": "0\.19\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

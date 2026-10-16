@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **Trickliste & Pool** in the settings — every trick of every group with its short description, difficulty (★), Prüfart and a switch that keeps it in (or out of) the draw pool (`localStorage: kwad_trick_pool`). Unchecked tricks stay listed but are never drawn; a trick of a switched-off category is dimmed
+- Game of K.W.A.D: the custom-trick form now also takes the **difficulty** (1–5 ★) and the **category** — a custom trick can be filed into Basics/Intermediate/Advanced/Pro, and then plays along with that group (and only while the group is on)
+- Game of K.W.A.D: the drawn trick shows a **meta line** with its group, difficulty, Prüfart and short description right under the trick name
+- Game of K.W.A.D: **per-player trick statistics** at the bottom of the KWAD screen — one block per player (attempted / succeeded / rate, plus a row per trick) next to a **„Gesamt"** block, so the group can compare directly (`localStorage: kwad_player_stats`). Player blocks also survive after a player leaves the game; the global `kwad_stats` total is kept as the "Gesamt" panel
+
+### Changed
+- Game of K.W.A.D: the random draw now weights by each **trick's own** difficulty (custom tricks fall back to their group's difficulty, then to the middle) instead of only the category's
+- Game of K.W.A.D: the trick statistics moved out of the settings overlay to the bottom of the game screen
+- Game of K.W.A.D: `Rückgängig` also takes the attempt out of the player's own statistics block
+- Backup/Restore carries the per-player statistics and the pool switches
+
+### Fixed
+- Game of K.W.A.D: `renderKwadCustomTricks()` shadowed the i18n helper `t()` with its loop variable and threw as soon as one custom trick existed — custom tricks never showed up in the list
+- Game of K.W.A.D: `kwadLoad()` built the trick pool twice in a row (leftover); the duplicate is gone
+
 ## [0.18.2] - 2026-10-16
 ### Changed
 - Section headers: the ▾/▴ collapse caret and the context gear (plus the CSV/„Alle exportieren“ buttons) are now right-aligned inside the summary row, while the title stays on the left. The row is full width, so the caret ends up flush in the cell's right corner — same look as the settings groups

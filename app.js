@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.18.2';
+  const APP_VERSION = '0.19.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -55,6 +55,14 @@
       kwad_stats_attempted: 'Versucht',
       kwad_stats_succeeded: 'Geschafft',
       kwad_stats_rate: 'Quote',
+      kwad_stats_total: 'Gesamt',
+      kwad_stats_empty: 'Noch keine Versuche.',
+      kwad_stats_hint: 'Pro Spieler, damit ihr euch direkt vergleichen könnt.',
+      kwad_pool: 'Trickliste & Pool',
+      kwad_pool_hint: 'Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.',
+      kwad_pool_toggle: 'Trick im Pool',
+      kwad_tricks: 'Tricks',
+      kwad_custom_cat: 'Kategorie',
       kwad_category_basics: 'Basics',
       kwad_category_intermediate: 'Intermediate',
       kwad_category_advanced: 'Advanced',
@@ -268,6 +276,14 @@
       kwad_stats_attempted: 'Attempted',
       kwad_stats_succeeded: 'Succeeded',
       kwad_stats_rate: 'Rate',
+      kwad_stats_total: 'Total',
+      kwad_stats_empty: 'No attempts yet.',
+      kwad_stats_hint: 'Per player, so you can compare directly.',
+      kwad_pool: 'Trick list & pool',
+      kwad_pool_hint: 'Checked = trick is in the draw pool. Unchecked tricks stay listed but are never drawn.',
+      kwad_pool_toggle: 'Trick in pool',
+      kwad_tricks: 'Tricks',
+      kwad_custom_cat: 'Category',
       kwad_category_basics: 'Basics',
       kwad_category_intermediate: 'Intermediate',
       kwad_category_advanced: 'Advanced',
@@ -631,7 +647,11 @@
     kwadCustomName: document.getElementById('kwadCustomName'),
     kwadCustomDesc: document.getElementById('kwadCustomDesc'),
     kwadCustomCheck: document.getElementById('kwadCustomCheck'),
+    kwadCustomDifficulty: document.getElementById('kwadCustomDifficulty'),
+    kwadCustomCat: document.getElementById('kwadCustomCat'),
     btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
+    kwadTrickList: document.getElementById('kwadTrickList'),
+    kwadTrickMeta: document.getElementById('kwadTrickMeta'),
     kwadStatsGrid: document.getElementById('kwadStatsGrid'),
     versionBadge: document.getElementById('versionBadge'),
     toast: document.getElementById('toast'),
@@ -1439,6 +1459,8 @@
         mode: kwadMode,
         categories: KWAD_CATEGORIES,
         stats: kwadStats,
+        playerStats: kwadPlayerStats,
+        pool: kwadPool,
         customTricks: KWAD_CATEGORIES?.custom?.tricks || [],
       },
     };
@@ -1523,6 +1545,8 @@
           });
         }
         if (data.kwad.stats) kwadStats = data.kwad.stats;
+        if (data.kwad.playerStats && typeof data.kwad.playerStats === 'object') kwadPlayerStats = data.kwad.playerStats;
+        if (data.kwad.pool && typeof data.kwad.pool === 'object') kwadPool = data.kwad.pool;
         if (data.kwad.customTricks) KWAD_CATEGORIES.custom.tricks = data.kwad.customTricks;
         kwadTrickPool = kwadBuildTrickPool();
         if (kwadMode === 'roundRobinCategory') {
@@ -1534,6 +1558,7 @@
         kwadSaveCustomTricks();
         kwadSaveMode();
         kwadSaveStats();
+        kwadSavePool();
       }
 
       // Re-render everything
@@ -1545,6 +1570,7 @@
       renderKwad();
       if (els.kwadModeSelect) renderKwadMode();
       if (els.kwadCategoryGrid) renderKwadCategories();
+      if (els.kwadTrickList) renderKwadTrickList();
       if (els.kwadCustomTricksList) renderKwadCustomTricks();
       if (els.kwadStatsGrid) renderKwadStats();
 
@@ -3087,13 +3113,67 @@
     return (c === 'gate' || c === 'obstacle') ? c : 'free';
   }
 
-  // Build flat trick list from enabled categories (used for drawing)
+  // Difficulty 1-5 of a trick: its own value wins, otherwise the one of its
+  // category, otherwise the middle (custom tricks start at 3 until picked).
+  function kwadDifficulty(trick, catId) {
+    const own = Number(trick && trick.difficulty);
+    if (own >= 1 && own <= 5) return Math.round(own);
+    const cat = KWAD_CATEGORIES[catId || (trick && trick.category)];
+    const diff = Number(cat && cat.difficulty);
+    if (diff >= 1 && diff <= 5) return Math.round(diff);
+    return 3;
+  }
+
+  // Which group a trick is drawn from. Built-in tricks stay in their category;
+  // a custom trick may be filed into one of the built-in groups instead.
+  function kwadTrickGroup(catId, trick) {
+    if (catId !== 'custom') return catId;
+    const g = trick && trick.cat;
+    return (g && g !== 'custom' && KWAD_CATEGORIES[g]) ? g : 'custom';
+  }
+
+  // Per-trick pool switch ("Trickliste & Pool"). Only *disabled* tricks are
+  // stored, so tricks added in a later version start out in the pool.
+  function kwadTrickEnabled(catId, trick) {
+    if (!trick) return false;
+    return kwadPool[catId + '/' + trick.name] !== false;
+  }
+
+  // All tricks belonging to a group (built-ins plus custom tricks filed here).
+  function kwadGroupTricks(groupId) {
+    const out = [];
+    const cat = KWAD_CATEGORIES[groupId];
+    if (!cat) return out;
+    if (groupId === 'custom') {
+      cat.tricks.forEach(trick => {
+        if (kwadTrickGroup('custom', trick) === 'custom') out.push({ trick, owner: 'custom' });
+      });
+      return out;
+    }
+    cat.tricks.forEach(trick => out.push({ trick, owner: groupId }));
+    KWAD_CATEGORIES.custom.tricks.forEach(trick => {
+      if (kwadTrickGroup('custom', trick) === groupId) out.push({ trick, owner: 'custom' });
+    });
+    return out;
+  }
+
+  // How many tricks of a group are actually allowed into the draw pool.
+  function kwadGroupPoolCount(groupId) {
+    return kwadGroupTricks(groupId).filter(({ trick, owner }) => kwadTrickEnabled(owner, trick)).length;
+  }
+
+  // Build flat trick list from enabled categories and the per-trick switches.
   function kwadBuildTrickPool() {
     const pool = [];
     Object.values(KWAD_CATEGORIES).forEach(cat => {
-      if (cat.enabled && cat.tricks.length) {
-        cat.tricks.forEach(t => pool.push({ ...t, category: cat.id }));
-      }
+      if (!cat.enabled || !cat.tricks.length) return;
+      cat.tricks.forEach(trick => {
+        const group = kwadTrickGroup(cat.id, trick);
+        // A custom trick filed into a built-in group only plays while that group is on.
+        if (group !== cat.id && !(KWAD_CATEGORIES[group] && KWAD_CATEGORIES[group].enabled)) return;
+        if (!kwadTrickEnabled(cat.id, trick)) return;
+        pool.push({ ...trick, category: group });
+      });
     });
     return pool;
   }
@@ -3110,7 +3190,9 @@
   let kwadCategoryOrder = []; // for roundRobinCategory mode
   let kwadCategoryIdx = 0;
   let kwadObstaclePicker = ''; // player name who picks the obstacle (persisted)
-  let kwadStats = {}; // { trickName: { attempted: n, succeeded: n } }
+  let kwadStats = {}; // global aggregate: { trickName: { attempted, succeeded } }
+  let kwadPlayerStats = {}; // per profile: { playerName: { trickName: { attempted, succeeded } } }
+  let kwadPool = {}; // per-trick draw switch: { 'category/trickName': false }
   let kwadCategoryFilter = null; // deprecated, use category.enabled
 
   // -- pure helpers (unit-tested in tests/kwad_test.js) --
@@ -3153,7 +3235,16 @@
     try {
       const customRaw = JSON.parse(localStorage.getItem('kwad_custom_tricks') || '[]');
       if (Array.isArray(customRaw)) {
-        KWAD_CATEGORIES.custom.tricks = customRaw.map(t => ({ name: t.name, desc: t.desc || '', check: kwadCheck(t), custom: true }));
+        KWAD_CATEGORIES.custom.tricks = customRaw
+          .filter(t => t && typeof t.name === 'string' && t.name.trim())
+          .map(t => ({
+            name: String(t.name).trim(),
+            desc: t.desc || '',
+            check: kwadCheck(t),
+            difficulty: kwadDifficulty(t, 'custom'),
+            cat: (t.cat && t.cat !== 'custom' && KWAD_CATEGORIES[t.cat]) ? t.cat : 'custom',
+            custom: true,
+          }));
       }
     } catch { KWAD_CATEGORIES.custom.tricks = []; }
 
@@ -3181,6 +3272,18 @@
       if (statsRaw && typeof statsRaw === 'object') kwadStats = statsRaw;
     } catch { kwadStats = {}; }
 
+    // Load per-player stats (keyed by the player profile name)
+    try {
+      const playerStatsRaw = JSON.parse(localStorage.getItem('kwad_player_stats') || '{}');
+      if (playerStatsRaw && typeof playerStatsRaw === 'object') kwadPlayerStats = playerStatsRaw;
+    } catch { kwadPlayerStats = {}; }
+
+    // Load the per-trick pool switches
+    try {
+      const poolRaw = JSON.parse(localStorage.getItem('kwad_trick_pool') || '{}');
+      if (poolRaw && typeof poolRaw === 'object') kwadPool = poolRaw;
+    } catch { kwadPool = {}; }
+
     // Load the obstacle picker
     try {
       const pickerRaw = localStorage.getItem('kwad_obstacle_picker') || '';
@@ -3195,9 +3298,6 @@
         .map(c => c.id);
       kwadCategoryIdx = 0;
     }
-
-    // Build initial trick pool
-    kwadTrickPool = kwadBuildTrickPool();
   }
   function kwadSave() {
     try { localStorage.setItem('kwad_players', JSON.stringify(kwadPlayers)); }
@@ -3220,6 +3320,10 @@
   }
   function kwadSaveStats() {
     try { localStorage.setItem('kwad_stats', JSON.stringify(kwadStats)); } catch { /* ignore */ }
+    try { localStorage.setItem('kwad_player_stats', JSON.stringify(kwadPlayerStats)); } catch { /* ignore */ }
+  }
+  function kwadSavePool() {
+    try { localStorage.setItem('kwad_trick_pool', JSON.stringify(kwadPool)); } catch { /* ignore */ }
   }
   function kwadSaveObstaclePicker() {
     try { localStorage.setItem('kwad_obstacle_picker', kwadObstaclePicker || ''); } catch { /* ignore */ }
@@ -3262,6 +3366,39 @@
     const canPlay = loser === -1 && kwadActiveCount() >= 2;
 
     if (els.kwadTrick) els.kwadTrick.textContent = kwadTrick || '—';
+
+    // Short description, difficulty and Prüfart of the drawn trick.
+    if (els.kwadTrickMeta) {
+      if (kwadTrickObj) {
+        const metaCat = kwadTrickObj.category || 'custom';
+        const metaDiff = kwadDifficulty(kwadTrickObj, metaCat);
+        els.kwadTrickMeta.hidden = false;
+        els.kwadTrickMeta.textContent = '';
+        const catEl = document.createElement('span');
+        catEl.className = 'kwad-meta-cat';
+        catEl.textContent = t('kwad_category_' + metaCat);
+        const diffEl = document.createElement('span');
+        diffEl.className = 'kwad-meta-diff';
+        diffEl.textContent = '★'.repeat(metaDiff);
+        diffEl.title = t('kwad_difficulty');
+        const chkEl = document.createElement('span');
+        chkEl.className = 'kwad-meta-check';
+        chkEl.setAttribute('data-i18n', 'kwad_check_' + kwadCheck(kwadTrickObj));
+        chkEl.textContent = t('kwad_check_' + kwadCheck(kwadTrickObj));
+        els.kwadTrickMeta.appendChild(catEl);
+        els.kwadTrickMeta.appendChild(diffEl);
+        els.kwadTrickMeta.appendChild(chkEl);
+        if (kwadTrickObj.desc) {
+          const descEl = document.createElement('p');
+          descEl.className = 'kwad-meta-desc';
+          descEl.textContent = kwadTrickObj.desc;
+          els.kwadTrickMeta.appendChild(descEl);
+        }
+      } else {
+        els.kwadTrickMeta.hidden = true;
+        els.kwadTrickMeta.textContent = '';
+      }
+    }
 
     // Prüfart "Hindernis": the group nominates who picks the obstacle.
     const trickCheck = kwadTrickObj ? kwadCheck(kwadTrickObj) : 'free';
@@ -3354,39 +3491,35 @@
       // Sequential through pool: pick next, wrap around
       pickIdx = (kwadLastTrick + 1) % kwadTrickPool.length;
     } else if (kwadMode === 'roundRobinCategory') {
-      // Round-robin through categories
+      // Round-robin through the categories, stepping inside each category's pool
       if (kwadCategoryOrder.length === 0) {
         kwadCategoryOrder = Object.values(KWAD_CATEGORIES)
           .filter(c => c.enabled && c.tricks.length)
           .map(c => c.id);
         kwadCategoryIdx = 0;
       }
-      // Find next trick from current category
+      let found = -1;
       let attempts = 0;
       while (attempts < kwadCategoryOrder.length) {
         const catId = kwadCategoryOrder[kwadCategoryIdx];
-        const catTricks = KWAD_CATEGORIES[catId]?.tricks || [];
-        if (catTricks.length > 0) {
-          const catTrickIdx = catTricks.findIndex(t => t.name === kwadTrick);
-          let nextCatTrickIdx = (catTrickIdx + 1) % catTricks.length;
-          const nextTrick = catTricks[nextCatTrickIdx];
-          pickIdx = kwadTrickPool.findIndex(t => t.name === nextTrick.name && t.category === catId);
-          if (pickIdx !== -1) break;
+        const catPool = kwadTrickPool.filter(t => t.category === catId);
+        if (catPool.length) {
+          const pos = catPool.findIndex(t => t.name === kwadTrick);
+          const next = catPool[(pos + 1) % catPool.length];
+          const idx = kwadTrickPool.indexOf(next);
+          if (idx !== -1) { found = idx; break; }
         }
         kwadCategoryIdx = (kwadCategoryIdx + 1) % kwadCategoryOrder.length;
         attempts++;
       }
-      if (pickIdx === undefined || pickIdx === -1) {
+      if (found === -1) {
         // Fallback to random
-        pickIdx = kwadDrawIndex(kwadLastTrick, kwadTrickPool.length);
+        found = kwadDrawIndex(kwadLastTrick, kwadTrickPool.length);
       }
+      pickIdx = found;
     } else {
       // Random (default): weighted by difficulty (higher = less frequent)
-      const weights = kwadTrickPool.map(t => {
-        const cat = KWAD_CATEGORIES[t.category];
-        const diff = cat?.difficulty || 1;
-        return 1 / diff; // lower difficulty = higher weight
-      });
+      const weights = kwadTrickPool.map(t => 1 / kwadDifficulty(t, t.category));
       const totalWeight = weights.reduce((a, b) => a + b, 0);
       let r = Math.random() * totalWeight;
       pickIdx = 0;
@@ -3421,16 +3554,17 @@
         kwadLastPenalty = { playerIdx: active, letter, trick: currentTrickName };
         if (typeof soundKwadPenalty === 'function') soundKwadPenalty();
       }
-      kwadRecordStat(currentTrickName, false);
+      kwadRecordStat(p.name, currentTrickName, false);
       kwadSave();
       if (kwadIsOut(p.letters)) {
         if (typeof soundKwadGameOver === 'function') soundKwadGameOver();
         renderKwad();
+        renderKwadStats();
         return;
       }   // that player has lost
     } else {
       kwadLastPenalty = null; // successful attempt clears undo
-      kwadRecordStat(currentTrickName, true);
+      kwadRecordStat(p.name, currentTrickName, true);
       if (typeof soundKwadSuccess === 'function') soundKwadSuccess();
     }
     if (kwadTried.indexOf(p.name) === -1) kwadTried.push(p.name);
@@ -3452,6 +3586,7 @@
     }
     kwadTurnIdx = next;
     renderKwad();
+    renderKwadStats();
   }
 
   // Anti-cheat undo: take back only the penalty letter handed out last. It is
@@ -3470,19 +3605,31 @@
     if (at !== -1) kwadTried.splice(at, 1);
     if (trick && kwadStats[trick] && kwadStats[trick].attempted > 0) {
       kwadStats[trick].attempted--;
+      const mine = kwadPlayerStats[p.name];
+      if (mine && mine[trick] && mine[trick].attempted > 0) mine[trick].attempted--;
       kwadSaveStats();
     }
     kwadTurnIdx = playerIdx;
     kwadSave();
     toast(t('kwad_undone').replace('{letter}', letter || '').replace('{name}', p.name), 2000);
     renderKwad();
+    renderKwadStats();
   }
 
-  // Record stat for a trick attempt
-  function kwadRecordStat(trickName, succeeded) {
+  // Record one judged attempt. It lands in the global aggregate (all players)
+  // AND in the profile bucket of the player who had the go.
+  function kwadRecordStat(playerName, trickName, succeeded) {
+    if (!trickName) return;
     if (!kwadStats[trickName]) kwadStats[trickName] = { attempted: 0, succeeded: 0 };
     kwadStats[trickName].attempted++;
     if (succeeded) kwadStats[trickName].succeeded++;
+    if (playerName) {
+      if (!kwadPlayerStats[playerName]) kwadPlayerStats[playerName] = {};
+      const mine = kwadPlayerStats[playerName];
+      if (!mine[trickName]) mine[trickName] = { attempted: 0, succeeded: 0 };
+      mine[trickName].attempted++;
+      if (succeeded) mine[trickName].succeeded++;
+    }
     kwadSaveStats();
   }
 
@@ -3541,7 +3688,7 @@
           <div class="cat-label" data-i18n="kwad_category_${cat.id}">${t('kwad_category_' + cat.id)}</div>
           <div class="cat-diff">${t('kwad_difficulty')}: ${'★'.repeat(cat.difficulty)}${'☆'.repeat(4 - cat.difficulty)}</div>
         </div>
-        <span class="cat-count">${cat.tricks.length} Tricks</span>
+        <span class="cat-count">${kwadGroupPoolCount(cat.id)}/${kwadGroupTricks(cat.id).length} ${t('kwad_tricks')}</span>
         <label class="cat-toggle check-row">
           <input type="checkbox" ${cat.enabled ? 'checked' : ''} data-cat="${cat.id}" />
           <span data-i18n="kwad_enabled">${t('kwad_enabled')}</span>
@@ -3570,17 +3717,104 @@
     els.kwadModeSelect.value = kwadMode;
   }
 
+  // "Trickliste & Pool": every trick of every group with its short description,
+  // difficulty, Prüfart and a switch that keeps it in (or out of) the draw pool.
+  function renderKwadTrickList() {
+    if (!els.kwadTrickList) return;
+    els.kwadTrickList.textContent = '';
+    Object.values(KWAD_CATEGORIES).forEach(cat => {
+      const members = kwadGroupTricks(cat.id);
+      if (!members.length) return;
+      const head = document.createElement('div');
+      head.className = 'trick-list-head';
+      const title = document.createElement('span');
+      title.className = 'trick-list-cat';
+      title.textContent = cat.emoji + ' ' + t('kwad_category_' + cat.id);
+      const count = document.createElement('span');
+      count.className = 'trick-list-count';
+      count.textContent = kwadGroupPoolCount(cat.id) + '/' + members.length + ' ' + t('kwad_tricks');
+      head.appendChild(title);
+      head.appendChild(count);
+      els.kwadTrickList.appendChild(head);
+
+      members.forEach(({ trick, owner }) => {
+        const on = kwadTrickEnabled(owner, trick);
+        const group = kwadTrickGroup(owner, trick);
+        const groupOn = !!(KWAD_CATEGORIES[group] && KWAD_CATEGORIES[group].enabled);
+        const row = document.createElement('label');
+        row.className = 'trick-list-row check-row' + ((on && groupOn) ? '' : ' is-off');
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = on;
+        cb.setAttribute('aria-label', t('kwad_pool_toggle') + ': ' + trick.name);
+        cb.addEventListener('change', e => {
+          kwadSetTrickEnabled(owner, trick, e.target.checked);
+        });
+
+        const info = document.createElement('span');
+        info.className = 'trick-list-info';
+        const name = document.createElement('span');
+        name.className = 'trick-list-name';
+        name.textContent = trick.name;
+        const desc = document.createElement('span');
+        desc.className = 'trick-list-desc';
+        desc.textContent = trick.desc || '—';
+        info.appendChild(name);
+        info.appendChild(desc);
+
+        const diff = document.createElement('span');
+        diff.className = 'trick-list-diff';
+        diff.textContent = '★'.repeat(kwadDifficulty(trick, owner));
+        diff.title = t('kwad_difficulty');
+
+        const chk = document.createElement('span');
+        chk.className = 'trick-list-check';
+        chk.setAttribute('data-i18n', 'kwad_check_' + kwadCheck(trick));
+        chk.textContent = t('kwad_check_' + kwadCheck(trick));
+
+        if (!groupOn) cb.title = t('kwad_category_' + group) + ': ' + t('kwad_enabled');
+
+        row.appendChild(cb);
+        row.appendChild(info);
+        row.appendChild(diff);
+        row.appendChild(chk);
+        els.kwadTrickList.appendChild(row);
+      });
+    });
+  }
+
+  // Flip one trick in/out of the draw pool and keep every dependent view in sync.
+  function kwadSetTrickEnabled(ownerCatId, trick, enabled) {
+    if (!trick || !trick.name) return;
+    const key = ownerCatId + '/' + trick.name;
+    if (enabled) delete kwadPool[key];
+    else kwadPool[key] = false;
+    kwadSavePool();
+    kwadTrickPool = kwadBuildTrickPool();
+    if (kwadMode === 'roundRobinCategory') {
+      kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id);
+      kwadCategoryIdx = 0;
+    }
+    renderKwadTrickList();
+    renderKwadCategories();
+  }
+
   function renderKwadCustomTricks() {
     if (!els.kwadCustomTricksList) return;
     els.kwadCustomTricksList.innerHTML = '';
-    KWAD_CATEGORIES.custom.tricks.forEach((t, idx) => {
+    KWAD_CATEGORIES.custom.tricks.forEach((trick, idx) => {
       const item = document.createElement('div');
       item.className = 'kwad-custom-trick';
+      const group = kwadTrickGroup('custom', trick);
+      const check = kwadCheck(trick);
+      const stars = '★'.repeat(kwadDifficulty(trick, 'custom'));
       item.innerHTML = `
-        <span class="custom-name">${t.name}</span>
-        <span class="custom-desc">${t.desc || '—'}</span>
-        <span class="custom-check" data-i18n="kwad_check_${kwadCheck(t)}">${t('kwad_check_' + kwadCheck(t))}</span>
-        <span class="custom-cat">${t.custom ? '⭐ Eigen' : ''}</span>
+        <span class="custom-name">${trick.name}</span>
+        <span class="custom-desc">${trick.desc || '—'}</span>
+        <span class="custom-diff" title="${t('kwad_difficulty')}">${stars}</span>
+        <span class="custom-check" data-i18n="kwad_check_${check}">${t('kwad_check_' + check)}</span>
+        <span class="custom-cat">${t('kwad_category_' + group)}</span>
         <button type="button" class="custom-del btn btn-danger" data-idx="${idx}" data-i18n-title="kwad_custom_delete" aria-label="${t('kwad_custom_delete')}">✕</button>
       `;
       els.kwadCustomTricksList.appendChild(item);
@@ -3599,14 +3833,21 @@
     const name = (els.kwadCustomName.value || '').trim();
     const desc = (els.kwadCustomDesc.value || '').trim();
     const check = kwadCheck({ check: els.kwadCustomCheck ? els.kwadCustomCheck.value : '' });
+    const difficulty = kwadDifficulty({ difficulty: els.kwadCustomDifficulty ? els.kwadCustomDifficulty.value : 3 }, 'custom');
+    const cat = (els.kwadCustomCat && els.kwadCustomCat.value && els.kwadCustomCat.value !== 'custom' && KWAD_CATEGORIES[els.kwadCustomCat.value])
+      ? els.kwadCustomCat.value
+      : 'custom';
     if (!name) return;
     if (KWAD_CATEGORIES.custom.tricks.some(t => t.name.toLowerCase() === name.toLowerCase())) return;
-    KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, custom: true });
+    KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, difficulty, cat, custom: true });
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
     els.kwadCustomName.value = '';
     els.kwadCustomDesc.value = '';
+    if (els.kwadCustomCat) els.kwadCustomCat.value = 'custom';
     renderKwadCustomTricks();
+    renderKwadTrickList();
+    renderKwadCategories();
   }
 
   function kwadRemoveCustomTrick(idx) {
@@ -3615,34 +3856,132 @@
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
     renderKwadCustomTricks();
+    renderKwadTrickList();
+    renderKwadCategories();
   }
 
-  function renderKwadStats() {
-    if (!els.kwadStatsGrid) return;
-    const entries = Object.entries(kwadStats).sort((a, b) => b[1].attempted - a[1].attempted);
-    if (entries.length === 0) {
-      els.kwadStatsGrid.innerHTML = `<p class="hint" style="grid-column:1/-1;">${t('kwad_no_players')}</p>`;
-      return;
+  function kwadTotalAttempts(stats) {
+    return Object.values(stats || {}).reduce((sum, s) => sum + ((s && s.attempted) || 0), 0);
+  }
+  function kwadTotalSucceeded(stats) {
+    return Object.values(stats || {}).reduce((sum, s) => sum + ((s && s.succeeded) || 0), 0);
+  }
+  function kwadRate(succeeded, attempted) {
+    return attempted > 0 ? Math.round((succeeded / attempted) * 100) + ' %' : '–';
+  }
+  function kwadStatCell(label, value) {
+    const cell = document.createElement('div');
+    cell.className = 'kwad-stat-cell';
+    const v = document.createElement('b');
+    v.textContent = value;
+    const l = document.createElement('span');
+    l.textContent = label;
+    cell.appendChild(v);
+    cell.appendChild(l);
+    return cell;
+  }
+  // One panel: headline numbers on top, then the per-trick rows.
+  function kwadStatPanel(title, color, stats) {
+    const attempted = kwadTotalAttempts(stats);
+    const succeeded = kwadTotalSucceeded(stats);
+    const entries = Object.entries(stats || {})
+      .filter(([, s]) => s && s.attempted > 0)
+      .sort((a, b) => (b[1].succeeded / b[1].attempted) - (a[1].succeeded / a[1].attempted));
+
+    const panel = document.createElement('div');
+    panel.className = 'kwad-stat-panel';
+
+    const head = document.createElement('div');
+    head.className = 'kwad-stat-head';
+    if (color) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      if (dot.style) dot.style.background = color;
+      head.appendChild(dot);
     }
-    els.kwadStatsGrid.innerHTML = `
-      <div class="kwad-stat-row header">
-        <div class="kwad-stat-name">${t('kwad_trick')}</div>
-        <div class="kwad-stat-num">${t('kwad_stats_attempted')}</div>
-        <div class="kwad-stat-num">${t('kwad_stats_succeeded')}</div>
-        <div class="kwad-stat-rate">${t('kwad_stats_rate')}</div>
-      </div>
-    `;
-    entries.forEach(([name, s]) => {
-      const rate = s.attempted > 0 ? Math.round((s.succeeded / s.attempted) * 100) : 0;
+    const titleEl = document.createElement('span');
+    titleEl.className = 'kwad-stat-name';
+    titleEl.textContent = title;
+    head.appendChild(titleEl);
+    panel.appendChild(head);
+
+    const summary = document.createElement('div');
+    summary.className = 'kwad-stat-summary';
+    summary.appendChild(kwadStatCell(t('kwad_stats_attempted'), String(attempted)));
+    summary.appendChild(kwadStatCell(t('kwad_stats_succeeded'), String(succeeded)));
+    summary.appendChild(kwadStatCell(t('kwad_stats_rate'), kwadRate(succeeded, attempted)));
+    panel.appendChild(summary);
+
+    if (!entries.length) {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = t('kwad_stats_empty');
+      panel.appendChild(hint);
+      return panel;
+    }
+
+    const rows = document.createElement('div');
+    rows.className = 'kwad-stat-rows';
+    const header = document.createElement('div');
+    header.className = 'kwad-stat-row header';
+    ['kwad_trick', 'kwad_stats_attempted', 'kwad_stats_succeeded', 'kwad_stats_rate'].forEach(key => {
+      const cell = document.createElement('div');
+      cell.className = key === 'kwad_trick' ? 'kwad-stat-trick' : 'kwad-stat-num';
+      cell.textContent = t(key);
+      header.appendChild(cell);
+    });
+    rows.appendChild(header);
+    entries.forEach(([trickName, s]) => {
       const row = document.createElement('div');
       row.className = 'kwad-stat-row';
-      row.innerHTML = `
-        <div class="kwad-stat-name">${name}</div>
-        <div class="kwad-stat-num">${s.attempted}</div>
-        <div class="kwad-stat-num">${s.succeeded}</div>
-        <div class="kwad-stat-rate">${rate}%</div>
-      `;
-      els.kwadStatsGrid.appendChild(row);
+      const nm = document.createElement('div');
+      nm.className = 'kwad-stat-trick';
+      nm.textContent = trickName;
+      const at = document.createElement('div');
+      at.className = 'kwad-stat-num';
+      at.textContent = String(s.attempted);
+      const sc = document.createElement('div');
+      sc.className = 'kwad-stat-num';
+      sc.textContent = String(s.succeeded);
+      const rt = document.createElement('div');
+      rt.className = 'kwad-stat-rate';
+      rt.textContent = kwadRate(s.succeeded, s.attempted);
+      row.appendChild(nm);
+      row.appendChild(at);
+      row.appendChild(sc);
+      row.appendChild(rt);
+      rows.appendChild(row);
+    });
+    panel.appendChild(rows);
+    return panel;
+  }
+
+  // Statistics at the bottom of the KWAD screen — one panel per player so the
+  // group can compare, plus a "Gesamt" panel that aggregates every player.
+  function renderKwadStats() {
+    if (!els.kwadStatsGrid) return;
+    const grid = els.kwadStatsGrid;
+    grid.textContent = '';
+
+    const inGame = kwadPlayers.map(p => p.name);
+    const others = Object.keys(kwadPlayerStats)
+      .filter(nm => inGame.indexOf(nm) === -1)
+      .sort((a, b) => kwadTotalAttempts(kwadPlayerStats[b]) - kwadTotalAttempts(kwadPlayerStats[a]));
+
+    if (!inGame.length && !others.length && !kwadTotalAttempts(kwadStats)) {
+      const empty = document.createElement('p');
+      empty.className = 'hint';
+      empty.textContent = t('kwad_stats_empty');
+      grid.appendChild(empty);
+      return;
+    }
+
+    grid.appendChild(kwadStatPanel(t('kwad_stats_total'), '', kwadStats));
+    inGame.concat(others).forEach(nm => {
+      const idx = inGame.indexOf(nm);
+      const color = (idx !== -1 && kwadPlayers[idx].color) ||
+        (typeof state !== 'undefined' && state.pilotColors && state.pilotColors[nm]) || '';
+      grid.appendChild(kwadStatPanel(nm, color, kwadPlayerStats[nm] || {}));
     });
   }
 
@@ -3657,6 +3996,7 @@
     els.kwadScreen.scrollTop = 0;
     if (!kwadTrick) kwadNewTrick();
     renderKwad();
+    renderKwadStats();
   }
   if (els.tileKwad) els.tileKwad.addEventListener('click', openKwad);
   if (els.btnKwadNewTrick) els.btnKwadNewTrick.addEventListener('click', kwadNewTrick);
@@ -3676,8 +4016,8 @@
     openKwadSettings();
     renderKwadCategories();
     renderKwadMode();
+    renderKwadTrickList();
     renderKwadCustomTricks();
-    renderKwadStats();
   });
   if (els.btnKwadSettingsClose) els.btnKwadSettingsClose.addEventListener('click', closeKwadSettings);
   if (els.kwadSettingsOverlay) els.kwadSettingsOverlay.addEventListener('click', e => { if (e.target === els.kwadSettingsOverlay) closeKwadSettings(); });

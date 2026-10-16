@@ -71,6 +71,7 @@
       <div class="card kwad-card">
         <div class="small-label" data-i18n="kwad_trick">Trick</div>
         <div class="kwad-trick" id="kwadTrick">—</div>
+        <div class="kwad-trick-meta" id="kwadTrickMeta" hidden></div>
         <button id="btnKwadNewTrick" class="btn" type="button" data-i18n="kwad_new_trick">Neuer Trick</button>
       </div>
 
@@ -110,6 +111,12 @@
       </div>
 
       <button id="btnKwadReset" class="btn btn-danger" type="button" data-i18n="kwad_reset">Neues Spiel (Buchstaben zurücksetzen)</button>
+
+      <div class="card kwad-card kwad-stats-card">
+        <div class="small-label" data-i18n="kwad_stats">Trick-Statistiken</div>
+        <p class="hint" data-i18n="kwad_stats_hint">Pro Spieler, damit ihr euch direkt vergleichen könnt.</p>
+        <div class="kwad-stats" id="kwadStatsGrid"></div>
+      </div>
     </div>
   </div>
 
@@ -448,12 +455,31 @@
               <option value="obstacle" data-i18n="kwad_check_obstacle">Hindernis</option>
             </select>
           </label>
+          <label><span data-i18n="kwad_difficulty">Schwierigkeit</span>
+            <select id="kwadCustomDifficulty">
+              <option value="1">★</option>
+              <option value="2">★★</option>
+              <option value="3" selected>★★★</option>
+              <option value="4">★★★★</option>
+              <option value="5">★★★★★</option>
+            </select>
+          </label>
+          <label><span data-i18n="kwad_custom_cat">Kategorie</span>
+            <select id="kwadCustomCat">
+              <option value="custom" data-i18n="kwad_category_custom">Eigene</option>
+              <option value="basics" data-i18n="kwad_category_basics">Basics</option>
+              <option value="intermediate" data-i18n="kwad_category_intermediate">Intermediate</option>
+              <option value="advanced" data-i18n="kwad_category_advanced">Advanced</option>
+              <option value="pro" data-i18n="kwad_category_pro">Pro</option>
+            </select>
+          </label>
         </div>
         <button id="btnKwadCustomSave" class="btn" type="button" data-i18n="kwad_custom_save">Eigenen Trick speichern</button>
       </details>
       <details class="settings-group">
-        <summary><h3 data-i18n="kwad_stats">Trick-Statistiken</h3></summary>
-        <div class="settings-grid" id="kwadStatsGrid"></div>
+        <summary><h3 data-i18n="kwad_pool">Trickliste &amp; Pool</h3></summary>
+        <p class="hint" data-i18n="kwad_pool_hint">Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.</p>
+        <div class="trick-list" id="kwadTrickList"></div>
       </details>
     </div>
   </div>
