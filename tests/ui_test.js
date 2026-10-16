@@ -53,8 +53,8 @@ check('C2: camera overlay carries the Kamera group', cameraOverlay.includes('dat
 check('C3: detection fields moved to camera overlay',
   ['diffThresh', 'enterThresh', 'exitThresh', 'cooldown', 'procRes', 'directionSelect', 'driftComp', 'camLock']
     .every(id => cameraOverlay.includes('id="' + id + '"')));
-check('C4: camera gear sits in the camera card header (accessibility fix)',
-  /<div class="card-header">[^]*?id="btnCameraSettings"[^]*?<\/div>/.test(html));
+check('C4: camera gear sits inside the camera summary (stays visible when collapsed)',
+  /<summary class="card-summary">[^]*?id="btnCameraSettings"[^]*?<\/summary>/.test(html));
 check('C5: camera gear opens the camera overlay',
   /els\.btnCameraSettings\.addEventListener\('click', \(\) => openSettings\('camera'\)\)/.test(app));
 check('C6: the camera overlay is part of the single-overlay set',
@@ -189,13 +189,37 @@ check('D3: exactly one </main> (no stray closing tags)',
   (html.match(/<\/main>/g) || []).length === 1);
 check('D4: no "Details" hack is left (they killed the ▾/▴ caret)',
   !/content: none !important/.test(css) && !/Nuclear option/.test(css));
-check('D5: the gear button is pinned to the card corner',
-  /\.card-header \{[^}]*position: absolute; top: 0; right: 0;/.test(css));
-check('D6: the summary leaves room for the pinned gear',
-  /\.card-collapsible > \.card-summary \{[^}]*min-height: 36px; padding-right: 46px;/.test(css));
+check('D5: the context gears live inside the summaries (visible when collapsed)',
+  /<summary class="card-summary">[^]*?id="btnTimerSettings"[^]*?<\/summary>/.test(html)
+  && !/class="card-header"/.test(html));
+check('D6: the gear keeps the corner look via margin-left:auto',
+  /\.card-summary \.gear-btn \{[^}]*margin-left: auto/.test(css));
 check('D7: the ▾/▴ caret rules are intact',
   /\.card-collapsible > \.card-summary::after \{ content: '▾'/.test(css)
   && /\.card-collapsible\[open\] > \.card-summary::after \{ content: '▴'/.test(css));
+
+// --- 12b) data-i18n must not swallow nested markup ------------------------------
+// applyLanguage() does `el.textContent = …` for every [data-i18n] element, so a
+// label that also wraps markup (the timer's live value, a gear) would be wiped.
+{
+  const offenders = [];
+  const re = /<([a-zA-Z][a-zA-Z0-9]*)\b([^>]*\bdata-i18n="[^"]*"[^>]*)>([\s\S]*?)<\/\1>/g;
+  let m;
+  while ((m = re.exec(html))) {
+    if (m[3].includes('<')) offenders.push(m[1] + ' … ' + m[3].slice(0, 40).replace(/\s+/g, ' '));
+  }
+  check('D8: no [data-i18n] element wraps nested markup', offenders.length === 0);
+  if (offenders.length) console.log('      → ' + offenders.join('\n      → '));
+}
+check('D9: the collapsed timer keeps its live value span',
+  /<span class="summary-value" id="timerSummary">/.test(html)
+  && !/<summary class="card-summary" data-i18n/.test(html));
+check('D10: the summary labels carry the i18n key instead',
+  /<span class="summary-label" data-i18n="sec_camera">/.test(html)
+  && /<span class="summary-label" data-i18n="sec_timer">/.test(html));
+check('D11: clicking a summary button does not toggle the card',
+  /querySelectorAll\('\.card-summary button, \.card-summary select'\)/.test(app)
+  && /e\.preventDefault\(\); e\.stopPropagation\(\);/.test(app));
 
 // --- 13) backup / restore is actually wired -------------------------------------
 check('G1: the backup button is wired (els map)',
@@ -244,10 +268,10 @@ check('S9: the obstacle banner and picker label are translated',
   && /kwad_obstacle_picker: 'Obstacle picker'/.test(app));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v48'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.18\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v49'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.18\.1'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.18\.0"/.test(pkg));
+  /"version": "0\.18\.1"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

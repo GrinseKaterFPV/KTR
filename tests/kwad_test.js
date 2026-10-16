@@ -96,7 +96,7 @@ const body = [
     'apiObj.penalty = function() { return kwadLastPenalty; };',
     'apiObj.stats = function() { return kwadStats; };',
     'apiObj.kwadNewTrick = kwadNewTrick;',
-    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickPool = kwadBuildTrickPool(); kwadStats = {}; kwadLastPenalty = null; };',
+    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickPool = kwadBuildTrickPool(); kwadStats = {}; kwadLastPenalty = null; kwadObstaclePicker = ""; };',
     'apiObj.players = function() { return kwadPlayers; };',
     'apiObj.turn = function() { return kwadTurnIdx; };',
     'apiObj.tried = function() { return kwadTried; };',
