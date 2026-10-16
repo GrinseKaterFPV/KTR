@@ -54,7 +54,7 @@ function kwadBuildTrickPool() {
 }
 
 const body = [
-  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadPlayerStats = {}, kwadPool = {}, kwadLastPenalty = null, kwadObstaclePicker = "", kwadEditingCustomIdx = -1;',
+  'let kwadPlayers = [], kwadTurnIdx = 0, kwadTrick = "", kwadTried = [], kwadLastTrick = -1, kwadTrickObj = null, kwadTrickPool = [], kwadMode = "random", kwadCategoryOrder = [], kwadCategoryIdx = 0, kwadStats = {}, kwadPlayerStats = {}, kwadPool = {}, kwadLastPenalty = null, kwadPicker = "", kwadAnnounce = false, kwadEditingCustomIdx = -1;',
   'let kwadStatClosed = new Set();',
   'var state = { lang: "de" };',
   'let newTrickCalls = 0;',
@@ -86,8 +86,9 @@ const body = [
   extract('kwadBuildTrickPool'),
   extract('kwadRecordStat'),
   extract('kwadSaveStats'),
-  extract('kwadSaveObstaclePicker'),
-  extract('kwadChooseObstaclePicker'),
+  extract('kwadSavePicker'),
+  extract('kwadPickerKind'),
+  extract('kwadChoosePicker'),
   extract('kwadDropProfileStats'),
   extract('kwadRenameProfile'),
   extract('kwadTotalAttempts'),
@@ -117,9 +118,10 @@ const body = [
     'apiObj.kwadCheck = kwadCheck;',
     'apiObj.setTrick = function(trick) { kwadTrick = trick.name; kwadTrickObj = trick; };',
     'apiObj.clearTrick = function() { kwadTrickObj = null; };',
-    'apiObj.obstaclePicker = function() { return kwadObstaclePicker; };',
-    'apiObj.setObstaclePicker = function(name) { kwadObstaclePicker = name; };',
-    'apiObj.kwadChooseObstaclePicker = kwadChooseObstaclePicker;',
+    'apiObj.picker = function() { return kwadPicker; };',
+    'apiObj.setPicker = function(name) { kwadPicker = name; };',
+    'apiObj.kwadChoosePicker = kwadChoosePicker;',
+    'apiObj.kwadPickerKind = kwadPickerKind;',
     'apiObj.kwadNextLetter = kwadNextLetter;',
     'apiObj.kwadDrawIndex = kwadDrawIndex;',
     'apiObj.kwadLoserIndex = kwadLoserIndex;',
@@ -153,7 +155,7 @@ const body = [
     'apiObj.penalty = function() { return kwadLastPenalty; };',
     'apiObj.stats = function() { return kwadStats; };',
     'apiObj.kwadNewTrick = kwadNewTrick;',
-    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadStats = {}; kwadPlayerStats = {}; kwadPool = {}; kwadTrickPool = kwadBuildTrickPool(); kwadLastPenalty = null; kwadObstaclePicker = ""; };',
+    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadStats = {}; kwadPlayerStats = {}; kwadPool = {}; kwadTrickPool = kwadBuildTrickPool(); kwadLastPenalty = null; kwadPicker = ""; };',
     'apiObj.players = function() { return kwadPlayers; };',
     'apiObj.turn = function() { return kwadTurnIdx; };',
     'apiObj.tried = function() { return kwadTried; };',
@@ -214,8 +216,9 @@ const els = {
   kwadResult: makeEl('div'),
   kwadTurnCard: makeEl('div'),
   kwadTurn: makeEl('div'),
-  kwadObstacle: makeEl('div'),
-  kwadObstacleName: makeEl('span'),
+  kwadPicker: makeEl('div'),
+  kwadPickerName: makeEl('span'),
+  kwadPickerText: makeEl('span'),
   kwadTrickList: makeEl('div'),
   kwadCategoryGrid: makeEl('div'),
   kwadStatsGrid: makeEl('div'),
@@ -366,33 +369,44 @@ check('C5: the drawn pool passes the Prüfart through',
 api.setGame([{ name: 'Max', letters: 'KW' }, { name: 'Lea', letters: '' }], 0);
 api.setTrick({ name: 'Orbit', check: 'obstacle' });
 api.renderKwad();
-check('C6: the obstacle card shows up for an obstacle trick', els.kwadObstacle.hidden === false);
-check('C7: the app nominates the active player with the most letters', els.kwadObstacleName.textContent === 'Max');
-check('C8: the nomination is remembered in state', api.obstaclePicker() === 'Max');
+check('C6: the picker shows up for an obstacle trick', els.kwadPicker.hidden === false);
+check('C7: the app nominates the active player with the most letters', els.kwadPickerName.textContent === 'Max');
+check('C7b: the picker names what is being picked (obstacle)', els.kwadPickerText.textContent === 'kwad_picker_obstacle');
+check('C8: the nomination is remembered in state', api.picker() === 'Max');
+// A gap is picked the same way — only the wording differs.
+api.setTrick({ name: 'Dive', check: 'gap' });
+api.setPicker('');
+api.renderKwad();
+check('C8b: a gap trick also shows the picker (with the gap wording)',
+  els.kwadPicker.hidden === false && els.kwadPickerName.textContent === 'Max'
+  && els.kwadPickerText.textContent === 'kwad_picker_gap');
+check('C8c: only gap and obstacle need a picker',
+  api.kwadPickerKind({ check: 'free' }) === '' && api.kwadPickerKind({ check: 'gap' }) === 'gap'
+  && api.kwadPickerKind({ check: 'obstacle' }) === 'obstacle');
 api.setTrick({ name: 'Yaw Spin', check: 'free' });
 api.renderKwad();
-check('C9: no obstacle card for a free-flight trick', els.kwadObstacle.hidden === true);
+check('C9: no picker for a free-flight trick', els.kwadPicker.hidden === true);
 api.setTrick({ name: 'Orbit', check: 'obstacle' });
-api.setObstaclePicker('Lea');
+api.setPicker('Lea');
 api.renderKwad();
 check('C10: the fixed name is shown as plain text (no dropdown) and survives a render',
-  els.kwadObstacleName.textContent === 'Lea' && api.obstaclePicker() === 'Lea');
+  els.kwadPickerName.textContent === 'Lea' && api.picker() === 'Lea');
 api.setGame([{ name: 'Max', letters: 'KWAD' }, { name: 'Lea', letters: '' }], 1);
 api.setTrick({ name: 'Wall Scrape', check: 'obstacle' });
 api.renderKwad();
-check('C11: a player who is already out is never nominated', els.kwadObstacleName.textContent === 'Lea');
+check('C11: a player who is already out is never nominated', els.kwadPickerName.textContent === 'Lea');
 // A tie between the leaders is settled by lot — either leader may come up.
 api.setGame([{ name: 'Max', letters: 'K' }, { name: 'Lea', letters: 'K' }], 0);
 const tieSeen = new Set();
 for (let i = 0; i < 60; i++) {
-  api.setObstaclePicker('');
+  api.setPicker('');
   api.setTrick({ name: 'Orbit', check: 'obstacle' });
   api.renderKwad();
-  tieSeen.add(api.obstaclePicker());
+  tieSeen.add(api.picker());
 }
 check('C12: a tie only ever picks one of the leaders', [...tieSeen].every(n => n === 'Max' || n === 'Lea') && tieSeen.size > 0);
 check('C13: a tie is decided by lot (both leaders can be nominated)', tieSeen.size === 2);
-check('C14: with nobody in the game nobody is nominated', (api.setGame([], 0), api.kwadChooseObstaclePicker()) === '');
+check('C14: with nobody in the game nobody is nominated', (api.setGame([], 0), api.kwadChoosePicker()) === '');
 
 // --- pool switches, difficulty and per-player statistics --------------------
 api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
@@ -517,7 +531,7 @@ check('T10: the grid row still carries the category switch',
 // --- profile statistics: rename a profile, drop its statistics -------------
 api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
 api.setTrick({ name: 'Dive' });
-api.setObstaclePicker('Max');
+api.setPicker('Max');
 api.kwadRound(false);                                   // Max fails -> bucket Max/Dive
 api.kwadRecordStat('Ghost', 'Orbit', true);             // a bucket that is not in the game
 check('R1: the failing profile owns its attempt', api.kwadPlayerStats()['Max']['Dive'].attempted === 1);
@@ -528,7 +542,7 @@ check('R3: the bucket moves to the new profile name',
   !api.kwadPlayerStats()['Max'] && api.kwadPlayerStats()['Maxi']['Dive'].attempted === 1);
 check('R4: the running game carries the new name', api.players()[0].name === 'Maxi');
 check('R5: the tried list carries the new name', api.tried()[0] === 'Maxi');
-check('R6: the obstacle picker carries the new name', api.obstaclePicker() === 'Maxi');
+check('R6: the picker carries the new name', api.picker() === 'Maxi');
 check('R7: the global total survives a rename',
   api.stats()['Dive'].attempted === 1 && api.stats()['Dive'].succeeded === 0);
 

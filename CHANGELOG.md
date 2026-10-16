@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **Gaps bekommen denselben Auswähler wie Hindernisse** — bei einem `gap`-Trick (z. B. Dive, Tight Gap) wird jetzt genauso ein Pilot bestimmt, der das Gap für den Trick festlegt; der Spiel-Screen nennt ihn als festen Text „**‹Name› wählt das Gap**" (bei Hindernissen „wählt das Hindernis"). Der Auswähler zieht weiterhin den aktiven Spieler mit den meisten Buchstaben, bei Gleichstand entscheidet der Zufall
+- Game of K.W.A.D: **Trick ansagen (optional)** — eine Option auf dem Spiel-Screen liest den gezogenen Trick per Sprachausgabe vor; bei einem Gap-/Hindernis-Trick wird zusätzlich der Auswähler genannt („Power Loop. Max wählt das Gap"). Die Einstellung wird gespeichert (`kwad_announce`) und wandert in die Sicherung/den Backup-Export
+- Piloten: **einzelne Piloten lassen sich aus ihrem Profil als CSV exportieren** — der Knopf „Pilot exportieren (CSV)" in der Profilkarte schreibt nur die Sätze und Runden dieses einen Piloten in `fpv-pilot-<name>.csv`
+
+### Changed
+- Game of K.W.A.D: der **Auswähler sitzt jetzt direkt im Trick-Abschnitt** — zwischen der Trickbeschreibung und dem Knopf für einen neuen Trick, statt in einer eigenen Hindernis-Karte
+- Game of K.W.A.D: der **Tricklisten-Export sitzt oben in „Trickliste & Pool"**, neben dem Einklapp-Pfeil, statt unten im aufgeklappten Bereich
+- Piloten: **„Pilot löschen" liegt jetzt unten rechts im Profil** (rot, mit Abstand) statt als ✕ in der Kopfzeile — so wird es nicht mehr versehentlich getroffen
+- Piloten: die **Farbe eines Piloten ist im Profil nachträglich änderbar** (Farbwähler, wirkt sofort und wird gespeichert)
+
+### Fixed
+- Sprache: alle neuen Texte (Auswähler für Gap/Hindernis, „Trick ansagen" / „Announce trick", „Pilot exportieren (CSV)" / „Export pilot (CSV)") sind in **Deutsch und Englisch** gepflegt; der alte Schlüssel „Hindernisauswähler" ist entfernt
+
 ## [0.22.0] - 2026-10-16
 ### Added
 - Game of K.W.A.D: **eigene Tricks lassen sich nachträglich bearbeiten** — jede Zeile in der Liste hat jetzt einen Stift (✎), der Name, Beschreibung, Prüfart, Schwierigkeit und Kategorie wieder ins Formular lädt; „Speichern" wird dort zu „Änderungen übernehmen", ein **Abbrechen**-Knopf erscheint, und ein umbenannter Trick nimmt Pool-Schalter und Statistik mit

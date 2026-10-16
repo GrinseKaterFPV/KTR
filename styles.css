@@ -124,15 +124,12 @@ button, input, select { font: inherit; }
 }
 .kwad-remove:hover { color: var(--danger); border-color: var(--danger); }
 .kwad-add { display: flex; flex-wrap: wrap; gap: 8px; }
-.kwad-obstacle { border-color: var(--accent); }
-.kwad-obstacle-pick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.kwad-obstacle-name {
-  flex: 1 1 12rem; min-width: 0;
-  background: var(--elev); color: var(--accent);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 8px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+/* Who picks the gap/obstacle for the drawn trick (auto-nominated, fixed text). */
+.kwad-picker {
+  display: flex; align-items: baseline; justify-content: center; gap: 6px; flex-wrap: wrap;
+  margin: 2px 0 0; text-align: center; font-size: 14px; color: var(--muted);
 }
-.kwad-obstacle .small-label { color: var(--accent); }
+.kwad-picker-name { font-weight: 800; color: var(--accent); }
 .kwad-import { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; flex-wrap: wrap; min-width: 0; }
 .kwad-import label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .kwad-import select { flex: 1; min-width: 180px; background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
@@ -196,7 +193,8 @@ button, input, select { font: inherit; }
 .trick-list-desc { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trick-list-diff { color: var(--accent2); font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
 .trick-list-check { font-size: 11px; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
-.trick-list-export { margin-top: 10px; }
+/* The export lives in the "Trickliste & Pool" summary row, next to the caret. */
+.settings-group > summary .trick-list-export { margin: 0; }
 
 /* ---- Per-player trick statistics (bottom of the KWAD screen) ---- */
 .kwad-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
@@ -253,12 +251,6 @@ button, input, select { font: inherit; }
 .pilots-screen .home-inner { max-width: 560px; }
 .pilots-screen .pilot-chip { display: inline-flex; align-items: center; }
 .pilots-screen .pilots { flex-direction: column; align-items: stretch; gap: 8px; }
-.pilot-remove {
-  flex-shrink: 0; margin-left: 6px; width: 20px; height: 20px; padding: 0;
-  font-size: 11px; line-height: 1; border: none; border-radius: 50%;
-  background: rgba(0,0,0,0.18); color: inherit; cursor: pointer;
-}
-.pilot-remove:hover { background: var(--danger); color: #fff; }
 
 /* Profile card: <details> whose summary is the compact chip row. */
 .pilot-profile {
@@ -313,7 +305,16 @@ button, input, select { font: inherit; }
   border: 1px solid var(--border); border-radius: 8px; padding: 8px;
 }
 .pilot-rename-row button { flex: 0 1 auto; white-space: nowrap; }
-.pilot-stats-reset { align-self: flex-start; }
+/* The colour can be changed from inside the profile at any time. */
+.pilot-color-row { display: flex; align-items: center; gap: 8px; }
+.pilot-color-row .small-label { margin: 0; }
+.pilot-color-row input[type="color"] {
+  flex: 0 0 46px; width: 46px; min-width: 46px; padding: 2px; cursor: pointer;
+  background: var(--elev); border: 1px solid var(--border); border-radius: 8px;
+}
+/* Export / reset on the left, the destructive delete pushed to the right. */
+.pilot-profile-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pilot-profile-buttons .pilot-delete { margin-left: auto; }
 
 @media (max-width: 430px) {
   .topbar { padding: 10px 12px; }

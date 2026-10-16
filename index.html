@@ -72,14 +72,8 @@
         <div class="small-label" data-i18n="kwad_trick">Trick</div>
         <div class="kwad-trick" id="kwadTrick">—</div>
         <div class="kwad-trick-meta" id="kwadTrickMeta" hidden></div>
+        <p class="kwad-picker" id="kwadPicker" hidden><span class="kwad-picker-name" id="kwadPickerName">—</span> <span class="kwad-picker-text" id="kwadPickerText"></span></p>
         <button id="btnKwadNewTrick" class="btn" type="button" data-i18n="kwad_new_trick">Neuer Trick</button>
-      </div>
-
-      <div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>
-        <div class="small-label" data-i18n="kwad_obstacle_hint">Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt</div>
-        <div class="kwad-obstacle-pick"><span data-i18n="kwad_obstacle_picker">Hindernisauswähler</span>
-          <span class="kwad-obstacle-name" id="kwadObstacleName">—</span>
-        </div>
       </div>
 
       <div class="card kwad-card" id="kwadTurnCard">
@@ -440,6 +434,7 @@
               <option value="roundRobinCategory" data-i18n="kwad_mode_roundrobin">Kategorien-Runden</option>
             </select>
           </label>
+          <label class="check-row"><input type="checkbox" id="kwadAnnounce" /> <span data-i18n="kwad_announce">Trick ansagen</span></label>
         </div>
       </details>
       <details class="settings-group">
@@ -484,10 +479,12 @@
         </div>
       </details>
       <details class="settings-group">
-        <summary><h3 data-i18n="kwad_pool">Trickliste &amp; Pool</h3></summary>
+        <summary>
+          <h3 data-i18n="kwad_pool">Trickliste &amp; Pool</h3>
+          <span class="summary-actions"><button id="btnKwadExport" class="btn trick-list-export" type="button" data-i18n="kwad_export_list">Trickliste exportieren (CSV)</button></span>
+        </summary>
         <p class="hint" data-i18n="kwad_pool_hint">Häkchen = Trick liegt im Zieh-Pool. Ohne Häkchen wird der Trick nicht gezogen, bleibt aber in der Liste.</p>
         <div class="trick-list" id="kwadTrickList"></div>
-        <button id="btnKwadExport" class="btn trick-list-export" type="button" data-i18n="kwad_export_list">Trickliste exportieren (CSV)</button>
       </details>
     </div>
   </div>

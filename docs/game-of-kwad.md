@@ -1,8 +1,8 @@
 # Game of K.W.A.D — Konzept & Pflichtenheft
 
-> Status: **v0.22.0 umgesetzt** (rein manuell/lokal: Kategorien, eigene Tricks (nachträglich
-> bearbeitbar), Zieh-Modi, Statistik, Undo, Prüfart „Hindernis" mit automatisch bestimmtem
-> Hindernisauswähler, siehe § 12 Phase 1), Rest **Konzept**.
+> Status: **v0.23.0 umgesetzt** (rein manuell/lokal: Kategorien, eigene Tricks (nachträglich
+> bearbeitbar), Zieh-Modi, Statistik, Undo, Prüfart „Gap"/„Hindernis" mit automatisch bestimmtem
+> Auswähler direkt im Trick-Abschnitt, optionale Trick-Ansage, siehe § 12 Phase 1), Rest **Konzept**.
 > Diese Datei beschreibt weiterhin, was das Spiel werden soll und in welchen Scheiben
 > die Ausbaustufen umgesetzt werden. Der Modus ändert **nichts** am bestehenden Timer, an
 > der Erkennung oder an den Einstellungen — er ist ein eigener, lokaler Modus.
@@ -142,16 +142,18 @@ Regeln dazu (bewusst **manuell**, keine automatische Prüfung):
   mit angelegt und im Spiel als kleines Etikett angezeigt.
 - Alte/fehlende Werte fallen automatisch auf **Freiflug** zurück (`kwadCheck()`), damit früher
   gespeicherte eigene Tricks weiter funktionieren; der Alt-Wert `gate` wird als `gap` geführt.
-- Ist der gezogene Trick ein **Hindernis-Trick**, blendet der Spiel-Screen eine eigene Karte ein:
-  „**Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt**" und darunter der
-  **„Hindernisauswähler"** als fester Name (kein Dropdown). Die App bestimmt ihn selbst: den **noch
-  aktiven Spieler mit den meisten Buchstaben** (also den, der am ehesten verliert); bei
-  **Gleichstand** entscheidet der Zufall. Wer benannt ist, legt das Hindernis für diesen Trick fest.
-- Der Hindernisauswähler wird weiterhin unter einem eigenen Schlüssel (`kwad_obstacle_picker`)
-  gespeichert; ist die benannte Person nicht mehr dabei (eliminiert oder entfernt), wird beim
-  nächsten Rendern automatisch neu bestimmt. Eigene Tricks lassen sich im Einstellungs-Overlay
-  jederzeit über den **Stift ✎** nachträglich bearbeiten (ein umbenannter Trick nimmt Pool-Schalter
-  und Statistik mit).
+- Ist der gezogene Trick ein **Gap- oder Hindernis-Trick**, zeigt der Trick-Abschnitt des
+  Spiel-Screens direkt **unter der Trickbeschreibung** eine Zeile: „**«Name» wählt das Gap**"
+  bzw. „**«Name» wählt das Hindernis**" als festen Text (kein Dropdown). Die App bestimmt den
+  Auswähler selbst: den **noch aktiven Spieler mit den meisten Buchstaben** (also den, der am
+  ehesten verliert); bei **Gleichstand** entscheidet der Zufall. Wer benannt ist, legt das Gap
+  bzw. Hindernis für diesen Trick fest. Freiflug-Tricks brauchen keinen Auswähler.
+- Der Auswähler wird weiterhin unter einem eigenen Schlüssel (`kwad_obstacle_picker`) gespeichert;
+  ist die benannte Person nicht mehr dabei (eliminiert oder entfernt), wird beim nächsten Rendern
+  automatisch neu bestimmt. Eigene Tricks lassen sich im Einstellungs-Overlay jederzeit über den
+  **Stift ✎** nachträglich bearbeiten (ein umbenannter Trick nimmt Pool-Schalter und Statistik mit).
+- Optional liest die App den gezogenen Trick **laut vor** („Trick ansagen" in den K.W.A.D-Optionen);
+  bei einem Gap-/Hindernis-Trick wird der Auswähler mitgenannt (z. B. „Power Loop. Max wählt das Gap").
 - **Keine automatische Bewertung:** Wie überall in K.W.A.D entscheidet die **Gruppe**, ob der Trick
   als geschafft gilt. Die App ist Ansager und Protokoll, nicht Schiedsrichter.
 

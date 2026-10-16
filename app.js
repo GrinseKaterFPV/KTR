@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.22.0';
+  const APP_VERSION = '0.23.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -23,6 +23,7 @@
       pilots_hint: 'Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.',
       pilots_active_hint: 'Tippe ein Profil an, um Statistik und Verwaltung zu öffnen. Mit ★ wählst du den aktiven Piloten.',
       export_pilots: 'Piloten exportieren (CSV)',
+      pilot_export: 'Pilot exportieren (CSV)',
       pilot_delete: 'Pilot löschen',
       pilot_screen_empty: 'Noch keine Piloten angelegt.',
       pilot_active: 'aktiv',
@@ -90,8 +91,9 @@
       kwad_check_free: 'Freiflug',
       kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Hindernis',
-      kwad_obstacle_hint: 'Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt',
-      kwad_obstacle_picker: 'Hindernisauswähler',
+      kwad_picker_gap: 'wählt das Gap',
+      kwad_picker_obstacle: 'wählt das Hindernis',
+      kwad_announce: 'Trick ansagen',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -259,6 +261,7 @@
       pilots_hint: 'Create pilots with a name and colour. The colour is used in the chart and the comparison table.',
       pilots_active_hint: 'Tap a profile to open its statistics and management tools. Use ★ to pick the active pilot.',
       export_pilots: 'Export pilots (CSV)',
+      pilot_export: 'Export pilot (CSV)',
       pilot_delete: 'Delete pilot',
       pilot_screen_empty: 'No pilots yet.',
       pilot_active: 'active',
@@ -326,8 +329,9 @@
       kwad_check_free: 'Free flight',
       kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Obstacle',
-      kwad_obstacle_hint: 'Obstacle trick – the obstacle picker is chosen automatically',
-      kwad_obstacle_picker: 'Obstacle picker',
+      kwad_picker_gap: 'picks the gap',
+      kwad_picker_obstacle: 'picks the obstacle',
+      kwad_announce: 'Announce trick',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -656,8 +660,9 @@
     kwadTrick: document.getElementById('kwadTrick'),
     kwadTurn: document.getElementById('kwadTurn'),
     kwadTurnCard: document.getElementById('kwadTurnCard'),
-    kwadObstacle: document.getElementById('kwadObstacle'),
-    kwadObstacleName: document.getElementById('kwadObstacleName'),
+    kwadPicker: document.getElementById('kwadPicker'),
+    kwadPickerName: document.getElementById('kwadPickerName'),
+    kwadPickerText: document.getElementById('kwadPickerText'),
     kwadPlayers: document.getElementById('kwadPlayers'),
     kwadResult: document.getElementById('kwadResult'),
     kwadName: document.getElementById('kwadName'),
@@ -673,6 +678,7 @@
     btnKwadSettingsClose: document.getElementById('btnKwadSettingsClose'),
     kwadCategoryGrid: document.getElementById('kwadCategoryGrid'),
     kwadModeSelect: document.getElementById('kwadModeSelect'),
+    kwadAnnounce: document.getElementById('kwadAnnounce'),
     kwadCustomTricksList: document.getElementById('kwadCustomTricksList'),
     kwadCustomName: document.getElementById('kwadCustomName'),
     kwadCustomDesc: document.getElementById('kwadCustomDesc'),
@@ -1499,6 +1505,7 @@
         stats: kwadStats,
         playerStats: kwadPlayerStats,
         pool: kwadPool,
+        announce: kwadAnnounce,
         customTricks: KWAD_CATEGORIES?.custom?.tricks || [],
       },
     };
@@ -1585,6 +1592,7 @@
         if (data.kwad.stats) kwadStats = data.kwad.stats;
         if (data.kwad.playerStats && typeof data.kwad.playerStats === 'object') kwadPlayerStats = data.kwad.playerStats;
         if (data.kwad.pool && typeof data.kwad.pool === 'object') kwadPool = data.kwad.pool;
+        if (typeof data.kwad.announce === 'boolean') kwadAnnounce = data.kwad.announce;
         if (data.kwad.customTricks) KWAD_CATEGORIES.custom.tricks = data.kwad.customTricks;
         kwadTrickPool = kwadBuildTrickPool();
         if (kwadMode === 'roundRobinCategory') {
@@ -1597,6 +1605,7 @@
         kwadSaveMode();
         kwadSaveStats();
         kwadSavePool();
+        kwadSaveAnnounce();
       }
 
       // Re-render everything
@@ -2810,6 +2819,24 @@
     return { attempted, succeeded, rate: kwadRate(succeeded, attempted) };
   }
 
+  // CSV rows (header first) for one or more pilots — used by the "Piloten
+  // exportieren" button and by the per-profile export.
+  function pilotCsvRows(names) {
+    const rows = [['pilot', 'colour', 'sets', 'laps', 'best_ms', 'avg_ms', 'total_ms']];
+    names.forEach(name => {
+      const sets = state.sets.filter(s => (s.pilot || '') === name);
+      const laps = [];
+      sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
+      rows.push([
+        name, pilotColor(name), sets.length, laps.length,
+        laps.length ? Math.round(Math.min(...laps)) : '',
+        laps.length ? Math.round(laps.reduce((a, d) => a + d, 0) / laps.length) : '',
+        laps.length ? Math.round(laps.reduce((a, d) => a + d, 0)) : '',
+      ]);
+    });
+    return rows;
+  }
+
   // Destructive actions only run after a real confirmation.
   function askConfirm(message) {
     try { return typeof confirm === 'function' ? confirm(message) === true : false; }
@@ -2947,21 +2974,7 @@
         syncPilotCards();
       });
 
-      const rm = document.createElement('button');
-      rm.type = 'button';
-      rm.className = 'pilot-remove';
-      rm.textContent = '✕';
-      rm.title = t('pilot_delete');
-      rm.setAttribute('aria-label', t('pilot_delete') + ': ' + name);
-      rm.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!askConfirm(t('pilot_delete_confirm').replace('{name}', name))) return;
-        removePilot(name);
-      });
-
       actions.appendChild(star);
-      actions.appendChild(rm);
       sum.appendChild(actions);
       card.appendChild(sum);
 
@@ -3006,6 +3019,33 @@
       row.appendChild(renameBtn);
       tools.appendChild(row);
 
+      // The pilot colour stays adjustable from inside the profile.
+      const colorRow = document.createElement('label');
+      colorRow.className = 'pilot-color-row';
+      const colorCap = document.createElement('span');
+      colorCap.className = 'small-label';
+      colorCap.textContent = t('pilot_color');
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = 'pilot-color';
+      colorInput.value = col;
+      colorInput.setAttribute('aria-label', t('pilot_color') + ': ' + name);
+      colorInput.addEventListener('input', e => {
+        state.pilotColors[name] = e.target.value;
+        syncPilotCards();
+      });
+      colorInput.addEventListener('change', e => {
+        state.pilotColors[name] = e.target.value;
+        saveSettings();
+        renderPilots();
+      });
+      colorRow.appendChild(colorCap);
+      colorRow.appendChild(colorInput);
+      tools.appendChild(colorRow);
+
+      const buttons = document.createElement('div');
+      buttons.className = 'pilot-profile-buttons';
+
       const reset = document.createElement('button');
       reset.type = 'button';
       reset.className = 'pilot-stats-reset';
@@ -3018,7 +3058,35 @@
         kwadDropProfileStats(name);
         renderPilots();
       });
-      tools.appendChild(reset);
+      buttons.appendChild(reset);
+
+      // Export this single pilot (name, colour, sets, laps) as its own CSV.
+      const exp = document.createElement('button');
+      exp.type = 'button';
+      exp.className = 'pilot-export';
+      exp.textContent = t('pilot_export');
+      exp.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        downloadCsv('fpv-pilot-' + fileSafe(name) + '.csv', pilotCsvRows([name]));
+      });
+      buttons.appendChild(exp);
+
+      // Deleting lives at the bottom-right of the profile so it is not hit by
+      // accident while managing the profile.
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'pilot-delete btn-danger';
+      del.textContent = t('pilot_delete');
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!askConfirm(t('pilot_delete_confirm').replace('{name}', name))) return;
+        removePilot(name);
+      });
+      buttons.appendChild(del);
+
+      tools.appendChild(buttons);
       body.appendChild(tools);
       card.appendChild(body);
 
@@ -3086,20 +3154,8 @@
   }
   if (els.btnPilotExport) {
     els.btnPilotExport.addEventListener('click', () => {
-      const rows = [['pilot', 'colour', 'sets', 'laps', 'best_ms', 'avg_ms', 'total_ms']];
-      state.pilots.forEach(name => {
-        const sets = state.sets.filter(s => (s.pilot || '') === name);
-        const laps = [];
-        sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
-        rows.push([
-          name, pilotColor(name), sets.length, laps.length,
-          laps.length ? Math.round(Math.min(...laps)) : '',
-          laps.length ? Math.round(laps.reduce((a, d) => a + d, 0) / laps.length) : '',
-          laps.length ? Math.round(laps.reduce((a, d) => a + d, 0)) : '',
-        ]);
-      });
-      if (rows.length === 1) return;
-      downloadCsv('fpv-pilots.csv', rows);
+      if (!state.pilots.length) return;
+      downloadCsv('fpv-pilots.csv', pilotCsvRows(state.pilots));
     });
   }
 
@@ -3478,7 +3534,8 @@
   let kwadMode = 'random'; // 'random' | 'sequential' | 'roundRobinCategory'
   let kwadCategoryOrder = []; // for roundRobinCategory mode
   let kwadCategoryIdx = 0;
-  let kwadObstaclePicker = ''; // player name who picks the obstacle (persisted)
+  let kwadPicker = ''; // player name who picks the gap/obstacle (persisted as kwad_obstacle_picker)
+  let kwadAnnounce = false; // read the drawn trick out loud (persisted)
   let kwadEditingCustomIdx = -1; // index of the own trick currently edited, -1 = "add"
   let kwadStats = {}; // global aggregate: { trickName: { attempted, succeeded } }
   let kwadPlayerStats = {}; // per profile: { playerName: { trickName: { attempted, succeeded } } }
@@ -3575,11 +3632,16 @@
       if (poolRaw && typeof poolRaw === 'object') kwadPool = poolRaw;
     } catch { kwadPool = {}; }
 
-    // Load the obstacle picker
+    // Load the gap/obstacle picker (kept under its historical key)
     try {
       const pickerRaw = localStorage.getItem('kwad_obstacle_picker') || '';
-      kwadObstaclePicker = typeof pickerRaw === 'string' ? pickerRaw : '';
-    } catch { kwadObstaclePicker = ''; }
+      kwadPicker = typeof pickerRaw === 'string' ? pickerRaw : '';
+    } catch { kwadPicker = ''; }
+
+    // Load the "announce the trick" switch
+    try {
+      kwadAnnounce = localStorage.getItem('kwad_announce') === '1';
+    } catch { kwadAnnounce = false; }
 
     // Build initial trick pool
     kwadTrickPool = kwadBuildTrickPool();
@@ -3616,8 +3678,11 @@
   function kwadSavePool() {
     try { localStorage.setItem('kwad_trick_pool', JSON.stringify(kwadPool)); } catch { /* ignore */ }
   }
-  function kwadSaveObstaclePicker() {
-    try { localStorage.setItem('kwad_obstacle_picker', kwadObstaclePicker || ''); } catch { /* ignore */ }
+  function kwadSavePicker() {
+    try { localStorage.setItem('kwad_obstacle_picker', kwadPicker || ''); } catch { /* ignore */ }
+  }
+  function kwadSaveAnnounce() {
+    try { localStorage.setItem('kwad_announce', kwadAnnounce ? '1' : '0'); } catch { /* ignore */ }
   }
 
   // Next player (cyclically from `start`) who is still in the game, or -1.
@@ -3634,16 +3699,35 @@
     return kwadPlayers.filter(p => !kwadIsOut(p.letters)).length;
   }
 
-  // Who picks the obstacle as soon as an obstacle trick comes up: the active
+  // A gap or an obstacle trick is chosen on the spot by one of the players —
+  // both checks need a picker; free flight does not.
+  function kwadPickerKind(trick) {
+    const c = kwadCheck(trick);
+    return (c === 'gap' || c === 'obstacle') ? c : '';
+  }
+
+  // Who picks the gap/obstacle as soon as such a trick comes up: the active
   // player already holding the most letters — the one closest to losing. A tie
   // between several players is settled by lot. Returns '' with nobody left in.
-  function kwadChooseObstaclePicker() {
+  function kwadChoosePicker() {
     const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters));
     if (!actives.length) return '';
     const letters = p => kwadNormalizeLetters(p.letters).length;
     const most = actives.reduce((max, p) => Math.max(max, letters(p)), 0);
     const top = actives.filter(p => letters(p) === most);
     return top[Math.floor(Math.random() * top.length)].name;
+  }
+
+  // Read the drawn trick out loud (optional). For a gap/obstacle trick the
+  // nominated pilot is named as well.
+  function kwadAnnounceTrick() {
+    if (!kwadTrickObj) return;
+    let text = kwadTrickName(kwadTrickObj);
+    const kind = kwadPickerKind(kwadTrickObj);
+    if (kind && kwadPicker) {
+      text += '. ' + kwadPicker + ' ' + t(kind === 'obstacle' ? 'kwad_picker_obstacle' : 'kwad_picker_gap');
+    }
+    speak(text);
   }
 
   function renderKwad() {
@@ -3708,16 +3792,18 @@
       }
     }
 
-    // Prüfart "Hindernis": the app nominates who picks the obstacle — the
-    // active player with the most letters (ties are drawn by lot). The name is
-    // shown as fixed text; it is not something the group still has to agree on.
-    const trickCheck = kwadTrickObj ? kwadCheck(kwadTrickObj) : 'free';
-    const isObstacle = trickCheck === 'obstacle';
-    if (els.kwadObstacle) els.kwadObstacle.hidden = !isObstacle;
-    if (isObstacle) {
-      const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters)).map(p => p.name);
-      if (actives.indexOf(kwadObstaclePicker) === -1) kwadObstaclePicker = kwadChooseObstaclePicker();
-      if (els.kwadObstacleName) els.kwadObstacleName.textContent = kwadObstaclePicker || '—';
+    // A gap or an obstacle trick names the pilot who picks it: the app nominates
+    // the active player with the most letters (ties are drawn by lot). The name
+    // is shown as fixed text — not something the group has to agree on.
+    const pickerKind = kwadPickerKind(kwadTrickObj);
+    if (els.kwadPicker) {
+      els.kwadPicker.hidden = !pickerKind;
+      if (pickerKind) {
+        const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters)).map(p => p.name);
+        if (actives.indexOf(kwadPicker) === -1) kwadPicker = kwadChoosePicker();
+        if (els.kwadPickerName) els.kwadPickerName.textContent = kwadPicker || '—';
+        if (els.kwadPickerText) els.kwadPickerText.textContent = t(pickerKind === 'obstacle' ? 'kwad_picker_obstacle' : 'kwad_picker_gap');
+      }
     }
 
     if (els.kwadPlayers) {
@@ -3833,15 +3919,16 @@
     kwadTrick = kwadTrickObj.name;
     kwadTried = [];
     kwadLastPenalty = null;
-    // An obstacle trick names its picker right away (most letters, ties by lot).
-    if (kwadCheck(kwadTrickObj) === 'obstacle') {
-      kwadObstaclePicker = kwadChooseObstaclePicker();
-      kwadSaveObstaclePicker();
+    // A gap or obstacle trick names its picker right away (most letters, ties by lot).
+    if (kwadPickerKind(kwadTrickObj)) {
+      kwadPicker = kwadChoosePicker();
+      kwadSavePicker();
     }
     const active = kwadActiveFrom(kwadTurnIdx);
     if (active !== -1) kwadTurnIdx = active;
     if (typeof soundKwadNewTrick === 'function') soundKwadNewTrick();
     renderKwad();
+    if (kwadAnnounce) kwadAnnounceTrick();
   }
 
   // One attempt turned in by the current player. `ok === false` adds a letter.
@@ -3965,9 +4052,9 @@
     });
     const tried = kwadTried.indexOf(oldName);
     if (tried !== -1) kwadTried[tried] = newName;
-    if (kwadObstaclePicker === oldName) kwadObstaclePicker = newName;
+    if (kwadPicker === oldName) kwadPicker = newName;
     kwadSave();
-    kwadSaveObstaclePicker();
+    kwadSavePicker();
     renderKwadStats();
     renderKwad();
   }
@@ -4069,8 +4156,8 @@
   }
 
   function renderKwadMode() {
-    if (!els.kwadModeSelect) return;
-    els.kwadModeSelect.value = kwadMode;
+    if (els.kwadModeSelect) els.kwadModeSelect.value = kwadMode;
+    if (els.kwadAnnounce) els.kwadAnnounce.checked = kwadAnnounce;
   }
 
   // "Trickliste & Pool": every trick of every group with its short description,
@@ -4496,6 +4583,7 @@
   if (els.btnKwadSettingsClose) els.btnKwadSettingsClose.addEventListener('click', closeKwadSettings);
   if (els.kwadSettingsOverlay) els.kwadSettingsOverlay.addEventListener('click', e => { if (e.target === els.kwadSettingsOverlay) closeKwadSettings(); });
   if (els.kwadModeSelect) els.kwadModeSelect.addEventListener('change', e => { kwadMode = e.target.value; kwadSaveMode(); if (kwadMode === 'roundRobinCategory') { kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id); kwadCategoryIdx = 0; } renderKwadMode(); });
+  if (els.kwadAnnounce) els.kwadAnnounce.addEventListener('change', e => { kwadAnnounce = !!e.target.checked; kwadSaveAnnounce(); });
   if (els.btnKwadCustomSave) els.btnKwadCustomSave.addEventListener('click', kwadAddCustomTrick);
   if (els.btnKwadCustomCancel) els.btnKwadCustomCancel.addEventListener('click', kwadResetCustomForm);
   if (els.btnKwadExport) els.btnKwadExport.addEventListener('click', kwadExportTrickList);
@@ -4506,7 +4594,7 @@
     initSettings();
     installAudioUnlock();
     // Buttons inside a <summary> must not toggle the collapsible section.
-    document.querySelectorAll('.card-summary button, .card-summary select').forEach(el => {
+    document.querySelectorAll('.card-summary button, .card-summary select, .settings-group > summary button').forEach(el => {
       el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
     });
     // initial overlay sizing

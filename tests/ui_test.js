@@ -242,7 +242,7 @@ check('D10: the summary labels carry the i18n key instead',
   /<span class="summary-label" data-i18n="sec_camera">/.test(html)
   && /<span class="summary-label" data-i18n="sec_timer">/.test(html));
 check('D11: clicking a summary button does not toggle the card',
-  /querySelectorAll\('\.card-summary button, \.card-summary select'\)/.test(app)
+  /querySelectorAll\('\.card-summary button, \.card-summary select, \.settings-group > summary button'\)/.test(app)
   && /e\.preventDefault\(\); e\.stopPropagation\(\);/.test(app));
 
 // --- 13) backup / restore is actually wired -------------------------------------
@@ -267,13 +267,15 @@ check('R4: a success clears the undo history',
 check('R5: undoing restores the previous player\'s turn',
   /kwadTurnIdx = playerIdx;/.test(app));
 
-// --- 15) Prüfart (check) + obstacle picker --------------------------------------
-check('S1: the KWAD screen has an obstacle card naming the picker as fixed text (no dropdown)',
-  /<div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>/.test(html)
-  && /<span class="kwad-obstacle-name" id="kwadObstacleName">/.test(html)
+// --- 15) Prüfart (check) + gap/obstacle picker ---------------------------------
+check('S1: the KWAD trick card names the picker as fixed text (no dropdown)',
+  /<p class="kwad-picker" id="kwadPicker" hidden>/.test(html)
+  && /<span class="kwad-picker-name" id="kwadPickerName">/.test(html)
+  && /<span class="kwad-picker-text" id="kwadPickerText">/.test(html)
+  && !/id="kwadObstacle"/.test(html)
   && !/id="kwadObstaclePicker"/.test(html));
-check('S2: the obstacle card is hidden until an obstacle trick comes up',
-  /els\.kwadObstacle\.hidden = !isObstacle/.test(app));
+check('S2: the picker is hidden unless a gap or obstacle trick comes up',
+  /els\.kwadPicker\.hidden = !pickerKind/.test(app));
 check('S3: the nomination is checked against the active players',
   /const actives = kwadPlayers\.filter\(p => !kwadIsOut\(p\.letters\)\)\.map\(p => p\.name\)/.test(app));
 check('S4: the picker choice is persisted under its own key',
@@ -290,10 +292,12 @@ check('S8: an old/custom trick without a field counts as free flight, and v0.19 
   /function kwadCheck\(trick\)/.test(app)
   && /if \(c === 'gate'\) return 'gap';/.test(app)
   && /return \(c === 'gap' \|\| c === 'obstacle'\) \? c : 'free';/.test(app));
-check('S9: the obstacle banner and picker label are translated',
+check('S9: the picker wording is translated per check',
   /kwad_check: 'Prüfart'/.test(app) && /kwad_check: 'Check'/.test(app)
-  && /kwad_obstacle_picker: 'Hindernisauswähler'/.test(app)
-  && /kwad_obstacle_picker: 'Obstacle picker'/.test(app));
+  && /kwad_picker_gap: 'wählt das Gap'/.test(app)
+  && /kwad_picker_obstacle: 'wählt das Hindernis'/.test(app)
+  && /kwad_picker_gap: 'picks the gap'/.test(app)
+  && /kwad_picker_obstacle: 'picks the obstacle'/.test(app));
 
 // --- 16) trick list & pool, per-player statistics ------------------------------
 check('S10: the statistics card sits at the bottom of the KWAD screen (outside the settings)',
@@ -303,7 +307,7 @@ check('S10: the statistics card sits at the bottom of the KWAD screen (outside t
   && html.indexOf('kwad-stats-card') > html.indexOf('id="btnKwadReset"')
   && html.indexOf('id="kwadStatsGrid"') < html.indexOf('id="kwadSettingsOverlay"'));
 check('S11: the settings offer a "Trickliste & Pool" section',
-  /<summary><h3 data-i18n="kwad_pool">/.test(html)
+  /<details class="settings-group">\s*<summary>\s*<h3 data-i18n="kwad_pool">/.test(html)
   && /<div class="trick-list" id="kwadTrickList"><\/div>/.test(html));
 check('S12: the trick list renders one switch per trick with its description',
   /function renderKwadTrickList\(\)/.test(app)
@@ -351,9 +355,9 @@ check('S23: the trick list can be exported as CSV',
   && /btnKwadExport: document\.getElementById\('btnKwadExport'\)/.test(app)
   && /function kwadTrickListRows\(\)/.test(app)
   && /downloadCsv\('fpv-kwad-tricks\.csv', rows\)/.test(app));
-check('S24: the export button sits inside the "Trickliste & Pool" group', (() => {
-  const from = html.indexOf('data-i18n="kwad_pool_hint"');
-  const to = html.indexOf('</details>', from);
+check('S24: the export button now sits in the "Trickliste & Pool" summary, by the caret', (() => {
+  const from = html.indexOf('data-i18n="kwad_pool"');
+  const to = html.indexOf('</summary>', from);
   const at = html.indexOf('id="btnKwadExport"');
   return from !== -1 && to !== -1 && at > from && at < to;
 })());
@@ -394,7 +398,7 @@ check('S32: built-in tricks carry their English name and description',
   && /function kwadTrickDesc\(trick\)/.test(app));
 check('S33: "Tight Gap" replaced "Level Pass" and nothing says "Gate Roll"',
   !/Level Pass/.test(app) && /name: 'Tight Gap'/.test(app) && !/Gate Roll/.test(app));
-check('S34: the obstacle picker\'s "from the app" entry and the two placeholders are translated',
+check('S34: the pilot list\'s "from the app" entry and the two placeholders are translated',
   /<option value="" data-i18n="kwad_pilots_from_app">/.test(html)
   && /blank\.setAttribute\('data-i18n', 'kwad_pilots_from_app'\);/.test(app)
   && /data-i18n-ph="kwad_custom_name_ph"/.test(html)
@@ -426,20 +430,54 @@ check('S38: an own trick can be edited again afterwards',
   && /kwad_custom_cancel: 'Abbrechen'/.test(app)
   && /kwad_custom_edit: 'Bearbeiten'/.test(app)
   && /kwad_custom_edit: 'Edit'/.test(app));
-check('S39: the obstacle picker is nominated automatically (the group no longer decides)',
-  /function kwadChooseObstaclePicker\(\)/.test(app)
-  && /kwadObstaclePicker = kwadChooseObstaclePicker\(\);/.test(app)
-  && /kwad_obstacle_hint: 'Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt'/.test(app)
-  && /kwad_obstacle_hint: 'Obstacle trick – the obstacle picker is chosen automatically'/.test(app)
+check('S39: the picker is nominated automatically for gap and obstacle tricks',
+  /function kwadPickerKind\(trick\)/.test(app)
+  && /function kwadChoosePicker\(\)/.test(app)
+  && /kwadPicker = kwadChoosePicker\(\);/.test(app)
   && !/die Gruppe bestimmt/.test(app)
   && !/group decides the obstacle/.test(app)
-  && /els\.kwadObstacleName\.textContent = kwadObstaclePicker \|\| '—';/.test(app));
+  && /els\.kwadPickerName\.textContent = kwadPicker \|\| '—';/.test(app));
+
+// --- 19) Trick ansagen, Einzel-Export, Profilfarbe, Löschen unten rechts -------
+check('S40: the drawn trick can be read out loud, naming the picker for gap/obstacle',
+  /function kwadAnnounceTrick\(\)/.test(app)
+  && /let text = kwadTrickName\(kwadTrickObj\);/.test(app)
+  && /t\(kind === 'obstacle' \? 'kwad_picker_obstacle' : 'kwad_picker_gap'\)/.test(app)
+  && /if \(kwadAnnounce\) kwadAnnounceTrick\(\);/.test(app));
+check('S41: the announce option is a checkbox on the KWAD options and is remembered',
+  /<label class="check-row"><input type="checkbox" id="kwadAnnounce" \/> <span data-i18n="kwad_announce">/.test(html)
+  && /kwadAnnounce: document\.getElementById\('kwadAnnounce'\)/.test(app)
+  && /localStorage\.setItem\('kwad_announce'/.test(app)
+  && /localStorage\.getItem\('kwad_announce'\) === '1'/.test(app)
+  && /els\.kwadAnnounce\.addEventListener\('change'/.test(app)
+  && /els\.kwadAnnounce\.checked = kwadAnnounce;/.test(app));
+check('S42: the announce option travels with the backup and is translated',
+  /announce: kwadAnnounce,/.test(app)
+  && /if \(typeof data\.kwad\.announce === 'boolean'\) kwadAnnounce = data\.kwad\.announce;/.test(app)
+  && /kwad_announce: 'Trick ansagen'/.test(app)
+  && /kwad_announce: 'Announce trick'/.test(app));
+check('P15: a single pilot can be exported from inside their own profile',
+  /function pilotCsvRows\(names\)/.test(app)
+  && /downloadCsv\('fpv-pilot-' \+ fileSafe\(name\) \+ '\.csv', pilotCsvRows\(\[name\]\)\)/.test(app)
+  && /downloadCsv\('fpv-pilots\.csv', pilotCsvRows\(state\.pilots\)\)/.test(app)
+  && /pilot_export: 'Pilot exportieren \(CSV\)'/.test(app)
+  && /pilot_export: 'Export pilot \(CSV\)'/.test(app));
+check('P16: "Delete pilot" moved to the bottom-right of the profile, not the summary',
+  /del\.className = 'pilot-delete btn-danger';/.test(app)
+  && /\.pilot-profile-buttons \.pilot-delete \{ margin-left: auto; \}/.test(css)
+  && !/pilot-remove/.test(app) && !/pilot-remove/.test(css) && !/pilot-remove/.test(html));
+check('P17: the pilot colour is adjustable later from inside the profile',
+  /colorInput\.type = 'color';/.test(app)
+  && /'pilot-color-row'/.test(app)
+  && /state\.pilotColors\[name\] = e\.target\.value;/.test(app)
+  && /syncPilotCards\(\);/.test(app)
+  && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v54'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.22\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v55'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.23\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.22\.0"/.test(pkg));
+  /"version": "0\.23\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
