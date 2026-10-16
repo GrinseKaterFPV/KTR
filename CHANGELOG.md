@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-10-16
+### Fixed
+- Collapsible cards: the `<summary>` is now a real first child of `<details>`, so the browser's "Details" fallback text is gone for good
+- The gear button is pinned to the card corner again (the summary spans the full width)
+- Removed five duplicate pseudo-element "nuclear" hacks that had also killed the ▾/▴ collapse caret
+- Backup/Restore was dead on arrival: the three element references were missing from the `els` map
+- Removed stray closing tags (`</div></div></main>`) after the main layout
+
+### Added
+- Game of K.W.A.D: the undo button is now really in the UI (takes back only the last penalty letter, cleared on a new trick or a success)
+
 ## [0.17.0] - 2025-10-16
 ### Added
 - Game of K.W.A.D: 5 trick categories (Basics 🟢, Intermediate 🟡, Advanced 🟠, Pro 🔴, Custom ⭐) with difficulty levels
@@ -15,20 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Game of K.W.A.D: Trick statistics – attempted/succeeded/rate per trick
 - Game of K.W.A.D: Dedicated settings overlay (gear icon in KWAD screen) for categories, mode, custom tricks, stats
 - Game of K.W.A.D: Sound effects – penalty (fail), new trick (ready), game over (loser)
-- Game of K.W.A.D: Undo button for last penalty letter (anti-cheat: only last, cleared on new trick/success)
 
 ### Changed
 - KWAD draw logic now uses weighted random by difficulty (easier tricks more frequent)
 - KWAD trick pool dynamically built from enabled categories
-
-### Fixed
-- KWAD undo button disabled when no action to undo
-### Added
-- Game of K.W.A.D: Undo button (removes last penalty letter, anti-cheat: only last, cleared on new trick/success)
-- Game of K.W.A.D: Sound effects – penalty (fail), new trick (ready), game over (loser)
-
-### Fixed
-- KWAD undo button disabled when no action to undo
 
 ## [0.16.2] - 2025-10-15
 ### Added

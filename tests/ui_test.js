@@ -11,6 +11,7 @@ const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 
 let pass = 0, fail = 0;
 const check = (n, c) => { c ? pass++ : fail++; console.log((c ? 'PASS ' : 'FAIL ') + n); };
@@ -217,8 +218,10 @@ check('R5: undoing restores the previous player\'s turn',
   /kwadTurnIdx = playerIdx;/.test(app));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.17\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v47'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.17\.1'/.test(app));
+check('V3: package.json carries the same version',
+  /"version": "0\.17\.1"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
