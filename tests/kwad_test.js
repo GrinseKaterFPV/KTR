@@ -72,6 +72,7 @@ const body = [
   'function kwadNewTrick() { newTrickCalls++; return kwadNewTrickImpl(); }',
   extract('renderKwad'),
   extract('kwadRound'),
+  extract('kwadUndoPenalty'),
   [
     'var apiObj = {};',
     'apiObj.kwadNormalizeLetters = kwadNormalizeLetters;',
@@ -85,8 +86,11 @@ const body = [
     'apiObj.kwadSaveStats = kwadSaveStats;',
     'apiObj.renderKwad = renderKwad;',
     'apiObj.kwadRound = kwadRound;',
+    'apiObj.kwadUndoPenalty = kwadUndoPenalty;',
+    'apiObj.penalty = function() { return kwadLastPenalty; };',
+    'apiObj.stats = function() { return kwadStats; };',
     'apiObj.kwadNewTrick = kwadNewTrick;',
-    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickPool = kwadBuildTrickPool(); };',
+    'apiObj.setGame = function(players, turn) { kwadPlayers = players; kwadTurnIdx = turn | 0; kwadTried = []; newTrickCalls = 0; kwadTrick = "Test Trick"; kwadTrickObj = { name: "Test Trick" }; kwadTrickPool = kwadBuildTrickPool(); kwadStats = {}; kwadLastPenalty = null; };',
     'apiObj.players = function() { return kwadPlayers; };',
     'apiObj.turn = function() { return kwadTurnIdx; };',
     'apiObj.tried = function() { return kwadTried; };',
@@ -133,6 +137,7 @@ const els = {
   kwadTurn: makeEl('div'),
   btnKwadDone: makeEl('button'),
   btnKwadFail: makeEl('button'),
+  btnKwadUndo: makeEl('button'),
 };
 const documentStub = { createElement: makeEl };
 
@@ -230,6 +235,31 @@ api.setGame([{ name: 'A', letters: 'KWAD' }, { name: 'B', letters: '' }], 0);
 check('S4: an eliminated player is skipped', api.kwadActiveFrom(0) === 1);
 api.renderKwad();
 check('S5: a game with fewer than two active players is stopped', els.btnKwadDone.disabled === true);
+
+// --- undo takes back only the last penalty letter (anti-cheat) --------------
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+api.renderKwad();
+check('U1: nothing to undo -> button disabled', els.btnKwadUndo.disabled === true);
+api.kwadRound(false);                                    // Max fails -> K, turn Lea
+check('U2: the button lights up after a penalty', els.btnKwadUndo.disabled === false);
+check('U3: the penalty is remembered with its trick', api.penalty() && api.penalty().letter === 'K' && api.penalty().trick === 'Test Trick');
+api.kwadUndoPenalty();
+check('U4: the letter is taken back', api.players()[0].letters === '');
+check('U5: the turn returns to that player', api.turn() === 0);
+check('U6: the player may have another go at the trick', api.tried().indexOf('Max') === -1);
+check('U7: a second undo is not possible', (api.kwadUndoPenalty(), els.btnKwadUndo.disabled === true && api.players()[0].letters === ''));
+check('U8: the undone attempt no longer counts in the stats', (api.stats()['Test Trick'] || {}).attempted === 0);
+api.kwadRound(false);                                    // Max fails again -> K
+check('U9: the board shows the letter again', earned(els.kwadPlayers.children[0]) === 1);
+api.kwadRound(true);                                     // Lea succeeds -> undo cleared
+check('U10: a success clears the undo history', els.btnKwadUndo.disabled === true);
+check('U11: a finished game can still be undone', (function () {
+  api.setGame([{ name: 'Max', letters: 'KWA' }, { name: 'Lea', letters: 'K' }], 0);
+  api.kwadRound(false);                                  // Max KWA -> KWAD -> loses
+  if (api.kwadLoserIndex(api.players()) !== 0) return false;
+  api.kwadUndoPenalty();
+  return api.players()[0].letters === 'KWA' && api.kwadLoserIndex(api.players()) === -1 && els.btnKwadUndo.disabled === true;
+})());
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

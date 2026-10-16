@@ -204,6 +204,18 @@ check('G2: the restore file input is wired (els map)',
 check('G3: the backup status line is wired (els map)',
   /backupStatus: document\.getElementById\('backupStatus'\)/.test(app));
 
+// --- 14) KWAD undo is actually wired --------------------------------------------
+check('R1: the KWAD undo button exists in the turn card',
+  /<button id="btnKwadUndo"[^>]*data-i18n="kwad_undo"/.test(html));
+check('R2: the undo button is wired to kwadUndoPenalty',
+  /els\.btnKwadUndo\.addEventListener\('click', kwadUndoPenalty\)/.test(app));
+check('R3: undo is only offered while a penalty is pending',
+  /els\.btnKwadUndo\.disabled = !kwadLastPenalty/.test(app));
+check('R4: a success clears the undo history',
+  /kwadLastPenalty = null; \/\/ successful attempt clears undo/.test(app));
+check('R5: undoing restores the previous player\'s turn',
+  /kwadTurnIdx = playerIdx;/.test(app));
+
 // --- cache / version bookkeeping ---------------------------------------------
 check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v46'/.test(sw));
 check('V2: app version was bumped', /APP_VERSION = '0\.17\.0'/.test(app));
