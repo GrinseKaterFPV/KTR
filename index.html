@@ -74,6 +74,13 @@
         <button id="btnKwadNewTrick" class="btn" type="button" data-i18n="kwad_new_trick">Neuer Trick</button>
       </div>
 
+      <div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>
+        <div class="small-label" data-i18n="kwad_obstacle_hint">Hindernis-Trick – die Gruppe bestimmt das Hindernis</div>
+        <label class="kwad-obstacle-pick"><span data-i18n="kwad_obstacle_picker">Hindernisauswähler</span>
+          <select id="kwadObstaclePicker"></select>
+        </label>
+      </div>
+
       <div class="card kwad-card" id="kwadTurnCard">
         <div class="small-label" data-i18n="kwad_turn">Am Zug</div>
         <div class="kwad-turn" id="kwadTurn">—</div>
@@ -432,6 +439,13 @@
           </label>
           <label><span data-i18n="kwad_custom_desc">Beschreibung</span>
             <input type="text" id="kwadCustomDesc" placeholder="Beschreibung des Tricks" />
+          </label>
+          <label><span data-i18n="kwad_check">Prüfart</span>
+            <select id="kwadCustomCheck">
+              <option value="free" data-i18n="kwad_check_free">Freiflug</option>
+              <option value="gate" data-i18n="kwad_check_gate">Tor / Gate</option>
+              <option value="obstacle" data-i18n="kwad_check_obstacle">Hindernis</option>
+            </select>
           </label>
         </div>
         <button id="btnKwadCustomSave" class="btn" type="button" data-i18n="kwad_custom_save">Eigenen Trick speichern</button>

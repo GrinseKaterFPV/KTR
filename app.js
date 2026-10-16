@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.17.1';
+  const APP_VERSION = '0.18.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -63,6 +63,13 @@
       kwad_difficulty: 'Schwierigkeit',
       kwad_desc: 'Beschreibung',
       kwad_enabled: 'Aktiv',
+      kwad_check: 'Prüfart',
+      kwad_check_free: 'Freiflug',
+      kwad_check_gate: 'Tor / Gate',
+      kwad_check_obstacle: 'Hindernis',
+      kwad_obstacle_hint: 'Hindernis-Trick – die Gruppe bestimmt das Hindernis',
+      kwad_obstacle_picker: 'Hindernisauswähler',
+      kwad_obstacle_none: '– noch offen –',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -269,6 +276,13 @@
       kwad_difficulty: 'Difficulty',
       kwad_desc: 'Description',
       kwad_enabled: 'Enabled',
+      kwad_check: 'Check',
+      kwad_check_free: 'Free flight',
+      kwad_check_gate: 'Gate',
+      kwad_check_obstacle: 'Obstacle',
+      kwad_obstacle_hint: 'Obstacle trick – the group decides the obstacle',
+      kwad_obstacle_picker: 'Obstacle picker',
+      kwad_obstacle_none: '– not set –',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -596,6 +610,8 @@
     kwadTrick: document.getElementById('kwadTrick'),
     kwadTurn: document.getElementById('kwadTurn'),
     kwadTurnCard: document.getElementById('kwadTurnCard'),
+    kwadObstacle: document.getElementById('kwadObstacle'),
+    kwadObstaclePicker: document.getElementById('kwadObstaclePicker'),
     kwadPlayers: document.getElementById('kwadPlayers'),
     kwadResult: document.getElementById('kwadResult'),
     kwadName: document.getElementById('kwadName'),
@@ -614,6 +630,7 @@
     kwadCustomTricksList: document.getElementById('kwadCustomTricksList'),
     kwadCustomName: document.getElementById('kwadCustomName'),
     kwadCustomDesc: document.getElementById('kwadCustomDesc'),
+    kwadCustomCheck: document.getElementById('kwadCustomCheck'),
     btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
     kwadStatsGrid: document.getElementById('kwadStatsGrid'),
     versionBadge: document.getElementById('versionBadge'),
@@ -2994,6 +3011,8 @@
   const KWAD_LETTERS = 'KWAD';
 
   // --- Trick Categories with difficulty (1-5), descriptions, and default enabled state ---
+  // `check` is the Prüfart: 'free' (Freiflug), 'gate' (Tor/Gate), 'obstacle' (Hindernis).
+  // A trick marked 'obstacle' makes the game ask the group who picks the obstacle.
   const KWAD_CATEGORIES = {
     basics: {
       id: 'basics',
@@ -3002,10 +3021,10 @@
       difficulty: 1,
       enabled: true,
       tricks: [
-        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up' },
-        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap' },
-        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap' },
-        { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen' },
+        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gate' },
+        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gate' },
+        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gate' },
+        { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen', check: 'free' },
       ]
     },
     intermediate: {
@@ -3015,12 +3034,12 @@
       difficulty: 2,
       enabled: true,
       tricks: [
-        { name: 'Power Loop', desc: 'Looping über das Tor (Rückwärts-Loop)' },
-        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll' },
-        { name: 'Orbit', desc: 'Kreisfahrt um einen Punkt (Flag/Tor)' },
-        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse' },
-        { name: 'Wall Scrape', desc: 'Nah am Boden/Objekt entlangschrappen' },
-        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)' },
+        { name: 'Power Loop', desc: 'Looping über das Tor (Rückwärts-Loop)', check: 'gate' },
+        { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll', check: 'free' },
+        { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis (Flagge, Tor, Baum)', check: 'obstacle' },
+        { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse', check: 'free' },
+        { name: 'Wall Scrape', desc: 'Nah an einem Hindernis entlangschrappen (Wand, Tor, Boden)', check: 'obstacle' },
+        { name: 'Corkscrew', desc: 'Kombination aus Loop und Roll (Korkenzieher)', check: 'free' },
       ]
     },
     advanced: {
@@ -3030,12 +3049,12 @@
       difficulty: 3,
       enabled: true,
       tricks: [
-        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)' },
-        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)' },
-        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig' },
-        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Tor' },
-        { name: 'Backwards Pass', desc: 'Rückwärts durch das Tor fliegen' },
-        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Tor' },
+        { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)', check: 'free' },
+        { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)', check: 'free' },
+        { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig', check: 'free' },
+        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Tor', check: 'gate' },
+        { name: 'Backwards Pass', desc: 'Rückwärts durch das Tor fliegen', check: 'gate' },
+        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Tor', check: 'gate' },
       ]
     },
     pro: {
@@ -3045,11 +3064,11 @@
       difficulty: 4,
       enabled: false,
       tricks: [
-        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw' },
-        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander' },
-        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position' },
-        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll' },
-        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation' },
+        { name: 'Rubik\'s Cube', desc: '3 Achsen nacheinander: Roll → Pitch → Yaw', check: 'free' },
+        { name: 'Double Backflip', desc: 'Zwei Rückwärts-Loops direkt hintereinander', check: 'free' },
+        { name: 'Fakie Flip', desc: 'Rückwärts-Flip aus inverted Position', check: 'free' },
+        { name: 'Tornado', desc: 'Schneller Yaw-Spin während Loop/Roll', check: 'free' },
+        { name: 'Alien', desc: 'Inverted Yaw-Spin mit Pitch-Variation', check: 'free' },
       ]
     },
     custom: {
@@ -3061,6 +3080,12 @@
       tricks: [] // user-defined tricks stored in localStorage
     }
   };
+
+  // Prüfart of a trick ('free' when an old/custom entry does not carry one yet).
+  function kwadCheck(trick) {
+    const c = trick && trick.check;
+    return (c === 'gate' || c === 'obstacle') ? c : 'free';
+  }
 
   // Build flat trick list from enabled categories (used for drawing)
   function kwadBuildTrickPool() {
@@ -3084,6 +3109,7 @@
   let kwadMode = 'random'; // 'random' | 'sequential' | 'roundRobinCategory'
   let kwadCategoryOrder = []; // for roundRobinCategory mode
   let kwadCategoryIdx = 0;
+  let kwadObstaclePicker = ''; // player name who picks the obstacle (persisted)
   let kwadStats = {}; // { trickName: { attempted: n, succeeded: n } }
   let kwadCategoryFilter = null; // deprecated, use category.enabled
 
@@ -3127,7 +3153,7 @@
     try {
       const customRaw = JSON.parse(localStorage.getItem('kwad_custom_tricks') || '[]');
       if (Array.isArray(customRaw)) {
-        KWAD_CATEGORIES.custom.tricks = customRaw.map(t => ({ name: t.name, desc: t.desc || '', custom: true }));
+        KWAD_CATEGORIES.custom.tricks = customRaw.map(t => ({ name: t.name, desc: t.desc || '', check: kwadCheck(t), custom: true }));
       }
     } catch { KWAD_CATEGORIES.custom.tricks = []; }
 
@@ -3154,6 +3180,12 @@
       const statsRaw = JSON.parse(localStorage.getItem('kwad_stats') || '{}');
       if (statsRaw && typeof statsRaw === 'object') kwadStats = statsRaw;
     } catch { kwadStats = {}; }
+
+    // Load the obstacle picker
+    try {
+      const pickerRaw = localStorage.getItem('kwad_obstacle_picker') || '';
+      kwadObstaclePicker = typeof pickerRaw === 'string' ? pickerRaw : '';
+    } catch { kwadObstaclePicker = ''; }
 
     // Build initial trick pool
     kwadTrickPool = kwadBuildTrickPool();
@@ -3188,6 +3220,9 @@
   }
   function kwadSaveStats() {
     try { localStorage.setItem('kwad_stats', JSON.stringify(kwadStats)); } catch { /* ignore */ }
+  }
+  function kwadSaveObstaclePicker() {
+    try { localStorage.setItem('kwad_obstacle_picker', kwadObstaclePicker || ''); } catch { /* ignore */ }
   }
 
   // Next player (cyclically from `start`) who is still in the game, or -1.
@@ -3227,6 +3262,27 @@
     const canPlay = loser === -1 && kwadActiveCount() >= 2;
 
     if (els.kwadTrick) els.kwadTrick.textContent = kwadTrick || '—';
+
+    // Prüfart "Hindernis": the group nominates who picks the obstacle.
+    const trickCheck = kwadTrickObj ? kwadCheck(kwadTrickObj) : 'free';
+    const isObstacle = trickCheck === 'obstacle';
+    if (els.kwadObstacle) els.kwadObstacle.hidden = !isObstacle;
+    if (els.kwadObstaclePicker && isObstacle) {
+      const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters)).map(p => p.name);
+      if (actives.indexOf(kwadObstaclePicker) === -1) kwadObstaclePicker = actives[0] || '';
+      els.kwadObstaclePicker.innerHTML = '';
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = t('kwad_obstacle_none');
+      els.kwadObstaclePicker.appendChild(blank);
+      actives.forEach(nm => {
+        const o = document.createElement('option');
+        o.value = nm;
+        o.textContent = nm;
+        els.kwadObstaclePicker.appendChild(o);
+      });
+      els.kwadObstaclePicker.value = kwadObstaclePicker || '';
+    }
 
     if (els.kwadPlayers) {
       els.kwadPlayers.textContent = '';
@@ -3523,6 +3579,7 @@
       item.innerHTML = `
         <span class="custom-name">${t.name}</span>
         <span class="custom-desc">${t.desc || '—'}</span>
+        <span class="custom-check" data-i18n="kwad_check_${kwadCheck(t)}">${t('kwad_check_' + kwadCheck(t))}</span>
         <span class="custom-cat">${t.custom ? '⭐ Eigen' : ''}</span>
         <button type="button" class="custom-del btn btn-danger" data-idx="${idx}" data-i18n-title="kwad_custom_delete" aria-label="${t('kwad_custom_delete')}">✕</button>
       `;
@@ -3541,9 +3598,10 @@
     if (!els.kwadCustomName || !els.kwadCustomDesc) return;
     const name = (els.kwadCustomName.value || '').trim();
     const desc = (els.kwadCustomDesc.value || '').trim();
+    const check = kwadCheck({ check: els.kwadCustomCheck ? els.kwadCustomCheck.value : '' });
     if (!name) return;
     if (KWAD_CATEGORIES.custom.tricks.some(t => t.name.toLowerCase() === name.toLowerCase())) return;
-    KWAD_CATEGORIES.custom.tricks.push({ name, desc, custom: true });
+    KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, custom: true });
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
     els.kwadCustomName.value = '';
@@ -3605,6 +3663,10 @@
   if (els.btnKwadDone) els.btnKwadDone.addEventListener('click', () => kwadRound(true));
   if (els.btnKwadFail) els.btnKwadFail.addEventListener('click', () => kwadRound(false));
   if (els.btnKwadUndo) els.btnKwadUndo.addEventListener('click', kwadUndoPenalty);
+  if (els.kwadObstaclePicker) els.kwadObstaclePicker.addEventListener('change', e => {
+    kwadObstaclePicker = e.target.value || '';
+    kwadSaveObstaclePicker();
+  });
   if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', () => kwadAddPlayer());
   if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
   if (els.kwadPilotSelect) els.kwadPilotSelect.addEventListener('change', e => { if (e.target.value) kwadAddPlayer(e.target.value); });
