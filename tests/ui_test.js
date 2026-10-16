@@ -192,10 +192,12 @@ check('D4: no "Details" hack is left (they killed the ▾/▴ caret)',
 check('D5: the context gears live inside the summaries (visible when collapsed)',
   /<summary class="card-summary">[^]*?id="btnTimerSettings"[^]*?<\/summary>/.test(html)
   && !/class="card-header"/.test(html));
-check('D6: the gear keeps the corner look via margin-left:auto',
-  /\.card-summary \.gear-btn \{[^}]*margin-left: auto/.test(css));
+check('D6: the action cluster (gear) and the caret are right-aligned',
+  /\.summary-actions \{[^}]*margin-left: auto/.test(css)
+  && /\.card-collapsible > \.card-summary::after \{[^}]*flex-shrink: 0/.test(css)
+  && !/\.card-summary \.gear-btn \{[^}]*margin-left: auto/.test(css));
 check('D7: the ▾/▴ caret rules are intact',
-  /\.card-collapsible > \.card-summary::after \{ content: '▾'/.test(css)
+  /\.card-collapsible > \.card-summary::after \{[^}]*content: '▾'/.test(css)
   && /\.card-collapsible\[open\] > \.card-summary::after \{ content: '▴'/.test(css));
 
 // --- 12b) data-i18n must not swallow nested markup ------------------------------
@@ -268,10 +270,10 @@ check('S9: the obstacle banner and picker label are translated',
   && /kwad_obstacle_picker: 'Obstacle picker'/.test(app));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v49'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.18\.1'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v50'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.18\.2'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.18\.1"/.test(pkg));
+  /"version": "0\.18\.2"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

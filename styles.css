@@ -235,7 +235,14 @@ summary.card-summary::-webkit-details-marker {
 summary.card-summary::marker {
   display: none;
 }
-.card-collapsible > .card-summary::after { content: '▾'; color: var(--muted); font-size: 14px; flex-shrink: 0; }
+/* The control cluster (gear buttons, export buttons) and the ▾/▴ caret are
+   right-aligned: margin-left:auto eats the free space in front of the cluster,
+   so the caret (DOM-last ::after) ends up flush in the cell's right corner.
+   The caret itself is empty, so font-size has to be set here to keep the glyph
+   from stretching the row — matches .settings-group > summary. */
+.card-collapsible > .card-summary::after {
+  content: '▾'; color: var(--muted); font-size: 14px; line-height: 1; flex-shrink: 0;
+}
 .card-collapsible[open] > .card-summary::after { content: '▴'; }
 .card-collapsible > .card-body { margin-top: 10px; }
 .card-collapsible:not([open]) > .card-summary { color: var(--text); }
@@ -244,13 +251,14 @@ summary.card-summary::marker {
    has no real <summary> child. Since the summary now sits first, no
    pseudo-element hacks are needed here — and they would kill the ▾/▴ caret. */
 
-.summary-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* margin-left:auto keeps the actions (and the caret behind them) right-aligned
+   while the label stays left — same visual idea as .settings-group's
+   space-between, but without scattering a value/action pair across the row. */
+.summary-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
 .summary-actions button { padding: 6px 10px; font-size: 12px; }
 .summary-value { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-/* Context gear inside a card summary (e.g. timer card → timer settings).
-   margin-left:auto pushes it to the right end of the summary row, so it keeps
-   the old "pinned to the corner" look — and stays reachable when collapsed. */
-.card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; margin-left: auto; flex-shrink: 0; padding: 0; }
+/* Context gear inside a card summary (e.g. timer card → timer settings) */
+.card-summary .gear-btn { width: 30px; height: 30px; font-size: 15px; flex-shrink: 0; padding: 0; }
 
 .video-wrap {
   position: relative; width: 100%; aspect-ratio: 4/3; background: #000;
