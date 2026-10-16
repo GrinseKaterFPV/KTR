@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.21.0';
+  const APP_VERSION = '0.22.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -61,6 +61,9 @@
       kwad_custom_name_ph: 'z.B. Mein Trick',
       kwad_custom_desc_ph: 'Beschreibung des Tricks',
       kwad_custom_save: 'Speichern',
+      kwad_custom_update: 'Änderungen übernehmen',
+      kwad_custom_cancel: 'Abbrechen',
+      kwad_custom_edit: 'Bearbeiten',
       kwad_custom_delete: 'Löschen',
       kwad_stats: 'Trick-Statistiken',
       kwad_stats_attempted: 'Versucht',
@@ -87,9 +90,8 @@
       kwad_check_free: 'Freiflug',
       kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Hindernis',
-      kwad_obstacle_hint: 'Hindernis-Trick – die Gruppe bestimmt das Hindernis',
+      kwad_obstacle_hint: 'Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt',
       kwad_obstacle_picker: 'Hindernisauswähler',
-      kwad_obstacle_none: '– noch offen –',
       camera: 'Kamera',
       start_camera: 'Kamera starten',
       stop_camera: 'Kamera stoppen',
@@ -295,6 +297,9 @@
       kwad_custom_name_ph: 'e.g. my trick',
       kwad_custom_desc_ph: 'Description of the trick',
       kwad_custom_save: 'Save',
+      kwad_custom_update: 'Apply changes',
+      kwad_custom_cancel: 'Cancel',
+      kwad_custom_edit: 'Edit',
       kwad_custom_delete: 'Delete',
       kwad_stats: 'Trick Statistics',
       kwad_stats_attempted: 'Attempted',
@@ -321,9 +326,8 @@
       kwad_check_free: 'Free flight',
       kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Obstacle',
-      kwad_obstacle_hint: 'Obstacle trick – the group decides the obstacle',
+      kwad_obstacle_hint: 'Obstacle trick – the obstacle picker is chosen automatically',
       kwad_obstacle_picker: 'Obstacle picker',
-      kwad_obstacle_none: '– not set –',
       camera: 'Camera',
       start_camera: 'Start camera',
       stop_camera: 'Stop camera',
@@ -653,7 +657,7 @@
     kwadTurn: document.getElementById('kwadTurn'),
     kwadTurnCard: document.getElementById('kwadTurnCard'),
     kwadObstacle: document.getElementById('kwadObstacle'),
-    kwadObstaclePicker: document.getElementById('kwadObstaclePicker'),
+    kwadObstacleName: document.getElementById('kwadObstacleName'),
     kwadPlayers: document.getElementById('kwadPlayers'),
     kwadResult: document.getElementById('kwadResult'),
     kwadName: document.getElementById('kwadName'),
@@ -676,6 +680,7 @@
     kwadCustomDifficulty: document.getElementById('kwadCustomDifficulty'),
     kwadCustomCat: document.getElementById('kwadCustomCat'),
     btnKwadCustomSave: document.getElementById('btnKwadCustomSave'),
+    btnKwadCustomCancel: document.getElementById('btnKwadCustomCancel'),
     kwadTrickList: document.getElementById('kwadTrickList'),
     btnKwadExport: document.getElementById('btnKwadExport'),
     kwadTrickMeta: document.getElementById('kwadTrickMeta'),
@@ -3474,6 +3479,7 @@
   let kwadCategoryOrder = []; // for roundRobinCategory mode
   let kwadCategoryIdx = 0;
   let kwadObstaclePicker = ''; // player name who picks the obstacle (persisted)
+  let kwadEditingCustomIdx = -1; // index of the own trick currently edited, -1 = "add"
   let kwadStats = {}; // global aggregate: { trickName: { attempted, succeeded } }
   let kwadPlayerStats = {}; // per profile: { playerName: { trickName: { attempted, succeeded } } }
   let kwadPool = {}; // per-trick draw switch: { 'category/trickName': false }
@@ -3628,6 +3634,18 @@
     return kwadPlayers.filter(p => !kwadIsOut(p.letters)).length;
   }
 
+  // Who picks the obstacle as soon as an obstacle trick comes up: the active
+  // player already holding the most letters — the one closest to losing. A tie
+  // between several players is settled by lot. Returns '' with nobody left in.
+  function kwadChooseObstaclePicker() {
+    const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters));
+    if (!actives.length) return '';
+    const letters = p => kwadNormalizeLetters(p.letters).length;
+    const most = actives.reduce((max, p) => Math.max(max, letters(p)), 0);
+    const top = actives.filter(p => letters(p) === most);
+    return top[Math.floor(Math.random() * top.length)].name;
+  }
+
   function renderKwad() {
     if (!els.kwadScreen) return;
     // Populate pilot select from main pilots list
@@ -3690,25 +3708,16 @@
       }
     }
 
-    // Prüfart "Hindernis": the group nominates who picks the obstacle.
+    // Prüfart "Hindernis": the app nominates who picks the obstacle — the
+    // active player with the most letters (ties are drawn by lot). The name is
+    // shown as fixed text; it is not something the group still has to agree on.
     const trickCheck = kwadTrickObj ? kwadCheck(kwadTrickObj) : 'free';
     const isObstacle = trickCheck === 'obstacle';
     if (els.kwadObstacle) els.kwadObstacle.hidden = !isObstacle;
-    if (els.kwadObstaclePicker && isObstacle) {
+    if (isObstacle) {
       const actives = kwadPlayers.filter(p => !kwadIsOut(p.letters)).map(p => p.name);
-      if (actives.indexOf(kwadObstaclePicker) === -1) kwadObstaclePicker = actives[0] || '';
-      els.kwadObstaclePicker.innerHTML = '';
-      const blank = document.createElement('option');
-      blank.value = '';
-      blank.textContent = t('kwad_obstacle_none');
-      els.kwadObstaclePicker.appendChild(blank);
-      actives.forEach(nm => {
-        const o = document.createElement('option');
-        o.value = nm;
-        o.textContent = nm;
-        els.kwadObstaclePicker.appendChild(o);
-      });
-      els.kwadObstaclePicker.value = kwadObstaclePicker || '';
+      if (actives.indexOf(kwadObstaclePicker) === -1) kwadObstaclePicker = kwadChooseObstaclePicker();
+      if (els.kwadObstacleName) els.kwadObstacleName.textContent = kwadObstaclePicker || '—';
     }
 
     if (els.kwadPlayers) {
@@ -3824,6 +3833,11 @@
     kwadTrick = kwadTrickObj.name;
     kwadTried = [];
     kwadLastPenalty = null;
+    // An obstacle trick names its picker right away (most letters, ties by lot).
+    if (kwadCheck(kwadTrickObj) === 'obstacle') {
+      kwadObstaclePicker = kwadChooseObstaclePicker();
+      kwadSaveObstaclePicker();
+    }
     const active = kwadActiveFrom(kwadTurnIdx);
     if (active !== -1) kwadTurnIdx = active;
     if (typeof soundKwadNewTrick === 'function') soundKwadNewTrick();
@@ -4172,7 +4186,7 @@
     els.kwadCustomTricksList.innerHTML = '';
     KWAD_CATEGORIES.custom.tricks.forEach((trick, idx) => {
       const item = document.createElement('div');
-      item.className = 'kwad-custom-trick';
+      item.className = 'kwad-custom-trick' + (idx === kwadEditingCustomIdx ? ' is-editing' : '');
       const group = kwadTrickGroup('custom', trick);
       const check = kwadCheck(trick);
       const stars = '★'.repeat(kwadDifficulty(trick, 'custom'));
@@ -4182,17 +4196,87 @@
         <span class="custom-diff" title="${t('kwad_difficulty')}">${stars}</span>
         <span class="custom-check" data-i18n="kwad_check_${check}">${t('kwad_check_' + check)}</span>
         <span class="custom-cat">${t('kwad_category_' + group)}</span>
+        <button type="button" class="custom-edit btn" data-idx="${idx}" data-i18n-title="kwad_custom_edit" aria-label="${t('kwad_custom_edit')}">✎</button>
         <button type="button" class="custom-del btn btn-danger" data-idx="${idx}" data-i18n-title="kwad_custom_delete" aria-label="${t('kwad_custom_delete')}">✕</button>
       `;
       els.kwadCustomTricksList.appendChild(item);
     });
-    // Add delete listeners
+    // Add edit + delete listeners
+    els.kwadCustomTricksList.querySelectorAll('.custom-edit').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        kwadEditCustomTrick(idx);
+      });
+    });
     els.kwadCustomTricksList.querySelectorAll('.custom-del').forEach(btn => {
       btn.addEventListener('click', e => {
         const idx = parseInt(e.target.dataset.idx, 10);
         kwadRemoveCustomTrick(idx);
       });
     });
+  }
+
+  // Load a row into the own-trick form so it can be changed afterwards.
+  function kwadEditCustomTrick(idx) {
+    const trick = KWAD_CATEGORIES.custom.tricks[idx];
+    if (!trick) return;
+    kwadEditingCustomIdx = idx;
+    if (els.kwadCustomName) els.kwadCustomName.value = kwadTrickName(trick);
+    if (els.kwadCustomDesc) els.kwadCustomDesc.value = kwadTrickDesc(trick) || '';
+    if (els.kwadCustomCheck) els.kwadCustomCheck.value = kwadCheck(trick);
+    if (els.kwadCustomDifficulty) els.kwadCustomDifficulty.value = String(kwadDifficulty(trick, 'custom'));
+    if (els.kwadCustomCat) els.kwadCustomCat.value = kwadTrickGroup('custom', trick);
+    kwadUpdateCustomFormMode();
+    renderKwadCustomTricks();
+  }
+
+  // Back to "add" mode and clear the fields (after saving and on cancel).
+  function kwadResetCustomForm() {
+    kwadEditingCustomIdx = -1;
+    if (els.kwadCustomName) els.kwadCustomName.value = '';
+    if (els.kwadCustomDesc) els.kwadCustomDesc.value = '';
+    if (els.kwadCustomCheck) els.kwadCustomCheck.value = 'free';
+    if (els.kwadCustomDifficulty) els.kwadCustomDifficulty.value = '3';
+    if (els.kwadCustomCat) els.kwadCustomCat.value = 'custom';
+    kwadUpdateCustomFormMode();
+  }
+
+  // The save button doubles as "add" and "apply changes"; the cancel button
+  // only appears while a row is being edited.
+  function kwadUpdateCustomFormMode() {
+    const editing = kwadEditingCustomIdx >= 0;
+    if (els.btnKwadCustomSave) {
+      const key = editing ? 'kwad_custom_update' : 'kwad_custom_save';
+      els.btnKwadCustomSave.setAttribute('data-i18n', key);
+      els.btnKwadCustomSave.textContent = t(key);
+    }
+    if (els.btnKwadCustomCancel) els.btnKwadCustomCancel.hidden = !editing;
+  }
+
+  // Keep the pool switch and the statistics attached to an own trick when its
+  // name changes (names are the identity used by pool keys and stats).
+  function kwadRenameOwnTrick(oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return;
+    const oldKey = 'custom/' + oldName;
+    const newKey = 'custom/' + newName;
+    if (Object.prototype.hasOwnProperty.call(kwadPool, oldKey)) {
+      kwadPool[newKey] = kwadPool[oldKey];
+      delete kwadPool[oldKey];
+      kwadSavePool();
+    }
+    const merge = (dst, src) => {
+      if (!dst[newName]) dst[newName] = { attempted: src.attempted || 0, succeeded: src.succeeded || 0 };
+      else {
+        dst[newName].attempted = (dst[newName].attempted || 0) + (src.attempted || 0);
+        dst[newName].succeeded = (dst[newName].succeeded || 0) + (src.succeeded || 0);
+      }
+      delete dst[oldName];
+    };
+    if (kwadStats[oldName]) merge(kwadStats, kwadStats[oldName]);
+    Object.values(kwadPlayerStats).forEach(bucket => {
+      if (bucket && bucket[oldName]) merge(bucket, bucket[oldName]);
+    });
+    kwadSaveStats();
   }
 
   function kwadAddCustomTrick() {
@@ -4205,13 +4289,19 @@
       ? els.kwadCustomCat.value
       : 'custom';
     if (!name) return;
-    if (KWAD_CATEGORIES.custom.tricks.some(t => t.name.toLowerCase() === name.toLowerCase())) return;
-    KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, difficulty, cat, custom: true });
+    const editing = kwadEditingCustomIdx >= 0 && kwadEditingCustomIdx < KWAD_CATEGORIES.custom.tricks.length;
+    // A name may not clash with another own trick (the edited row itself is fine).
+    if (KWAD_CATEGORIES.custom.tricks.some((t, i) => i !== kwadEditingCustomIdx && t.name.toLowerCase() === name.toLowerCase())) return;
+    if (editing) {
+      const prev = KWAD_CATEGORIES.custom.tricks[kwadEditingCustomIdx];
+      if (prev.name !== name) kwadRenameOwnTrick(prev.name, name);
+      KWAD_CATEGORIES.custom.tricks[kwadEditingCustomIdx] = { name, desc, check, difficulty, cat, custom: true };
+    } else {
+      KWAD_CATEGORIES.custom.tricks.push({ name, desc, check, difficulty, cat, custom: true });
+    }
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
-    els.kwadCustomName.value = '';
-    els.kwadCustomDesc.value = '';
-    if (els.kwadCustomCat) els.kwadCustomCat.value = 'custom';
+    kwadResetCustomForm();
     renderKwadCustomTricks();
     renderKwadTrickList();
     renderKwadCategories();
@@ -4220,6 +4310,8 @@
   function kwadRemoveCustomTrick(idx) {
     if (idx < 0 || idx >= KWAD_CATEGORIES.custom.tricks.length) return;
     KWAD_CATEGORIES.custom.tricks.splice(idx, 1);
+    if (kwadEditingCustomIdx === idx) kwadResetCustomForm();
+    else if (kwadEditingCustomIdx > idx) kwadEditingCustomIdx--;
     kwadSaveCustomTricks();
     kwadTrickPool = kwadBuildTrickPool();
     renderKwadCustomTricks();
@@ -4261,6 +4353,9 @@
 
     const panel = document.createElement('details');
     panel.className = 'kwad-stat-panel';
+    // The aggregate panel spans the full statistics grid so its "Total" label
+    // keeps room for its text and the players start on the row below it.
+    if (panelKey === 'total') panel.classList.add('kwad-stat-total');
     if (!kwadStatClosed.has(panelKey)) panel.open = true;
     panel.addEventListener('toggle', () => {
       // A detached panel can still fire a queued toggle — ignore it.
@@ -4385,10 +4480,6 @@
   if (els.btnKwadDone) els.btnKwadDone.addEventListener('click', () => kwadRound(true));
   if (els.btnKwadFail) els.btnKwadFail.addEventListener('click', () => kwadRound(false));
   if (els.btnKwadUndo) els.btnKwadUndo.addEventListener('click', kwadUndoPenalty);
-  if (els.kwadObstaclePicker) els.kwadObstaclePicker.addEventListener('change', e => {
-    kwadObstaclePicker = e.target.value || '';
-    kwadSaveObstaclePicker();
-  });
   if (els.btnKwadAdd) els.btnKwadAdd.addEventListener('click', () => kwadAddPlayer());
   if (els.kwadName) els.kwadName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kwadAddPlayer(); } });
   if (els.kwadPilotSelect) els.kwadPilotSelect.addEventListener('change', e => { if (e.target.value) kwadAddPlayer(e.target.value); });
@@ -4396,6 +4487,7 @@
   // KWAD Settings
   if (els.btnKwadSettings) els.btnKwadSettings.addEventListener('click', () => {
     openKwadSettings();
+    kwadResetCustomForm();
     renderKwadCategories();
     renderKwadMode();
     renderKwadTrickList();
@@ -4405,6 +4497,7 @@
   if (els.kwadSettingsOverlay) els.kwadSettingsOverlay.addEventListener('click', e => { if (e.target === els.kwadSettingsOverlay) closeKwadSettings(); });
   if (els.kwadModeSelect) els.kwadModeSelect.addEventListener('change', e => { kwadMode = e.target.value; kwadSaveMode(); if (kwadMode === 'roundRobinCategory') { kwadCategoryOrder = Object.values(KWAD_CATEGORIES).filter(c => c.enabled && c.tricks.length).map(c => c.id); kwadCategoryIdx = 0; } renderKwadMode(); });
   if (els.btnKwadCustomSave) els.btnKwadCustomSave.addEventListener('click', kwadAddCustomTrick);
+  if (els.btnKwadCustomCancel) els.btnKwadCustomCancel.addEventListener('click', kwadResetCustomForm);
   if (els.btnKwadExport) els.btnKwadExport.addEventListener('click', kwadExportTrickList);
   kwadLoad();
 

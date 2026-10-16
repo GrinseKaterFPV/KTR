@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-16
+### Added
+- Game of K.W.A.D: **eigene Tricks lassen sich nachträglich bearbeiten** — jede Zeile in der Liste hat jetzt einen Stift (✎), der Name, Beschreibung, Prüfart, Schwierigkeit und Kategorie wieder ins Formular lädt; „Speichern" wird dort zu „Änderungen übernehmen", ein **Abbrechen**-Knopf erscheint, und ein umbenannter Trick nimmt Pool-Schalter und Statistik mit
+
+### Changed
+- Game of K.W.A.D: der **Hindernisauswähler wird jetzt von der App bestimmt** — gezogen wird der aktive Spieler mit den meisten Buchstaben (also der, der am ehesten verliert); bei Gleichstand entscheidet der Zufall. Der Name steht fest als Text (kein Dropdown mehr), und der Hinweis „die Gruppe bestimmt das Hindernis" ist weg
+- Game of K.W.A.D: die **„Gesamt"-Statistik nimmt die ganze obere Reihe ein** (mehr Platz für ihren Text), die Spieler-Blöcke folgen darunter
+- Game of K.W.A.D: der **Einklapp-Pfeil der Trick-Statistiken sitzt rechts am Rand** wie bei allen anderen Karten (der Titel bekommt den freien Platz)
+
+### Fixed
+- Sprache: die neuen Texte (Hindernis-Hinweis, Bearbeiten / Änderungen übernehmen / Abbrechen) sind in **Deutsch und Englisch** gepflegt; der ungenutzte Schlüssel für die leere Dropdown-Option ist entfernt
+
 ## [0.21.0] - 2026-10-16
 ### Added
 - Game of K.W.A.D: **Trickliste als CSV exportieren** — der Knopf in „Trickliste & Pool" schreibt Gruppe, Trick, Beschreibung, Schwierigkeit, Prüfart und Pool-Status aller Tricks in `fpv-kwad-tricks.csv` (in der gerade gewählten Sprache)

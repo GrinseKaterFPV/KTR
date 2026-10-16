@@ -76,10 +76,10 @@
       </div>
 
       <div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>
-        <div class="small-label" data-i18n="kwad_obstacle_hint">Hindernis-Trick – die Gruppe bestimmt das Hindernis</div>
-        <label class="kwad-obstacle-pick"><span data-i18n="kwad_obstacle_picker">Hindernisauswähler</span>
-          <select id="kwadObstaclePicker"></select>
-        </label>
+        <div class="small-label" data-i18n="kwad_obstacle_hint">Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt</div>
+        <div class="kwad-obstacle-pick"><span data-i18n="kwad_obstacle_picker">Hindernisauswähler</span>
+          <span class="kwad-obstacle-name" id="kwadObstacleName">—</span>
+        </div>
       </div>
 
       <div class="card kwad-card" id="kwadTurnCard">
@@ -478,7 +478,10 @@
             </select>
           </label>
         </div>
-        <button id="btnKwadCustomSave" class="btn" type="button" data-i18n="kwad_custom_save">Eigenen Trick speichern</button>
+        <div class="kwad-custom-actions">
+          <button id="btnKwadCustomCancel" class="btn" type="button" data-i18n="kwad_custom_cancel" hidden>Abbrechen</button>
+          <button id="btnKwadCustomSave" class="btn" type="button" data-i18n="kwad_custom_save">Eigenen Trick speichern</button>
+        </div>
       </details>
       <details class="settings-group">
         <summary><h3 data-i18n="kwad_pool">Trickliste &amp; Pool</h3></summary>

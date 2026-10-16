@@ -268,12 +268,13 @@ check('R5: undoing restores the previous player\'s turn',
   /kwadTurnIdx = playerIdx;/.test(app));
 
 // --- 15) Prüfart (check) + obstacle picker --------------------------------------
-check('S1: the KWAD screen has an obstacle card with a picker',
+check('S1: the KWAD screen has an obstacle card naming the picker as fixed text (no dropdown)',
   /<div class="card kwad-card kwad-obstacle" id="kwadObstacle" hidden>/.test(html)
-  && /<select id="kwadObstaclePicker"><\/select>/.test(html));
+  && /<span class="kwad-obstacle-name" id="kwadObstacleName">/.test(html)
+  && !/id="kwadObstaclePicker"/.test(html));
 check('S2: the obstacle card is hidden until an obstacle trick comes up',
   /els\.kwadObstacle\.hidden = !isObstacle/.test(app));
-check('S3: the picker is filled from the active players',
+check('S3: the nomination is checked against the active players',
   /const actives = kwadPlayers\.filter\(p => !kwadIsOut\(p\.letters\)\)\.map\(p => p\.name\)/.test(app));
 check('S4: the picker choice is persisted under its own key',
   /localStorage\.setItem\('kwad_obstacle_picker'/.test(app)
@@ -407,11 +408,38 @@ check('S35: the direction button says "aus"/"off" in the selected language',
   && /if \(dir === 'aus'\) return '↔ ' \+ t\('dir_off_short'\);/.test(app)
   && /dir_off_short: 'aus'/.test(app) && /dir_off_short: 'off'/.test(app));
 
+// --- 18) statistics layout, own-trick editing, automatic obstacle picker -------
+check('S36: the "Total" panel takes the full top row of the statistics grid',
+  /if \(panelKey === 'total'\) panel\.classList\.add\('kwad-stat-total'\);/.test(app)
+  && /\.kwad-stats > \.kwad-stat-total \{ grid-column: 1 \/ -1; \}/.test(css));
+check('S37: the statistics summary caret is pushed to the right edge like the other cards',
+  /\.kwad-card\.kwad-stats-card > \.card-summary \.summary-label \{ flex: 1 1 auto; min-width: 0; \}/.test(css));
+check('S38: an own trick can be edited again afterwards',
+  /function kwadEditCustomTrick\(idx\)/.test(app)
+  && /function kwadResetCustomForm\(\)/.test(app)
+  && /function kwadRenameOwnTrick\(oldName, newName\)/.test(app)
+  && /class="custom-edit btn" data-idx="\$\{idx\}"/.test(app)
+  && /<button id="btnKwadCustomCancel"/.test(html)
+  && /els\.btnKwadCustomCancel\.addEventListener\('click', kwadResetCustomForm\)/.test(app)
+  && /kwad_custom_update: 'Änderungen übernehmen'/.test(app)
+  && /kwad_custom_update: 'Apply changes'/.test(app)
+  && /kwad_custom_cancel: 'Abbrechen'/.test(app)
+  && /kwad_custom_edit: 'Bearbeiten'/.test(app)
+  && /kwad_custom_edit: 'Edit'/.test(app));
+check('S39: the obstacle picker is nominated automatically (the group no longer decides)',
+  /function kwadChooseObstaclePicker\(\)/.test(app)
+  && /kwadObstaclePicker = kwadChooseObstaclePicker\(\);/.test(app)
+  && /kwad_obstacle_hint: 'Hindernis-Trick – der Hindernisauswähler wird automatisch bestimmt'/.test(app)
+  && /kwad_obstacle_hint: 'Obstacle trick – the obstacle picker is chosen automatically'/.test(app)
+  && !/die Gruppe bestimmt/.test(app)
+  && !/group decides the obstacle/.test(app)
+  && /els\.kwadObstacleName\.textContent = kwadObstaclePicker \|\| '—';/.test(app));
+
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v53'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.21\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v54'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.22\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.21\.0"/.test(pkg));
+  /"version": "0\.22\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
