@@ -33,7 +33,9 @@ function stateWith(armed) {
     roi: null, pilots: [], currentPilot: null, pilotColors: {}, showMotion: true,
     audioEnabled: true, countdownSecs: 5, announceMode: 'jede', announceRate: 1,
     direction: 'aus', driftComp: true, camLock: false, camDeviceId: '',
-    autoStart: false, armed, autoLaps: 0, setFilter: '', accent: '#ff7a1a',
+    autoStart: false, multiplayer: true, rankedMode: true,
+    tracks: [{ id: 'track-a', name: 'Track A', description: 'Technical track' }],
+    activeTrackId: 'track-a', armed, autoLaps: 0, setFilter: '', accent: '#ff7a1a',
     sections: {}, lang: 'de', voiceURI: '',
   };
 }
@@ -51,6 +53,12 @@ const okTrue = makeSave(stateWith(true))();
 check('P1: saveSettings reports success', okTrue === true);
 const storedTrue = JSON.parse(store['fpv_settings']);
 check('P2: armed=true is written', storedTrue.armed === true);
+check('P2a: multiplayer state is written', storedTrue.multiplayer === true);
+check('P2b: ranked mode is written', storedTrue.rankedMode === true);
+check('P2c: tracks, descriptions, and active track are stored',
+  storedTrue.tracks[0].id === 'track-a'
+  && storedTrue.tracks[0].description === 'Technical track'
+  && storedTrue.activeTrackId === 'track-a');
 
 makeSave(stateWith(false))();
 const storedFalse = JSON.parse(store['fpv_settings']);
@@ -60,11 +68,26 @@ check('P3: armed=false is written', storedFalse.armed === false);
 check('P4: settings are read from the same key', /localStorage\.getItem\('fpv_settings'/.test(extract('loadSettings')));
 check('P5: state.armed is restored on start', /state\.armed = s\.armed \?\? false;/.test(src));
 check('P6: the checkbox reflects the restored value', /els\.armedToggle\.checked = state\.armed;/.test(src));
+check('P6a: the multiplayer switch restores its saved value',
+  /state\.multiplayer = s\.multiplayer \?\? false;/.test(src)
+  && /els\.multiplayerToggle\.checked = state\.multiplayer;/.test(src));
+check('P6b: track state is loaded, validated, and restored',
+  /state\.tracks = Array\.isArray\(s\.tracks\)/.test(src)
+  && /state\.activeTrackId = state\.tracks\.some\(track => track\.id === s\.activeTrackId\)/.test(src)
+  && /tracks: state\.tracks,\s*activeTrackId: state\.activeTrackId/.test(src));
+check('P6c: Ranked Mode is restored with its opt-in default',
+  /state\.rankedMode = s\.rankedMode \?\? false;/.test(src)
+  && /els\.rankedToggle\.checked = state\.rankedMode;/.test(src)
+  && /rankedMode: state\.rankedMode/.test(src));
 
 // --- toggling the switch persists immediately -------------------------------
 const handler = src.slice(src.indexOf("els.armedToggle.addEventListener('change'"));
 check('P7: toggling the switch sets state.armed', /state\.armed = e\.target\.checked;/.test(handler.slice(0, 400)));
 check('P8: toggling the switch saves the settings', /saveSettings\(\);/.test(handler.slice(0, 400)));
+const multiplayerHandler = src.slice(src.indexOf("els.multiplayerToggle.addEventListener('change'"));
+check('P9: toggling multiplayer updates and saves the setting',
+  /state\.multiplayer = e\.target\.checked;/.test(multiplayerHandler.slice(0, 180))
+  && /saveSettings\(\);/.test(multiplayerHandler.slice(0, 180)));
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

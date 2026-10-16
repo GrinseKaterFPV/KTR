@@ -238,6 +238,8 @@ button, input, select { font: inherit; }
 }
 .kwad-stat-cell b { font-size: 16px; color: var(--accent); }
 .kwad-stat-cell span { font-size: 10px; text-transform: uppercase; color: var(--muted); text-align: center; }
+.pilot-race-stat-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.pilot-race-stat-summary .kwad-stat-cell { min-width: 0; padding: 6px 3px; }
 .kwad-stat-rows { display: flex; flex-direction: column; gap: 4px; }
 .kwad-stat-row {
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center;
@@ -257,6 +259,47 @@ button, input, select { font: inherit; }
 .pilots-screen .home-inner { max-width: 560px; }
 .pilots-screen .pilot-chip { display: inline-flex; align-items: center; }
 .pilots-screen .pilots { flex-direction: column; align-items: stretch; gap: 8px; }
+.tracks-screen .home-inner { max-width: 660px; }
+.track-add-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.track-add-row input, .track-name-input {
+  flex: 1 1 12rem; min-width: 0; padding: 8px;
+  background: var(--elev); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.tracks-list { display: flex; flex-direction: column; gap: 10px; }
+.track-card { padding: 12px; background: var(--elev); border: 1px solid var(--border); border-radius: 12px; }
+.track-card.is-active { border-color: var(--accent); }
+.track-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.track-name-input { flex: 1 1 10rem; font-weight: 700; }
+.track-description-input {
+  width: 100%; min-height: 3.5rem; padding: 8px; resize: vertical;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 13px; line-height: 1.4;
+}
+.track-description-input:disabled { color: var(--muted); opacity: 1; }
+.track-active-badge { color: var(--accent); font-size: 12px; font-weight: 700; }
+.track-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.track-actions button { padding: 6px 9px; font-size: 12px; }
+.track-actions .track-delete { color: var(--danger); border-color: var(--danger); }
+.track-records { margin-top: 10px; overflow-x: auto; }
+.track-records-title { margin: 10px 0 4px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.track-records table { min-width: 340px; font-size: 12px; }
+.track-records td:nth-child(2), .track-records td:nth-child(3) { font-family: monospace; }
+.track-record-overall { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.track-record-summary { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+.track-record-summary span { color: var(--muted); }
+.track-record-summary strong, .track-record-time { font-family: monospace; }
+.track-quick-field {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 6px 10px; background: var(--elev); border: 1px solid var(--border); border-radius: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.track-quick-field select {
+  flex: 1; min-width: 0; max-width: 70%; padding: 5px 8px;
+  background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+}
+.ranked-hint { color: var(--muted); font-size: 11px; line-height: 1.35; }
 
 /* Profile card: <details> whose summary is the compact chip row. */
 .pilot-profile {
@@ -322,6 +365,7 @@ button, input, select { font: inherit; }
   .status { font-size: 12px; }
   .home-logo { width: 88px; height: 88px; }
   .home-app { font-size: 23px; }
+  .pilot-race-stat-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 .layout {
@@ -520,6 +564,11 @@ td:nth-child(3), td:nth-child(4), td:nth-child(5) { font-family: monospace; }
 .quick-panel {
   display: flex; flex-direction: column; gap: 7px;
   margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
+  container-type: inline-size;
+}
+.quick-toggles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; }
+@container (min-width: 420px) {
+  .quick-toggles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .quick-panel .check-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .quick-fields {

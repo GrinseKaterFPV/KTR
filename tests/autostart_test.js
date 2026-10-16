@@ -28,13 +28,14 @@ const stubs = {
   soundGo: () => {}, soundLap: () => {}, soundBest: () => {},
   speak: () => {}, t: k => k, setStatus: () => {}, dirText: d => d,
   haptic: () => {}, renderLaps: () => {}, updateBest: () => {},
+  syncActiveTrackSelect: () => {},
   secondsToSpeech: () => '0:00.000', finishAutoStint: () => {},
 };
 
 function make(state) {
   const body = [
     extract('beginRaceAt'), extract('beginRace'), extract('evaluatePendingLap'),
-    extract('tryTriggerLap'), extract('recordLap'), extract('announceLap'),
+    extract('tryTriggerLap'), extract('setLapLimitReached'), extract('recordLap'), extract('announceLap'),
     'function frame(now, changed, globalChange, roi) {\n' + smBlock + '\n}',
     'return { frame };',
   ].join('\n');

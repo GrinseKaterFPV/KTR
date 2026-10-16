@@ -78,6 +78,10 @@ check('S6a: TTS controls are centralized in the main settings, not the timer men
   && !html.slice(html.indexOf('id="kwadSettingsOverlay"')).includes('id="kwadAnnounce"'));
 check('S7: the auto-start quick switch in the timer card is kept',
   html.includes('id="autoStartQuick"') && html.includes('id="autoLapsBadge"') && html.includes('id="countdownBadge"'));
+check('S7a: timer quick switches use two columns only when there is enough room',
+  /<div class="quick-toggles">[^]*?id="armedToggle"[^]*?id="autoStartQuick"[^]*?id="multiplayerToggle"[^]*?<\/div>/.test(html)
+  && /\.quick-toggles \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/.test(css)
+  && /@container \(min-width: 420px\) \{\s*\.quick-toggles \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}\s*\}/.test(css));
 check('S8: the g_autostart i18n key was removed',
   !app.includes('g_autostart:'));
 
@@ -105,8 +109,10 @@ check('P4: the CSV export is inside the pilot management section, before the sta
 })());
 check('P5: the tile opens the Piloten screen',
   /els\.tilePilots\.addEventListener\('click', openPilots\)/.test(app));
-check('P6: the comparison table is shared with the sets card',
-  /function pilotCompareHTML\(\)/.test(app) && /els\.pilotsScreenCompare\.innerHTML = html/.test(app));
+check('P6: the racing comparison is shared with the sets card and Piloten screen',
+  /function pilotCompareHTML\(titleKey\)/.test(app)
+  && /if \(els\.pilotCompare\) els\.pilotCompare\.innerHTML = pilotCompareHTML\(\)/.test(app)
+  && /els\.pilotsScreenCompare\.innerHTML = \[pilotCompareHTML\('pilot_race_compare_title'\), pilotKwadCompareHTML\(\)\]/.test(app));
 check('P7: openHome / closeHome hide the Piloten screen',
   (app.match(/els\.pilotsScreen\) els\.pilotsScreen\.hidden = true/g) || []).length >= 3);
 
@@ -159,36 +165,39 @@ check('I5: the icon ships in the service-worker asset list', sw.includes("'./ico
 
 // --- 6) unified home-tile icons (same frame as the app logo) ------------------
 check('U1: every home tile uses an <img> icon',
-  (html.match(/class="home-tile-icon home-tile-img"/g) || []).length === 4);
-check('U2: the four tile icons exist',
-  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg', 'icon-kwad.svg']
+  (html.match(/class="home-tile-icon home-tile-img"/g) || []).length === 5);
+check('U2: the five tile icons exist',
+  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg', 'icon-kwad.svg', 'icon-tracks.svg']
     .every(f => fs.existsSync(path.join(root, f))));
 check('U3: all tile icons render at the same size',
   /\.home-tile-img \{ width: 30px; height: 30px;/.test(css));
 check('U4: no emoji icons are left in the home tiles',
   !/home-tile-icon">⏱/.test(html) && !/home-tile-icon">⚙/.test(html) && !/home-tile-icon">🏁/.test(html));
 check('U5: the shared icons reuse the app-logo accent gradient',
-  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg']
+  ['icon-timer.svg', 'icon-pilots.svg', 'icon-settings.svg', 'icon-tracks.svg']
     .every(f => fs.readFileSync(path.join(root, f), 'utf8').includes('url(#acc)')));
 check('U6: the shared icons ship in the service-worker asset list',
-  ['./icon-timer.svg', './icon-pilots.svg', './icon-settings.svg'].every(f => sw.includes("'" + f + "'")));
+  ['./icon-timer.svg', './icon-pilots.svg', './icon-settings.svg', './icon-tracks.svg'].every(f => sw.includes("'" + f + "'")));
 
 // --- 7) in-screen back buttons (K.W.A.D / Piloten -> home) --------------------
 check('N1: the K.W.A.D screen has a back button',
   /id="kwadScreen"[^]*?id="btnKwadHome"/.test(html));
 check('N2: the Piloten screen has a back button',
   /id="pilotsScreen"[^]*?id="btnPilotsHome"/.test(html));
-check('N3: both back buttons open the home screen',
+check('N2a: the Tracks screen has a back button',
+  /id="tracksScreen"[^]*?id="btnTracksHome"/.test(html));
+check('N3: feature back buttons open the home screen',
   /els\.btnKwadHome\.addEventListener\('click', openHome\)/.test(app)
-  && /els\.btnPilotsHome\.addEventListener\('click', openHome\)/.test(app));
+  && /els\.btnPilotsHome\.addEventListener\('click', openHome\)/.test(app)
+  && /els\.btnTracksHome\.addEventListener\('click', openHome\)/.test(app));
 check('N4: the back buttons sit in the screen corner',
   /\.screen-back \{ position: fixed;/.test(css));
 
 // --- 8) home tiles: last used is highlighted (localStorage) -------------------
 check('H1: the Timer tile is no longer hard-wired as primary',
   !/class="home-tile is-primary" id="tileTimer"/.test(html));
-check('H2: the home grid still offers all four tiles',
-  ['tileTimer', 'tileKwad', 'tilePilots', 'tileSettings'].every(id => html.includes('id="' + id + '"')));
+check('H2: the home grid offers all five tiles',
+  ['tileTimer', 'tileKwad', 'tilePilots', 'tileTracks', 'tileSettings'].every(id => html.includes('id="' + id + '"')));
 check('H3: the highlight helper toggles is-primary',
   /classList\.toggle\('is-primary'/.test(app));
 check('H4: the used tile is stored under "lastHomeTile"',
@@ -210,7 +219,7 @@ check('T3: the tile shows the timer icon',
 
 // --- 10) back arrow is a centred SVG ------------------------------------------
 check('B1: the back buttons draw the arrow as an inline SVG',
-  (html.match(/class="back-arrow" viewBox="0 0 24 24"/g) || []).length === 3);
+  (html.match(/class="back-arrow" viewBox="0 0 24 24"/g) || []).length === 4);
 check('B2: no raw ← glyph is left in the back buttons',
   !/>←<\/button>/.test(html));
 check('B3: the arrow SVG is flex-centred in the shared button',
@@ -366,7 +375,7 @@ check('S18: the stats panel renders attempts, successes, rate and wins per playe
   && /kwad_stats_total: 'Total'/.test(app));
 check('S18b: the Piloten comparison includes per-pilot K.W.A.D attempts, successes and rate',
   /pilot_kwad_compare: 'Game of K\.W\.A\.D – Spielstatistik'/.test(app)
-  && /function pilotCompareHTML\(\)/.test(app)
+  && /function pilotKwadCompareHTML\(\)/.test(app)
   && /state\.pilots \|\| \[\]/.test(app)
   && /Object\.keys\(kwadPlayerStats\)/.test(app)
   && /Object\.keys\(kwadPlayerWins\)/.test(app)
@@ -447,10 +456,78 @@ check('S29: the statistics section itself is collapsible and keeps its hint',
   /kwad-stats-card card-collapsible" open>/.test(html)
   && /<p class="hint" data-i18n="kwad_stats_hint">/.test(html)
   && /\.kwad-card\.kwad-stats-card > \.card-body \{ margin-top: 0; \}/.test(css));
-check('S30: the statistics card is rendered in both the KWAD screen and the pilot profile',
+check('S30: K.W.A.D. statistics are shown in the KWAD screen and pilot profiles',
   /kwadStatPanel\(t\('kwad_stats_total'\), '', kwadStats, 'total', totalWins\)/.test(app)
   && /kwadStatPanel\(nm, color, kwadPlayerStats\[nm\] \|\| \{\}, nm, kwadPlayerWins\[nm\] \|\| 0\)/.test(app)
   && /kwadStatPanel\(t\('kwad_stats'\), '', kwadPlayerStats\[name\] \|\| \{\}, 'profile:' \+ name, totals\.wins\)/.test(app));
+check('S30a: the timer comparison is racing-only while the Piloten screen also shows K.W.A.D.',
+  /if \(els\.pilotCompare\) els\.pilotCompare\.innerHTML = pilotCompareHTML\(\)/.test(app)
+  && /els\.pilotsScreenCompare\.innerHTML = \[pilotCompareHTML\('pilot_race_compare_title'\), pilotKwadCompareHTML\(\)\]/.test(app));
+check('S30b: each pilot profile shows saved racing totals and an empty-state hint',
+  /function pilotRaceTotals\(name\)/.test(app)
+  && /sets: sets\.length,\s*laps: laps\.length/.test(app)
+  && /function pilotRaceStatPanel\(name\)/.test(app)
+  && /pilotRaceStatPanel\(name\)/.test(app)
+  && /t\('race_stats_best'\)/.test(app)
+  && /t\('race_stats_empty'\)/.test(app));
+check('S30c: the Piloten menu labels its racing comparison as race data statistics',
+  /pilot_race_compare_title: 'Renndaten-Statistik'/.test(app)
+  && /pilot_race_compare_title: 'Race data statistics'/.test(app));
+check('S30d: the timer provides an undo-lap control, disabled without an active lap',
+  /id="btnUndoLap"[^>]*data-i18n="undo_lap"[^>]*disabled/.test(html)
+  && /els\.btnUndoLap\.addEventListener\('click', undoLap\)/.test(app)
+  && /els\.btnUndoLap\.disabled = !state\.raceActive \|\| !state\.laps\.length/.test(app));
+check('S30e: race end announcements include total, average lap and fastest lap in order',
+  /function raceResultAnnouncement\(prefix, totalMs, laps\)/.test(app)
+  && /t\('lap_average'\)[\s\S]*t\('fastest_lap'\)/.test(app)
+  && /const resultMessage = raceResultAnnouncement\([\s\S]*state\.laps\s*\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app)
+  && /const resultMessage = raceResultAnnouncement\(t\('set_end'\), state\.raceElapsed, state\.laps\);[\s\S]*speak\(\[resultMessage, pilotChange && pilotChange\.announcement\]\.filter\(Boolean\)\.join\(' '\)\)/.test(app));
+check('S30f: timer and countdown keep updating without camera frames',
+  /setInterval\(\(\) => \{\s*if \(!state\.countdownActive && !state\.raceActive\) return;\s*const now = performance\.now\(\);\s*updateCountdown\(now\);\s*updateTimers\(\);\s*\}, 50\)/.test(app));
+check('S30g: each completed set advances and announces the next pilot',
+  /function advancePilotAfterSet\(completedPilot\)/.test(app)
+  && /if \(!state\.multiplayer\) return null;/.test(app)
+  && /state\.currentPilot = pilots\[wrapped \? 0 : currentIndex \+ 1\]/.test(app)
+  && /pilot_next_set: 'Nächster Pilot: \{name\}\.'/u.test(app)
+  && /pilot_cycle_done: 'Alle Piloten waren dran\./u.test(app));
+check('S30h: timer exposes a persistent Mehrspieler switch',
+  /<label class="check-row auto-quick"><input type="checkbox" id="multiplayerToggle" \/> <span data-i18n="multiplayer">Mehrspieler<\/span><\/label>/.test(html)
+  && /multiplayer: 'Mehrspieler'/.test(app)
+  && /multiplayer: 'Multiplayer'/.test(app)
+  && /multiplayer: state\.multiplayer/.test(app)
+  && /els\.multiplayerToggle\.addEventListener\('change'/.test(app));
+check('S30i: the Tracks tile opens a track manager and timer track selection is wired',
+  /id="tileTracks"[^]*?data-i18n="m_tracks"/.test(html)
+  && /id="tracksScreen"[^]*?id="trackNameInput"[^]*?id="tracksList"/.test(html)
+  && /els\.tileTracks\.addEventListener\('click', openTracks\)/.test(app)
+  && /id="activeTrackSelect"[^]*?data-i18n-aria="active_track"/.test(html)
+  && /els\.activeTrackSelect\.addEventListener\('change'/.test(app)
+  && /tracks: state\.tracks,\s*activeTrackId: state\.activeTrackId/.test(app));
+check('S30j: tracks can be edited, selected, deleted safely, and show per-pilot bests',
+  /function addTrack\(name\)/.test(app)
+  && /function activateTrack\(id\)/.test(app)
+  && /function deleteTrack\(id\)/.test(app)
+  && /function trackRecords\(sets, trackId\)/.test(app)
+  && /trackId: state\.raceTrackId \|\| null/.test(app)
+  && /lapCount: laps\.length/.test(app)
+  && /bestSets\.get\(lapCount\)/.test(app)
+  && /track_set_count/.test(app)
+  && /set\.trackId = null/.test(app));
+check('S30k: Ranked Mode gates track bests and the track description is editable',
+  /id="rankedToggle"[^]*?data-i18n="ranked_mode"/.test(html)
+  && /state\.rankedMode = s\.rankedMode \?\? false;/.test(app)
+  && /ranked: state\.raceRankedMode/.test(app)
+  && /if \(set\.ranked === false\) return;/.test(app)
+  && /if \(lapCount > 10\) return;/.test(app)
+  && /track-description-input/.test(app)
+  && /track\.description = descriptionInput\.value\.trim\(\)/.test(app)
+  && /track\.records/.test(app)
+  && /function updateTrackRecord\(set, persist = true\)/.test(app)
+  && /updateTrackRecord\(set\);/.test(app)
+  && /rankedMode: state\.rankedMode/.test(app)
+  && /ranked_mode_hint/.test(html)
+  && /ranked_mode: 'Ranked Mode'/.test(app)
+  && /ranked_mode: 'Ranked mode'/.test(app));
 check('S31: a statistics row translates its trick name',
   /function kwadTrickLabel\(name\)/.test(app) && /nm\.textContent = kwadTrickLabel\(trickName\);/.test(app));
 check('S32: built-in tricks carry their English name and description',
@@ -547,10 +624,10 @@ check('P17: the pilot colour is adjustable later from inside the profile',
   && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v62'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.29\.1'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v64'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.30\.1'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.29\.1"/.test(pkg));
+  /"version": "0\.30\.1"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

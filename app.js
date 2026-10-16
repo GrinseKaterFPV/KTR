@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.29.1';
+  const APP_VERSION = '0.30.1';
 
   // ---------- i18n ----------
   const I18N = {
@@ -20,7 +20,36 @@
       m_kwad_desc: 'Freestyle-Tricks, Strafbuchstaben',
       m_pilots: 'Piloten',
       m_pilots_desc: 'Profile, Farben & Vergleich',
-      pilots_hint: 'Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.',
+      m_tracks: 'Tracks',
+      m_tracks_desc: 'Strecken verwalten & Bestzeiten',
+      tracks_hint: 'Lege Strecken an und vergleiche die besten Runden- und Satzzeiten je Pilot.',
+      active_track: 'Aktive Strecke',
+      track_name_placeholder: 'Name der Strecke',
+      track_add: 'Strecke anlegen',
+      track_name_required: 'Bitte gib einen Streckennamen ein.',
+      track_name_taken: 'Eine Strecke mit dem Namen „{name}“ existiert bereits.',
+      track_make_active: 'Als aktiv wählen',
+      track_active: 'Aktiv',
+      track_edit: 'Bearbeiten',
+      track_save: 'Speichern',
+      track_delete: 'Löschen',
+      track_delete_confirm: 'Strecke „{name}“ löschen? Ihre Zeiten bleiben unter „Ohne Track“ erhalten.',
+      track_running: 'Während ein Timer läuft, können Tracks nicht angelegt, ausgewählt oder gelöscht werden.',
+      track_select_empty: 'Strecke auswählen …',
+      track_none_available: 'Noch keine Tracks – im Tracks-Bereich anlegen.',
+      track_unassigned: 'Ohne Track',
+      track_records: 'Bestzeiten',
+      track_best_lap: 'Beste Runde',
+      track_best_set: 'Schnellster Satz · {laps} Runden',
+      track_set_count: '{laps} Runden',
+      track_description_placeholder: 'Beschreibung der Strecke (optional)',
+      ranked_mode: 'Ranked Mode',
+      ranked_mode_hint: 'Nur mit aktivem Ranked Mode werden Track-Bestzeiten aktualisiert; Trainingsläufe bleiben im Rennverlauf.',
+      track_pilot: 'Pilot',
+      track_pilot_records: 'Bestzeiten je Pilot',
+      track_no_records: 'Für diese Strecke gibt es noch keine gespeicherten Zeiten.',
+      track_unassigned_hint: 'Diese Sätze stammen aus der Zeit vor der Track-Verwaltung oder wurden ohne aktive Strecke gemessen.',
+      pilots_hint: 'Piloten verwalten und ihre Racing- sowie Game-of-K.W.A.D.-Statistiken vergleichen.',
       pilots_active_hint: 'Mit „Bearbeiten“ änderst du Name und Farbe eines Profils. Das bearbeitete Profil wird aktiv.',
       export_pilots: 'Piloten exportieren (CSV)',
       pilot_export: 'Pilot exportieren (CSV)',
@@ -132,8 +161,10 @@
       start: 'Start',
       stop: 'Stop',
       manual_lap: 'Manuelle Runde',
+      undo_lap: 'Runde zurücknehmen',
       reset: 'Reset',
       armed: 'Auto Lap detection',
+      multiplayer: 'Mehrspieler',
       pilot_name: 'Pilotenname',
       save_pilot: 'Pilot speichern',
       pilot_color: 'Pilotfarbe',
@@ -214,6 +245,8 @@
       best_time: 'Neue Bestzeit!',
       lap_word: 'Runde',
       stop_total: 'Stopp. Gesamtzeit ',
+      lap_average: 'Rundendurchschnitt ',
+      fastest_lap: 'Schnellste Runde ',
       voice_test: 'Runde 1: 12,45 Sekunden',
       seconds_word: 'Sekunden',
       minute_word: 'Minute',
@@ -230,6 +263,8 @@
       set_best_word: 'Beste',
       set_done: 'Satz gespeichert',
       set_end: 'Satz beendet. Gesamtzeit ',
+      pilot_next_set: 'Nächster Pilot: {name}.',
+      pilot_cycle_done: 'Alle Piloten waren dran. Neue Runde: {name} beginnt.',
       sets_title: 'Sätze (Vergleich)',
       export_all: 'Alle exportieren',
       export_filtered: 'Gefilterte exportieren',
@@ -257,6 +292,14 @@
       no_pilot: 'Ohne Pilot',
       no_sets_for_pilot: 'Keine Sätze für diesen Piloten.',
       pilot_compare_title: 'Piloten-Vergleich',
+      pilot_race_compare_title: 'Renndaten-Statistik',
+      race_stats: 'Racing-Statistik',
+      race_stats_sets: 'Sätze',
+      race_stats_laps: 'Runden',
+      race_stats_best: 'Beste',
+      race_stats_avg: 'Ø',
+      race_stats_total: 'Gesamtzeit',
+      race_stats_empty: 'Noch keine Racing-Sätze gespeichert.',
       pilot_kwad_compare: 'Game of K.W.A.D – Spielstatistik',
       th_sets: 'Sätze',
       storage_trimmed: 'Speicher fast voll – ältere Sätze wurden entfernt, damit neue gespeichert werden können.',
@@ -283,7 +326,36 @@
       m_kwad_desc: 'Freestyle tricks, penalty letters',
       m_pilots: 'Pilots',
       m_pilots_desc: 'Profiles, colours & comparison',
-      pilots_hint: 'Create pilots with a name and colour. The colour is used in the chart and the comparison table.',
+      m_tracks: 'Tracks',
+      m_tracks_desc: 'Manage tracks & best times',
+      tracks_hint: 'Create tracks and compare each pilot’s best lap and set times.',
+      active_track: 'Active track',
+      track_name_placeholder: 'Track name',
+      track_add: 'Add track',
+      track_name_required: 'Enter a track name.',
+      track_name_taken: 'A track named “{name}” already exists.',
+      track_make_active: 'Set active',
+      track_active: 'Active',
+      track_edit: 'Edit',
+      track_save: 'Save',
+      track_delete: 'Delete',
+      track_delete_confirm: 'Delete track “{name}”? Its times will be kept under “Unassigned”.',
+      track_running: 'Tracks cannot be added, selected, or deleted while a timer is running.',
+      track_select_empty: 'Select a track …',
+      track_none_available: 'No tracks yet — add one in the Tracks section.',
+      track_unassigned: 'Unassigned',
+      track_records: 'Best times',
+      track_best_lap: 'Best lap',
+      track_best_set: 'Fastest set · {laps} laps',
+      track_set_count: '{laps} laps',
+      track_description_placeholder: 'Track description (optional)',
+      ranked_mode: 'Ranked mode',
+      ranked_mode_hint: 'Track bests update only in Ranked Mode; training runs remain in race history.',
+      track_pilot: 'Pilot',
+      track_pilot_records: 'Best times by pilot',
+      track_no_records: 'No times have been saved for this track yet.',
+      track_unassigned_hint: 'These sets predate track management or were timed without an active track.',
+      pilots_hint: 'Manage pilots and compare their racing and Game of K.W.A.D. statistics.',
       pilots_active_hint: 'Use “Edit” to change a profile name or colour. The profile being edited becomes active.',
       export_pilots: 'Export pilots (CSV)',
       pilot_export: 'Export pilot (CSV)',
@@ -395,8 +467,10 @@
       start: 'Start',
       stop: 'Stop',
       manual_lap: 'Manual lap',
+      undo_lap: 'Undo lap',
       reset: 'Reset',
       armed: 'Auto lap detection',
+      multiplayer: 'Multiplayer',
       pilot_name: 'Pilot name',
       save_pilot: 'Save pilot',
       pilot_color: 'Pilot colour',
@@ -477,6 +551,8 @@
       best_time: 'New best time!',
       lap_word: 'Lap',
       stop_total: 'Stop. Total time ',
+      lap_average: 'Average lap ',
+      fastest_lap: 'Fastest lap ',
       voice_test: 'Lap 1: 12.45 seconds',
       seconds_word: 'seconds',
       minute_word: 'minute',
@@ -493,6 +569,8 @@
       set_best_word: 'Best',
       set_done: 'Set saved',
       set_end: 'Set finished. Total time ',
+      pilot_next_set: 'Next pilot: {name}.',
+      pilot_cycle_done: 'All pilots have flown. New round: {name} starts.',
       sets_title: 'Sets (compare)',
       export_all: 'Export all',
       export_filtered: 'Export filtered',
@@ -520,6 +598,14 @@
       no_pilot: 'No pilot',
       no_sets_for_pilot: 'No sets for this pilot.',
       pilot_compare_title: 'Pilot comparison',
+      pilot_race_compare_title: 'Race data statistics',
+      race_stats: 'Racing statistics',
+      race_stats_sets: 'Sets',
+      race_stats_laps: 'Laps',
+      race_stats_best: 'Best',
+      race_stats_avg: 'Avg',
+      race_stats_total: 'Total time',
+      race_stats_empty: 'No racing sets saved yet.',
       pilot_kwad_compare: 'Game of K.W.A.D – Game statistics',
       th_sets: 'Sets',
       storage_trimmed: 'Storage almost full – older sets were removed to make room for new ones.',
@@ -646,8 +732,14 @@
     camLock: false,
     camDeviceId: '',
     autoStart: false,
+    multiplayer: false,
+    rankedMode: false,
     autoLaps: 0,
     awaitingStart: false,
+    tracks: [],
+    activeTrackId: '',
+    raceTrackId: '',
+    raceRankedMode: false,
     sets: [],
     stintSaved: false,
     setFilter: '',
@@ -679,6 +771,7 @@
     btnRaceStart: document.getElementById('btnRaceStart'),
     btnRaceStop: document.getElementById('btnRaceStop'),
     btnLapManual: document.getElementById('btnLapManual'),
+    btnUndoLap: document.getElementById('btnUndoLap'),
     btnReset: document.getElementById('btnReset'),
     armedToggle: document.getElementById('armedToggle'),
     pilotName: document.getElementById('pilotName'),
@@ -707,6 +800,8 @@
     driftComp: document.getElementById('driftComp'),
     camLock: document.getElementById('camLock'),
     autoStartQuick: document.getElementById('autoStartQuick'),
+    multiplayerToggle: document.getElementById('multiplayerToggle'),
+    rankedToggle: document.getElementById('rankedToggle'),
     autoLaps: document.getElementById('autoLaps'),
     autoLapsBadge: document.getElementById('autoLapsBadge'),
     countdownInput: document.getElementById('countdownInput'),
@@ -749,6 +844,7 @@
     tileSettings: document.getElementById('tileSettings'),
     tileKwad: document.getElementById('tileKwad'),
     tilePilots: document.getElementById('tilePilots'),
+    tileTracks: document.getElementById('tileTracks'),
     pilotsScreen: document.getElementById('pilotsScreen'),
     pilotScreenName: document.getElementById('pilotScreenName'),
     pilotScreenColor: document.getElementById('pilotScreenColor'),
@@ -757,6 +853,12 @@
     pilotsScreenCompare: document.getElementById('pilotsScreenCompare'),
     btnPilotExport: document.getElementById('btnPilotExport'),
     btnPilotsHome: document.getElementById('btnPilotsHome'),
+    tracksScreen: document.getElementById('tracksScreen'),
+    trackNameInput: document.getElementById('trackNameInput'),
+    btnTrackAdd: document.getElementById('btnTrackAdd'),
+    tracksList: document.getElementById('tracksList'),
+    btnTracksHome: document.getElementById('btnTracksHome'),
+    activeTrackSelect: document.getElementById('activeTrackSelect'),
     kwadScreen: document.getElementById('kwadScreen'),
     btnKwadHome: document.getElementById('btnKwadHome'),
     btnKwadSettings: document.getElementById('btnKwadSettings'),
@@ -871,6 +973,10 @@
       camLock: state.camLock,
       camDeviceId: state.camDeviceId,
       autoStart: state.autoStart,
+      multiplayer: state.multiplayer,
+      rankedMode: state.rankedMode,
+      tracks: state.tracks,
+      activeTrackId: state.activeTrackId,
       armed: state.armed,
       autoLaps: state.autoLaps,
       setFilter: state.setFilter,
@@ -996,6 +1102,23 @@
     state.camDeviceId = s.camDeviceId || '';
     state.autoStart = s.autoStart ?? false;
     if (els.autoStartQuick) els.autoStartQuick.checked = state.autoStart;
+    state.multiplayer = s.multiplayer ?? false;
+    if (els.multiplayerToggle) els.multiplayerToggle.checked = state.multiplayer;
+    state.rankedMode = s.rankedMode ?? false;
+    if (els.rankedToggle) els.rankedToggle.checked = state.rankedMode;
+    state.tracks = Array.isArray(s.tracks)
+      ? s.tracks.filter(track => track && typeof track.id === 'string' && typeof track.name === 'string' && track.name.trim())
+        .map(track => ({
+          ...track,
+          description: typeof track.description === 'string' ? track.description : '',
+          records: Array.isArray(track.records)
+            ? track.records.filter(record => record && typeof record.pilot === 'string')
+            : [],
+        }))
+      : [];
+    state.activeTrackId = state.tracks.some(track => track.id === s.activeTrackId)
+      ? s.activeTrackId
+      : (state.tracks[0]?.id || '');
     state.armed = s.armed ?? false;
     if (els.armedToggle) els.armedToggle.checked = state.armed;
     state.autoLaps = s.autoLaps ?? 0;
@@ -1005,6 +1128,7 @@
     state.sections = (s.sections && typeof s.sections === 'object') ? s.sections : {};
     state.accent = s.accent || '#ff7a1a';
     state.sets = loadSets();
+    state.sets.forEach(set => updateTrackRecord(set, false));
     state.lang = (s.lang === 'en') ? 'en' : 'de';
     if (els.langSelect) els.langSelect.value = state.lang;
     state.voiceURI = s.voiceURI || '';
@@ -1013,6 +1137,7 @@
     initSections();
     if (els.pilotColor) els.pilotColor.hidden = true;
     renderPilots();
+    renderTracks();
   }
 
   // ---------- language / i18n ----------
@@ -1042,6 +1167,7 @@
     renderPilots();
     renderLaps();
     renderSets();
+    renderTracks();
     if (!state.stream && !state.raceActive && !state.countdownActive) {
       setStatus(t('status_ready') + ' (v' + APP_VERSION + ') – ' + t('start_camera'));
     }
@@ -1248,7 +1374,7 @@
     renderAutoLaps();
     saveSettings();
     // If the limit was lowered below the laps already flown, end the stint now.
-    if (state.autoStart && state.raceActive && v > 0 && state.laps.length >= v) finishAutoStint();
+    if (state.raceActive && v > 0 && state.laps.length >= v) finishAutoStint();
   }
   function toggleLapsPop(show) {
     if (!els.lapsPop) return;
@@ -1280,6 +1406,19 @@
   }
   if (els.autoStartQuick) {
     els.autoStartQuick.addEventListener('change', e => setAutoStart(e.target.checked));
+  }
+  if (els.multiplayerToggle) {
+    els.multiplayerToggle.addEventListener('change', e => {
+      state.multiplayer = e.target.checked;
+      saveSettings();
+    });
+  }
+  if (els.rankedToggle) {
+    els.rankedToggle.addEventListener('change', e => {
+      if (timerBusy()) { syncActiveTrackSelect(); return; }
+      state.rankedMode = e.target.checked;
+      saveSettings();
+    });
   }
   // Same two values are also editable as plain fields in the timer settings.
   if (els.autoLaps) {
@@ -1433,6 +1572,7 @@
     els.homeScreen.hidden = false;
     if (els.kwadScreen) els.kwadScreen.hidden = true;
     if (els.pilotsScreen) els.pilotsScreen.hidden = true;
+    if (els.tracksScreen) els.tracksScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = true;
     // The topbar gear belongs to the home screen (app settings); the timer view
     // has its own gear inside the timer card.
@@ -1444,6 +1584,7 @@
     els.homeScreen.hidden = true;
     if (els.kwadScreen) els.kwadScreen.hidden = true;
     if (els.pilotsScreen) els.pilotsScreen.hidden = true;
+    if (els.tracksScreen) els.tracksScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = false;
     if (els.btnSettings) els.btnSettings.hidden = true;
     closeSettings();
@@ -1451,11 +1592,12 @@
   if (els.btnHome) els.btnHome.addEventListener('click', openHome);
   if (els.btnKwadHome) els.btnKwadHome.addEventListener('click', openHome);
   if (els.btnPilotsHome) els.btnPilotsHome.addEventListener('click', openHome);
+  if (els.btnTracksHome) els.btnTracksHome.addEventListener('click', openHome);
   if (els.tileTimer) els.tileTimer.addEventListener('click', closeHome);
 
   // The home grid marks the tile that was used last (restored on reload).
   // Falls back to the first tile (Timer) when nothing sensible is stored.
-  const homeTiles = [els.tileTimer, els.tileKwad, els.tilePilots, els.tileSettings].filter(Boolean);
+  const homeTiles = [els.tileTimer, els.tileKwad, els.tilePilots, els.tileTracks, els.tileSettings].filter(Boolean);
   function highlightHomeTile(id) {
     homeTiles.forEach(t => t.classList.toggle('is-primary', t.id === id));
   }
@@ -1619,6 +1761,10 @@
         camLock: state.camLock,
         camDeviceId: state.camDeviceId,
         autoStart: state.autoStart,
+        multiplayer: state.multiplayer,
+        rankedMode: state.rankedMode,
+        tracks: state.tracks,
+        activeTrackId: state.activeTrackId,
         armed: state.armed,
         autoLaps: state.autoLaps,
         setFilter: state.setFilter,
@@ -1685,6 +1831,22 @@
         if (els.driftComp) els.driftComp.checked = data.settings.driftComp;
         if (els.camLock) els.camLock.checked = data.settings.camLock;
         if (els.autoStartQuick) els.autoStartQuick.checked = data.settings.autoStart;
+        if (els.multiplayerToggle) els.multiplayerToggle.checked = data.settings.multiplayer ?? false;
+        state.rankedMode = data.settings.rankedMode ?? false;
+        if (els.rankedToggle) els.rankedToggle.checked = state.rankedMode;
+        state.tracks = Array.isArray(data.settings.tracks)
+          ? data.settings.tracks.filter(track => track && typeof track.id === 'string' && typeof track.name === 'string' && track.name.trim())
+            .map(track => ({
+              ...track,
+              description: typeof track.description === 'string' ? track.description : '',
+              records: Array.isArray(track.records)
+                ? track.records.filter(record => record && typeof record.pilot === 'string')
+                : [],
+            }))
+          : [];
+        state.activeTrackId = state.tracks.some(track => track.id === data.settings.activeTrackId)
+          ? data.settings.activeTrackId
+          : (state.tracks[0]?.id || '');
         if (els.armedToggle) els.armedToggle.checked = data.settings.armed;
         if (els.autoLaps) els.autoLaps.value = data.settings.autoLaps;
         if (els.setPilotFilter) els.setPilotFilter.value = data.settings.setFilter;
@@ -1695,6 +1857,7 @@
         applyAccent(state.accent, false);
         if (data.settings.lang) { state.lang = data.settings.lang; if (els.langSelect) els.langSelect.value = state.lang; }
         applyLanguage();
+        renderTracks();
         saveSettings();
       }
 
@@ -2228,9 +2391,13 @@
     state.lastTrigger = now;
     const recorded = recordLap(now);
     haptic();
-    if (recorded && state.autoStart && state.autoLaps > 0 && state.laps.length >= state.autoLaps) {
+    if (setLapLimitReached(recorded)) {
       finishAutoStint();
     }
+  }
+
+  function setLapLimitReached(recorded) {
+    return recorded && state.autoLaps > 0 && state.laps.length >= state.autoLaps;
   }
 
   function evaluatePendingLap(now) {
@@ -2284,6 +2451,28 @@
     return true;
   }
 
+  function undoLap() {
+    if (!state.raceActive || !state.laps.length) return false;
+    state.laps.pop();
+    const previousLap = state.laps[state.laps.length - 1];
+    state.currentLapStart = previousLap ? previousLap.at : state.raceStart;
+    state.lastTrigger = state.currentLapStart;
+    const now = performance.now();
+    state.raceElapsed = now - state.raceStart;
+    state.frozenLap = now - state.currentLapStart;
+    state.pendingLap = null;
+    state.machine = 0;
+    state.machineEnterAt = 0;
+    state.needsClear = true;
+    renderLaps();
+    updateBest();
+    els.lastLap.textContent = previousLap ? fmt(previousLap.duration) : '--';
+    updateTimers();
+    return true;
+  }
+
+  els.btnUndoLap.addEventListener('click', undoLap);
+
   function announceLap(lapNumber, duration, isBest) {
     if (state.announceMode === 'aus') return;
     if (state.announceMode === 'best' && !isBest) return;
@@ -2296,16 +2485,17 @@
     if (!state.raceActive) return;
     const recorded = recordLap(performance.now());
     haptic();
-    if (recorded && state.autoStart && state.autoLaps > 0 && state.laps.length >= state.autoLaps) {
+    if (setLapLimitReached(recorded)) {
       finishAutoStint();
     }
   });
 
   // ---------- race control ----------
   function startCountdown() {
-    if (!state.stream) { setStatus(t('start_camera_first')); return; }
     if (state.countdownActive || state.raceActive) return;
-    if (state.autoStart) { armAutoWait(false); return; }
+    state.raceTrackId = state.activeTrackId;
+    state.raceRankedMode = state.rankedMode;
+    if (state.autoStart && state.stream) { armAutoWait(false); return; }
     unlockAudio();
     primeSpeech();
     state.laps = [];
@@ -2328,6 +2518,7 @@
     state.lastTrigger = 0;
     if (state.countdownSecs <= 0) { beginRace(); return; }
     state.countdownActive = true;
+    syncActiveTrackSelect();
     state.countdownEnd = performance.now() + state.countdownSecs * 1000;
     state.lastCountdownValue = null;
     setStatus(t('countdown'));
@@ -2341,6 +2532,7 @@
     state.armed = true;
     els.armedToggle.checked = true;
     state.awaitingStart = true;
+    syncActiveTrackSelect();
     state.laps = [];
     state.stintSaved = false;
     renderLaps();
@@ -2372,6 +2564,7 @@
     state.countdownActive = false;
     state.raceActive = true;
     state.awaitingStart = false;
+    syncActiveTrackSelect();
     state.raceStart = (typeof startAt === 'number') ? startAt : performance.now();
     state.currentLapStart = state.raceStart;
     state.raceElapsed = 0;
@@ -2390,14 +2583,30 @@
     setStatus(t('race_running'));
   }
 
+  function raceResultAnnouncement(prefix, totalMs, laps) {
+    let message = prefix + secondsToSpeech(totalMs);
+    if (!laps.length) return message;
+    const averageLap = laps.reduce((sum, lap) => sum + lap.duration, 0) / laps.length;
+    const fastestLap = Math.min(...laps.map(lap => lap.duration));
+    message += '. ' + t('lap_average') + secondsToSpeech(averageLap)
+      + '. ' + t('fastest_lap') + secondsToSpeech(fastestLap);
+    return message;
+  }
+
   function stopRace() {
     if (state.countdownActive) {
       state.countdownActive = false;
+      state.raceTrackId = '';
+      state.raceRankedMode = false;
+      syncActiveTrackSelect();
       setStatus(t('countdown_cancelled'));
       return;
     }
     if (state.awaitingStart) {
       state.awaitingStart = false;
+      state.raceTrackId = '';
+      state.raceRankedMode = false;
+      syncActiveTrackSelect();
       setStatus(t('race_stopped'));
       return;
     }
@@ -2406,15 +2615,49 @@
     state.raceElapsed = now - state.raceStart;
     state.frozenLap = now - state.currentLapStart;
     state.raceActive = false;
+    syncActiveTrackSelect();
+    renderLaps();
     soundStop();
     const set = saveStint();
-    if (state.autoStart) {
-      armAutoWait(true);
-      setStatus((set ? (t('set_done') + ' · ' + t('set_word') + ' ' + set.n) : t('race_stopped')) + ' · ' + t('waiting_first'));
-    } else {
-      setStatus(t('race_stopped'));
-      if (state.announceMode !== 'aus') speak(t('stop_total') + secondsToSpeech(state.raceElapsed));
+    const pilotChange = set ? advancePilotAfterSet(set.pilot) : null;
+    const resultMessage = raceResultAnnouncement(
+      t(set ? 'set_end' : 'stop_total'),
+      state.raceElapsed,
+      state.laps
+    );
+    if (state.announceMode !== 'aus') {
+      speak([resultMessage, pilotChange && pilotChange.announcement].filter(Boolean).join(' '));
     }
+    if (state.autoStart && state.stream) {
+      armAutoWait(true);
+      setStatus(
+        (set ? (t('set_done') + ' · ' + t('set_word') + ' ' + set.n) : t('race_stopped')) +
+        (pilotChange ? ' · ' + pilotChange.announcement : '') + ' · ' + t('waiting_first')
+      );
+    } else {
+      state.raceTrackId = '';
+      state.raceRankedMode = false;
+      setStatus(set ? t('set_done') + ' · ' + t('set_word') + ' ' + set.n +
+        (pilotChange ? ' · ' + pilotChange.announcement : '') : t('race_stopped'));
+    }
+  }
+
+  function advancePilotAfterSet(completedPilot) {
+    const pilots = state.pilots || [];
+    if (!state.multiplayer) return null;
+    const currentIndex = pilots.indexOf(completedPilot);
+    if (pilots.length < 2 || currentIndex < 0) return null;
+
+    const wrapped = currentIndex === pilots.length - 1;
+    state.currentPilot = pilots[wrapped ? 0 : currentIndex + 1];
+    saveSettings();
+    renderPilots();
+    return {
+      pilot: state.currentPilot,
+      wrapped,
+      announcement: t(wrapped ? 'pilot_cycle_done' : 'pilot_next_set')
+        .replace('{name}', state.currentPilot),
+    };
   }
 
   // Automatically end a stint when the configured lap count is reached.
@@ -2423,14 +2666,24 @@
     state.raceElapsed = state.laps.length ? state.laps[state.laps.length - 1].total : (now - state.raceStart);
     state.frozenLap = state.laps.length ? state.laps[state.laps.length - 1].duration : (now - state.currentLapStart);
     state.raceActive = false;
+    syncActiveTrackSelect();
+    renderLaps();
     const set = saveStint();
+    const pilotChange = set ? advancePilotAfterSet(set.pilot) : null;
+    const resultMessage = raceResultAnnouncement(t('set_end'), state.raceElapsed, state.laps);
     soundStop();
-    if (state.announceMode !== 'aus') speak(t('set_end') + secondsToSpeech(state.raceElapsed));
-    if (state.autoStart) {
+    if (state.announceMode !== 'aus') {
+      speak([resultMessage, pilotChange && pilotChange.announcement].filter(Boolean).join(' '));
+    }
+    if (state.autoStart && state.stream) {
       armAutoWait(true);
-      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : '') + ' · ' + t('waiting_first'));
+      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : '') +
+        (pilotChange ? ' · ' + pilotChange.announcement : '') + ' · ' + t('waiting_first'));
     } else {
-      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : ''));
+      state.raceTrackId = '';
+      state.raceRankedMode = false;
+      setStatus(t('set_done') + (set ? (' · ' + t('set_word') + ' ' + set.n) : '') +
+        (pilotChange ? ' · ' + pilotChange.announcement : ''));
     }
   }
 
@@ -2453,10 +2706,14 @@
       n: nextSetNumber(pilot),
       at: Date.now(),
       pilot,
+      trackId: state.raceTrackId || null,
+      ranked: state.raceRankedMode,
       laps,
+      lapCount: laps.length,
       totalMs: laps[laps.length - 1].total,
       bestMs: Math.min(...laps.map(l => l.duration)),
     };
+    updateTrackRecord(set);
     state.sets.push(set);
     saveSets();
     renderSets();
@@ -2483,6 +2740,9 @@
     state.raceActive = false;
     state.countdownActive = false;
     state.awaitingStart = false;
+    state.raceTrackId = '';
+    state.raceRankedMode = false;
+    syncActiveTrackSelect();
     state.laps = [];
     state.stintSaved = false;
     state.raceStart = 0;
@@ -2500,6 +2760,7 @@
     updateBest();
     els.raceTime.textContent = '00:00.000';
     els.currentLap.textContent = '00:00.000';
+    if (els.timerSummary) els.timerSummary.textContent = '00:00.000';
     els.lastLap.textContent = '--';
     setStatus(t('reset_done'));
   });
@@ -2536,6 +2797,7 @@
   }
 
   function renderLaps() {
+    if (els.btnUndoLap) els.btnUndoLap.disabled = !state.raceActive || !state.laps.length;
     els.lapTable.innerHTML = '';
     let prevTotal = 0;
     state.laps.forEach((l, i) => {
@@ -2617,47 +2879,40 @@
     els.setPilotFilter.value = cur;
     if (els.btnExportAll) els.btnExportAll.textContent = state.setFilter ? t('export_filtered') : t('export_all');
   }
-  // Shared builder so the sets card and the dedicated Piloten screen show the
-  // exact same comparison. Returns '' when fewer than two pilots have sets.
-  function pilotCompareHTML() {
-    const groups = new Map();
-    state.sets.forEach(s => {
-      const p = s.pilot || '';
-      if (!groups.has(p)) groups.set(p, []);
-      groups.get(p).push(s);
+  // Racing comparison for the timer and Piloten screens.
+  function pilotCompareHTML(titleKey) {
+    if (!state.sets.length) return '';
+    const names = [...new Set([
+      ...(state.pilots || []),
+      ...state.sets.map(set => set.pilot || ''),
+    ])].sort((a, b) => pilotLabel(a).localeCompare(pilotLabel(b)));
+    const rows = names.map(p => ({ p, ...pilotRaceTotals(p) }));
+    rows.sort((a, b) => {
+      if (a.best === null) return b.best === null ? 0 : 1;
+      if (b.best === null) return -1;
+      return a.best - b.best;
     });
-    const sections = [];
-    if (groups.size >= 2) {
-      const rows = [...groups.entries()].map(([p, sets]) => {
-        const laps = [];
-        sets.forEach(s => s.laps.forEach(l => laps.push(l.duration)));
-        return {
-          p,
-          count: sets.length,
-          laps: laps.length,
-          best: Math.min(...sets.map(s => s.bestMs)),
-          avg: laps.length ? laps.reduce((a, d) => a + d, 0) / laps.length : 0,
-          total: laps.reduce((a, d) => a + d, 0),
-        };
-      });
-      const bestOverall = Math.min(...rows.map(r => r.best));
-      rows.sort((a, b) => a.best - b.best);
-      const head =
-        `<tr><th>${t('th_pilot')}</th><th>${t('th_sets')}</th><th>${t('set_laps_word')}</th>` +
-        `<th>${t('set_best_word')}</th><th>${t('avg_word')}</th><th>${t('th_total')}</th></tr>`;
-      const body = rows.map(r =>
-        `<tr><td><i class="dot" style="background:${pilotColor(r.p)}"></i>${esc(pilotLabel(r.p))}</td>` +
-        `<td class="num">${r.count}</td><td class="num">${r.laps}</td>` +
-        `<td class="num${r.best === bestOverall ? ' win' : ''}">${fmt(r.best)}</td>` +
-        `<td class="num">${fmt(r.avg)}</td><td class="num">${fmt(r.total)}</td></tr>`
-      ).join('');
-      sections.push(`<h4>${t('pilot_compare_title')}</h4>` +
-        `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`);
-    }
+    const bestOverall = rows.reduce((best, row) =>
+      row.best === null ? best : (best === null || row.best < best ? row.best : best), null);
+    const head =
+      `<tr><th>${t('th_pilot')}</th><th>${t('race_stats_sets')}</th><th>${t('race_stats_laps')}</th>` +
+      `<th>${t('race_stats_best')}</th><th>${t('race_stats_avg')}</th><th>${t('race_stats_total')}</th></tr>`;
+    const body = rows.map(r =>
+      `<tr><td><i class="dot" style="background:${pilotColor(r.p)}"></i>${esc(pilotLabel(r.p))}</td>` +
+      `<td class="num">${r.sets}</td><td class="num">${r.laps}</td>` +
+      `<td class="num${r.best !== null && r.best === bestOverall ? ' win' : ''}">${r.best === null ? '–' : fmt(r.best)}</td>` +
+      `<td class="num">${r.laps ? fmt(r.avg) : '–'}</td><td class="num">${r.laps ? fmt(r.total) : '–'}</td></tr>`
+    ).join('');
+    return `<h4>${t(titleKey || 'pilot_compare_title')}</h4>` +
+      `<table class="compare-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  }
+
+  // K.W.A.D. comparison belongs to the Piloten screen, not the timer.
+  function pilotKwadCompareHTML() {
     const kwadPilots = [...new Set([...(state.pilots || []), ...Object.keys(kwadPlayerStats), ...Object.keys(kwadPlayerWins)])]
     .filter(name => typeof name === 'string' && name)
     .sort((a, b) => a.localeCompare(b));
-    if (kwadPilots.length) {
+    if (!kwadPilots.length) return '';
     const head =
       `<tr><th>${t('th_pilot')}</th><th>${t('kwad_stats_won')}</th><th>${t('kwad_stats_attempted')}</th>` +
       `<th>${t('kwad_stats_succeeded')}</th><th>${t('kwad_stats_rate')}</th></tr>`;
@@ -2669,15 +2924,14 @@
           `<td class="num">${kwadPlayerWins[name] || 0}</td><td class="num">${attempted}</td><td class="num">${succeeded}</td>` +
           `<td class="num">${kwadRate(succeeded, attempted)}</td></tr>`;
       }).join('');
-      sections.push(`<h4>${t('pilot_kwad_compare')}</h4>` +
-        `<table class="compare-table pilot-kwad-compare"><thead>${head}</thead><tbody>${body}</tbody></table>`);
-    }
-    return sections.join('');
+    return `<h4>${t('pilot_kwad_compare')}</h4>` +
+      `<table class="compare-table pilot-kwad-compare"><thead>${head}</thead><tbody>${body}</tbody></table>`;
   }
   function renderPilotCompare() {
-    const html = pilotCompareHTML();
-    if (els.pilotCompare) els.pilotCompare.innerHTML = html;
-    if (els.pilotsScreenCompare) els.pilotsScreenCompare.innerHTML = html;
+    if (els.pilotCompare) els.pilotCompare.innerHTML = pilotCompareHTML();
+    if (els.pilotsScreenCompare) {
+      els.pilotsScreenCompare.innerHTML = [pilotCompareHTML('pilot_race_compare_title'), pilotKwadCompareHTML()].filter(Boolean).join('');
+    }
   }
 
   function renderSets() {
@@ -2974,6 +3228,62 @@
     return { attempted, succeeded, wins: kwadPlayerWins[name] || 0, rate: kwadRate(succeeded, attempted) };
   }
 
+  function pilotRaceTotals(name) {
+    const sets = state.sets.filter(set => (set.pilot || '') === name);
+    const laps = [];
+    sets.forEach(set => (set.laps || []).forEach(lap => laps.push(lap.duration)));
+    return {
+      sets: sets.length,
+      laps: laps.length,
+      best: laps.length ? Math.min(...laps) : null,
+      avg: laps.length ? laps.reduce((sum, duration) => sum + duration, 0) / laps.length : 0,
+      total: laps.reduce((sum, duration) => sum + duration, 0),
+    };
+  }
+
+  function pilotRaceStatPanel(name) {
+    const totals = pilotRaceTotals(name);
+    const panel = document.createElement('details');
+    panel.className = 'kwad-stat-panel';
+    const panelKey = 'race-profile:' + name;
+    if (!kwadStatClosed.has(panelKey)) panel.open = true;
+    panel.addEventListener('toggle', () => {
+      if (panel.isConnected === false) return;
+      if (panel.open) kwadStatClosed.delete(panelKey); else kwadStatClosed.add(panelKey);
+    });
+
+    const head = document.createElement('summary');
+    head.className = 'kwad-stat-head';
+    const title = document.createElement('span');
+    title.className = 'kwad-stat-name';
+    title.textContent = t('race_stats');
+    head.appendChild(title);
+    const folded = document.createElement('span');
+    folded.className = 'kwad-stat-folded';
+    folded.textContent = totals.laps
+      ? `${totals.sets} ${t('race_stats_sets')} · ${totals.laps} ${t('race_stats_laps')} · ${t('race_stats_best')} ${fmt(totals.best)}`
+      : t('race_stats_empty');
+    head.appendChild(folded);
+    panel.appendChild(head);
+
+    const summary = document.createElement('div');
+    summary.className = 'kwad-stat-summary pilot-race-stat-summary';
+    summary.appendChild(kwadStatCell(t('race_stats_sets'), String(totals.sets)));
+    summary.appendChild(kwadStatCell(t('race_stats_laps'), String(totals.laps)));
+    summary.appendChild(kwadStatCell(t('race_stats_best'), totals.best === null ? '–' : fmt(totals.best)));
+    summary.appendChild(kwadStatCell(t('race_stats_avg'), totals.laps ? fmt(totals.avg) : '–'));
+    summary.appendChild(kwadStatCell(t('race_stats_total'), totals.laps ? fmt(totals.total) : '–'));
+    panel.appendChild(summary);
+
+    if (!totals.laps) {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = t('race_stats_empty');
+      panel.appendChild(hint);
+    }
+    return panel;
+  }
+
   // CSV rows (header first) for one or more pilots — used by the "Piloten
   // exportieren" button and by the per-profile export.
   function pilotCsvRows(names) {
@@ -3020,8 +3330,8 @@
     return true;
   }
 
-  // Dedicated "Piloten" screen: every profile expands to show its K.W.A.D.
-  // statistics and profile-local management tools.
+  // Dedicated "Piloten" screen: every profile expands to show its racing and
+  // K.W.A.D. statistics alongside profile-local management tools.
   // followed by the comparison table and a CSV export.
   function renderPilotsScreen() {
     if (!els.pilotsScreenList) return;
@@ -3042,6 +3352,7 @@
       const active = state.currentPilot === name;
       const col = pilotColor(name);
       const totals = pilotStatTotals(name);
+      const raceTotals = pilotRaceTotals(name);
 
       const card = document.createElement('details');
       card.className = 'pilot-profile' + (active ? ' is-active' : '');
@@ -3078,8 +3389,11 @@
 
       // Show game wins alongside attempt volume and success rate.
       const meta = document.createElement('span');
-      meta.className = 'pilot-profile-meta' + (totals.attempted ? '' : ' is-empty');
+      meta.className = 'pilot-profile-meta' + (totals.attempted || raceTotals.laps ? '' : ' is-empty');
       meta.textContent = [
+        raceTotals.laps
+          ? `${t('race_stats_best')} ${fmt(raceTotals.best)} · ${raceTotals.laps} ${t('race_stats_laps')}`
+          : '',
         totals.wins ? t('kwad_stats_won') + ' ' + totals.wins : '',
         totals.attempted ? t('kwad_stats_attempted') + ' ' + totals.attempted + ' · ' + t('kwad_stats_rate') + ' ' + totals.rate : '',
       ].filter(Boolean).join(' · ') || t('kwad_stats_empty');
@@ -3092,6 +3406,7 @@
 
       const stats = document.createElement('div');
       stats.className = 'pilot-profile-stats';
+      stats.appendChild(pilotRaceStatPanel(name));
       stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}, 'profile:' + name, totals.wins));
       body.appendChild(stats);
 
@@ -3253,11 +3568,434 @@
     saveSettings();
   }
 
+  let trackEditingId = '';
+  function trackSets(trackId) {
+    return state.sets.filter(set => {
+      if (!trackId) return !set.trackId || !state.tracks.some(track => track.id === set.trackId);
+      return set.trackId === trackId;
+    });
+  }
+  function updateTrackRecord(set, persist = true) {
+    if (set.ranked === false) return false;
+    const track = state.tracks.find(item => item.id === set.trackId);
+    if (!track) return false;
+    const lapCount = Number.isInteger(set.lapCount) && set.lapCount >= 0
+      ? set.lapCount
+      : (set.laps || []).length;
+    if (lapCount < 1 || lapCount > 10) return false;
+    const lapTimes = (set.laps || []).map(lap => Number(lap.duration)).filter(Number.isFinite);
+    const bestLap = lapTimes.length ? Math.min(...lapTimes) : Number(set.bestMs);
+    const totalMs = Number.isFinite(Number(set.totalMs))
+      ? Number(set.totalMs)
+      : (set.laps || []).reduce((sum, lap) => sum + (Number(lap.duration) || 0), 0);
+    if (!Number.isFinite(bestLap) || !Number.isFinite(totalMs)) return false;
+
+    if (!Array.isArray(track.records)) track.records = [];
+    const pilot = set.pilot || '';
+    let pilotRecord = track.records.find(record => record.pilot === pilot);
+    if (!pilotRecord) {
+      pilotRecord = { pilot, bestLapMs: null, bestSets: [] };
+      track.records.push(pilotRecord);
+    }
+    if (!Array.isArray(pilotRecord.bestSets)) pilotRecord.bestSets = [];
+    let changed = false;
+    if (!Number.isFinite(pilotRecord.bestLapMs) || bestLap < pilotRecord.bestLapMs) {
+      pilotRecord.bestLapMs = bestLap;
+      changed = true;
+    }
+    let setRecord = pilotRecord.bestSets.find(record => record.lapCount === lapCount);
+    if (!setRecord) {
+      setRecord = { lapCount, totalMs };
+      pilotRecord.bestSets.push(setRecord);
+      changed = true;
+    } else if (!Number.isFinite(setRecord.totalMs) || totalMs < setRecord.totalMs) {
+      setRecord.totalMs = totalMs;
+      changed = true;
+    }
+    if (changed && persist) saveSettings();
+    return changed;
+  }
+  function trackRecords(sets, trackId) {
+    const pilots = new Map();
+    let bestLap = null;
+    const bestSets = new Map();
+    const recordTrackId = trackId || (sets.length ? sets[0].trackId : '');
+    const track = state.tracks.find(item => item.id === recordTrackId);
+    const setPilotBest = (pilot, lapCount, lapTime, totalTime) => {
+      let pilotRecord = pilots.get(pilot);
+      if (!pilotRecord) {
+        pilotRecord = { pilot, bestLap: null, bestSets: new Map() };
+        pilots.set(pilot, pilotRecord);
+      }
+      if (Number.isFinite(lapTime) && (pilotRecord.bestLap === null || lapTime < pilotRecord.bestLap)) {
+        pilotRecord.bestLap = lapTime;
+      }
+      if (lapCount > 0 && Number.isFinite(totalTime)) {
+        const current = pilotRecord.bestSets.get(lapCount);
+        if (current === undefined || totalTime < current) pilotRecord.bestSets.set(lapCount, totalTime);
+      }
+    };
+    (track?.records || []).forEach(record => {
+      const pilot = record.pilot || '';
+      const lapTime = record.bestLapMs === null || record.bestLapMs === undefined
+        ? NaN
+        : Number(record.bestLapMs);
+      if (Number.isFinite(lapTime) && (!bestLap || lapTime < bestLap.duration)) {
+        bestLap = { pilot, duration: lapTime };
+      }
+      setPilotBest(pilot, 0, lapTime, NaN);
+      (Array.isArray(record.bestSets) ? record.bestSets : []).forEach(setRecord => {
+        const lapCount = Number(setRecord.lapCount);
+        const totalTime = Number(setRecord.totalMs);
+        if (!Number.isInteger(lapCount) || lapCount < 1 || lapCount > 10 || !Number.isFinite(totalTime)) return;
+        let bestSet = bestSets.get(lapCount);
+        if (!bestSet || totalTime < bestSet.totalMs) {
+          bestSet = { lapCount, totalMs: totalTime, pilot, pilots: new Map() };
+          bestSets.set(lapCount, bestSet);
+        }
+        bestSet.pilots.set(pilot, totalTime);
+        setPilotBest(pilot, lapCount, lapTime, totalTime);
+      });
+    });
+    sets.forEach(set => {
+      if (set.ranked === false) return;
+      const pilot = set.pilot || '';
+      const lapTimes = (set.laps || []).map(lap => Number(lap.duration)).filter(Number.isFinite);
+      const bestLapTime = lapTimes.length ? Math.min(...lapTimes) : Number(set.bestMs);
+      const lapCount = Number.isInteger(set.lapCount) && set.lapCount >= 0
+        ? set.lapCount
+        : (set.laps || []).length;
+      if (lapCount > 10) return;
+      const totalTime = Number.isFinite(Number(set.totalMs))
+        ? Number(set.totalMs)
+        : (set.laps || []).reduce((sum, lap) => sum + (Number(lap.duration) || 0), 0);
+      if (Number.isFinite(bestLapTime) && (!bestLap || bestLapTime < bestLap.duration)) {
+        bestLap = { pilot, duration: bestLapTime };
+      }
+      if (lapCount > 0 && Number.isFinite(totalTime)) {
+        let bestSet = bestSets.get(lapCount);
+        if (!bestSet) {
+          bestSet = { lapCount, totalMs: totalTime, pilot, pilots: new Map() };
+          bestSets.set(lapCount, bestSet);
+        } else if (totalTime < bestSet.totalMs) {
+          bestSet.totalMs = totalTime;
+          bestSet.pilot = pilot;
+        }
+        let pilotBest = bestSet.pilots.get(pilot);
+        if (pilotBest === undefined || totalTime < pilotBest) bestSet.pilots.set(pilot, totalTime);
+      }
+      setPilotBest(pilot, lapCount, bestLapTime, totalTime);
+    });
+    return {
+      bestLap,
+      bestSets: Array.from(bestSets.values())
+        .map(record => ({ ...record, pilots: Array.from(record.pilots, ([pilot, totalMs]) => ({ pilot, totalMs })) }))
+        .sort((a, b) => a.lapCount - b.lapCount),
+      pilots: Array.from(pilots.values())
+        .map(record => ({
+          pilot: record.pilot,
+          bestLap: record.bestLap,
+          bestSets: Array.from(record.bestSets, ([lapCount, totalMs]) => ({ lapCount, totalMs }))
+            .sort((a, b) => a.lapCount - b.lapCount),
+        }))
+        .sort((a, b) => (a.bestLap ?? Infinity) - (b.bestLap ?? Infinity)),
+    };
+  }
+  function appendTrackRecord(container, label, value) {
+    const row = document.createElement('div');
+    row.className = 'track-record-summary';
+    const title = document.createElement('span');
+    title.textContent = label;
+    const result = document.createElement('strong');
+    result.textContent = value;
+    row.appendChild(title);
+    row.appendChild(result);
+    container.appendChild(row);
+  }
+  function renderTrackRecords(container, sets, trackId) {
+    const records = trackRecords(sets, trackId);
+    if (!records.bestLap && !records.bestSets.length) {
+      const empty = document.createElement('p');
+      empty.className = 'hint';
+      empty.textContent = t('track_no_records');
+      container.appendChild(empty);
+      return;
+    }
+    const title = document.createElement('h3');
+    title.className = 'track-records-title';
+    title.textContent = t('track_records');
+    container.appendChild(title);
+    const overall = document.createElement('div');
+    overall.className = 'track-record-overall';
+    appendTrackRecord(overall, t('track_best_lap'), records.bestLap
+      ? `${pilotLabel(records.bestLap.pilot)} · ${fmt(records.bestLap.duration)}`
+      : '–');
+    records.bestSets.forEach(record => {
+      const title = t('track_best_set').replace('{laps}', record.lapCount);
+      appendTrackRecord(overall, title, `${pilotLabel(record.pilot)} · ${fmt(record.totalMs)}`);
+    });
+    container.appendChild(overall);
+
+    if (!records.pilots.length) return;
+    const pilotsTitle = document.createElement('h3');
+    pilotsTitle.className = 'track-records-title';
+    pilotsTitle.textContent = t('track_pilot_records');
+    container.appendChild(pilotsTitle);
+    const table = document.createElement('table');
+    const head = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    [t('track_pilot'), t('track_best_lap')].forEach(text => {
+      const th = document.createElement('th');
+      th.textContent = text;
+      headRow.appendChild(th);
+    });
+    records.bestSets.forEach(record => {
+      const th = document.createElement('th');
+      th.textContent = t('track_set_count').replace('{laps}', record.lapCount);
+      headRow.appendChild(th);
+    });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    const body = document.createElement('tbody');
+    records.pilots.forEach(record => {
+      const row = document.createElement('tr');
+      const cells = [pilotLabel(record.pilot), record.bestLap === null ? '–' : fmt(record.bestLap)];
+      const pilotBestSets = new Map(record.bestSets.map(best => [best.lapCount, best.totalMs]));
+      records.bestSets.forEach(best => {
+        cells.push(pilotBestSets.has(best.lapCount) ? fmt(pilotBestSets.get(best.lapCount)) : '–');
+      });
+      cells.forEach((text, index) => {
+        const cell = document.createElement('td');
+        cell.textContent = text;
+        if (index > 0) cell.className = 'track-record-time';
+        row.appendChild(cell);
+      });
+      body.appendChild(row);
+    });
+    table.appendChild(body);
+    container.appendChild(table);
+  }
+  function timerBusy() {
+    return state.raceActive || state.countdownActive || state.awaitingStart;
+  }
+  function syncActiveTrackSelect() {
+    const busy = timerBusy();
+    if (els.activeTrackSelect) {
+      els.activeTrackSelect.value = state.activeTrackId;
+      els.activeTrackSelect.disabled = busy || !state.tracks.length;
+    }
+    if (els.rankedToggle) {
+      els.rankedToggle.checked = state.rankedMode;
+      els.rankedToggle.disabled = busy;
+    }
+    if (els.btnTrackAdd) els.btnTrackAdd.disabled = busy;
+    if (els.tracksList) {
+      els.tracksList.querySelectorAll('[data-track-select], [data-track-delete]').forEach(button => {
+        button.disabled = busy;
+      });
+    }
+  }
+  function renderTracks() {
+    if (els.activeTrackSelect) {
+      const select = els.activeTrackSelect;
+      select.replaceChildren();
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = state.tracks.length ? t('track_select_empty') : t('track_none_available');
+      select.appendChild(placeholder);
+      state.tracks.forEach(track => {
+        const option = document.createElement('option');
+        option.value = track.id;
+        option.textContent = track.name;
+        select.appendChild(option);
+      });
+      syncActiveTrackSelect();
+    }
+    if (!els.tracksList) return;
+    const list = els.tracksList;
+    list.replaceChildren();
+    const tracks = state.tracks.slice().sort((a, b) =>
+      (a.id === state.activeTrackId ? -1 : b.id === state.activeTrackId ? 1 : 0));
+    tracks.forEach(track => {
+      const card = document.createElement('section');
+      card.className = 'track-card' + (track.id === state.activeTrackId ? ' is-active' : '');
+      const head = document.createElement('div');
+      head.className = 'track-card-head';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.maxLength = 60;
+      nameInput.className = 'track-name-input';
+      nameInput.value = track.name;
+      const editing = trackEditingId === track.id;
+      nameInput.disabled = !editing;
+      nameInput.setAttribute('aria-label', track.name);
+      head.appendChild(nameInput);
+      const descriptionInput = document.createElement('textarea');
+      descriptionInput.className = 'track-description-input';
+      descriptionInput.maxLength = 500;
+      descriptionInput.rows = 2;
+      descriptionInput.value = track.description || '';
+      descriptionInput.placeholder = t('track_description_placeholder');
+      descriptionInput.disabled = !editing;
+      descriptionInput.setAttribute('aria-label', t('track_description_placeholder') + ': ' + track.name);
+      if (track.id === state.activeTrackId) {
+        const badge = document.createElement('span');
+        badge.className = 'track-active-badge';
+        badge.textContent = t('track_active');
+        head.appendChild(badge);
+      }
+      const actions = document.createElement('div');
+      actions.className = 'track-actions';
+      if (track.id !== state.activeTrackId) {
+        const activate = document.createElement('button');
+        activate.type = 'button';
+        activate.dataset.trackSelect = '';
+        activate.textContent = t('track_make_active');
+        activate.disabled = timerBusy();
+        activate.addEventListener('click', () => activateTrack(track.id));
+        actions.appendChild(activate);
+      }
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.textContent = t(editing ? 'track_save' : 'track_edit');
+      edit.addEventListener('click', () => {
+        if (editing) {
+          const nextName = nameInput.value.trim();
+          if (!nextName) { toast(t('track_name_required')); nameInput.focus(); return; }
+          if (state.tracks.some(other => other.id !== track.id && other.name.toLowerCase() === nextName.toLowerCase())) {
+            toast(t('track_name_taken').replace('{name}', nextName));
+            nameInput.focus();
+            return;
+          }
+          track.name = nextName;
+          track.description = descriptionInput.value.trim();
+          trackEditingId = '';
+          saveSettings();
+        } else {
+          trackEditingId = track.id;
+        }
+        renderTracks();
+        if (!editing) {
+          const nextInput = Array.from(els.tracksList.querySelectorAll('.track-name-input'))
+            .find(input => input.value === track.name);
+          if (nextInput) nextInput.focus();
+        }
+      });
+      actions.appendChild(edit);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'track-delete';
+      remove.dataset.trackDelete = '';
+      remove.textContent = t('track_delete');
+      remove.disabled = timerBusy();
+      remove.addEventListener('click', () => deleteTrack(track.id));
+      actions.appendChild(remove);
+      head.appendChild(actions);
+      card.appendChild(head);
+      if (editing || track.description) card.appendChild(descriptionInput);
+      const records = document.createElement('div');
+      records.className = 'track-records';
+      renderTrackRecords(records, trackSets(track.id), track.id);
+      card.appendChild(records);
+      list.appendChild(card);
+    });
+    const unassignedSets = trackSets('');
+    if (unassignedSets.length) {
+      const card = document.createElement('section');
+      card.className = 'track-card track-unassigned';
+      const title = document.createElement('strong');
+      title.textContent = t('track_unassigned');
+      card.appendChild(title);
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = t('track_unassigned_hint');
+      card.appendChild(hint);
+      const records = document.createElement('div');
+      records.className = 'track-records';
+      renderTrackRecords(records, unassignedSets);
+      card.appendChild(records);
+      list.appendChild(card);
+    }
+    if (!tracks.length && !unassignedSets.length) {
+      const empty = document.createElement('p');
+      empty.className = 'set-empty';
+      empty.textContent = t('track_name_required');
+      list.appendChild(empty);
+    }
+    if (els.btnTrackAdd) els.btnTrackAdd.disabled = timerBusy();
+  }
+  function addTrack(name) {
+    name = (name || '').trim();
+    if (!name) { toast(t('track_name_required')); return false; }
+    if (timerBusy()) { toast(t('track_running')); return false; }
+    if (state.tracks.some(track => track.name.toLowerCase() === name.toLowerCase())) {
+      toast(t('track_name_taken').replace('{name}', name));
+      return false;
+    }
+    let id;
+    do { id = 'track-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+    while (state.tracks.some(track => track.id === id));
+    state.tracks.push({ id, name, description: '' });
+    state.activeTrackId = id;
+    trackEditingId = '';
+    saveSettings();
+    renderTracks();
+    return true;
+  }
+  function activateTrack(id) {
+    if (timerBusy() || !state.tracks.some(track => track.id === id)) return false;
+    state.activeTrackId = id;
+    saveSettings();
+    renderTracks();
+    return true;
+  }
+  function deleteTrack(id) {
+    const track = state.tracks.find(item => item.id === id);
+    if (!track) return;
+    if (timerBusy()) { toast(t('track_running')); return; }
+    if (!askConfirm(t('track_delete_confirm').replace('{name}', track.name))) return;
+    state.sets.forEach(set => { if (set.trackId === id) set.trackId = null; });
+    saveSets();
+    state.tracks = state.tracks.filter(item => item.id !== id);
+    if (state.activeTrackId === id) state.activeTrackId = state.tracks[0]?.id || '';
+    if (trackEditingId === id) trackEditingId = '';
+    saveSettings();
+    renderTracks();
+    renderSets();
+  }
+  function openTracks() {
+    if (!els.tracksScreen) return;
+    if (els.homeScreen) els.homeScreen.hidden = true;
+    if (els.kwadScreen) els.kwadScreen.hidden = true;
+    if (els.pilotsScreen) els.pilotsScreen.hidden = true;
+    els.tracksScreen.hidden = false;
+    if (els.btnHome) els.btnHome.hidden = false;
+    if (els.btnSettings) els.btnSettings.hidden = true;
+    renderTracks();
+    els.tracksScreen.scrollTop = 0;
+  }
+  if (els.tileTracks) els.tileTracks.addEventListener('click', openTracks);
+  if (els.activeTrackSelect) {
+    els.activeTrackSelect.addEventListener('change', e => {
+      if (timerBusy()) { syncActiveTrackSelect(); return; }
+      state.activeTrackId = state.tracks.some(track => track.id === e.target.value) ? e.target.value : '';
+      saveSettings();
+      renderTracks();
+    });
+  }
+  if (els.btnTrackAdd) els.btnTrackAdd.addEventListener('click', () => {
+    if (addTrack(els.trackNameInput.value)) els.trackNameInput.value = '';
+  });
+  if (els.trackNameInput) els.trackNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); if (els.btnTrackAdd) els.btnTrackAdd.click(); }
+  });
+
   function openPilots() {
     if (!els.pilotsScreen) return;
     if (els.homeScreen) els.homeScreen.hidden = true;
     if (els.kwadScreen) els.kwadScreen.hidden = true;
     els.pilotsScreen.hidden = false;
+    if (els.tracksScreen) els.tracksScreen.hidden = true;
     if (els.btnHome) els.btnHome.hidden = false;
     // The topbar gear is the app-settings gear for the home screen only.
     if (els.btnSettings) els.btnSettings.hidden = true;
@@ -4993,6 +5731,12 @@
     saveSettings();
     // Start on the home screen — the app's features (Timer, …) are opened from here.
     openHome();
+    setInterval(() => {
+      if (!state.countdownActive && !state.raceActive) return;
+      const now = performance.now();
+      updateCountdown(now);
+      updateTimers();
+    }, 50);
   }
 
   window.addEventListener('resize', () => { drawOverlay(); renderChart(); });
