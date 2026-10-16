@@ -426,6 +426,10 @@ check('S25: the export covers every group in the current language',
   && /kwadTrickName\(trick\)/.test(app)
   && /kwadTrickDesc\(trick\)/.test(app)
   && /kwadTrickEnabled\(owner, trick\) \? 'yes' : 'no'/.test(app));
+check('S25a: built-in trick IDs are registered only after categories initialize',
+  app.indexOf('const KWAD_CATEGORIES = {') !== -1
+  && app.indexOf("KWAD_BUILTIN_IDS.set(trick, cat.id + '/' + trick.name)")
+    > app.indexOf('const KWAD_CATEGORIES = {'));
 check('S26: each player panel folds itself (a <details> whose first child is its summary)',
   /const panel = document\.createElement\('details'\);/.test(app)
   && /const head = document\.createElement\('summary'\);/.test(app)
@@ -543,10 +547,10 @@ check('P17: the pilot colour is adjustable later from inside the profile',
   && /\.pilot-color-row input\[type="color"\] \{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v61'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.29\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v62'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.29\.1'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.29\.0"/.test(pkg));
+  /"version": "0\.29\.1"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {

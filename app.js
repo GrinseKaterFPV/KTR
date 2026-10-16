@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.29.0';
+  const APP_VERSION = '0.29.1';
 
   // ---------- i18n ----------
   const I18N = {
@@ -660,20 +660,6 @@
   };
   const KWAD_BUILTIN_IDS = new WeakMap();
   const KWAD_BUILTIN_DEFAULTS = new WeakMap();
-  Object.values(KWAD_CATEGORIES).forEach(cat => {
-    if (cat.id === 'custom') return;
-    cat.tricks.forEach(trick => {
-      KWAD_BUILTIN_IDS.set(trick, cat.id + '/' + trick.name);
-      KWAD_BUILTIN_DEFAULTS.set(trick, {
-        name: trick.name,
-        desc: trick.desc,
-        en: trick.en ? { ...trick.en } : undefined,
-        check: trick.check,
-        difficulty: trick.difficulty,
-        direction: trick.direction || '',
-      });
-    });
-  });
 
   const els = {
     video: document.getElementById('video'),
@@ -3586,6 +3572,20 @@
       tricks: [] // user-defined tricks stored in localStorage
     }
   };
+  Object.values(KWAD_CATEGORIES).forEach(cat => {
+    if (cat.id === 'custom') return;
+    cat.tricks.forEach(trick => {
+      KWAD_BUILTIN_IDS.set(trick, cat.id + '/' + trick.name);
+      KWAD_BUILTIN_DEFAULTS.set(trick, {
+        name: trick.name,
+        desc: trick.desc,
+        en: trick.en ? { ...trick.en } : undefined,
+        check: trick.check,
+        difficulty: trick.difficulty,
+        direction: trick.direction || '',
+      });
+    });
+  });
 
   // Prüfart of a trick ('free' when an old/custom entry does not carry one yet).
   // 'gate' was the value up to v0.19 — saves from back then still carry it, so
