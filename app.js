@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '0.19.0';
+  const APP_VERSION = '0.20.0';
 
   // ---------- i18n ----------
   const I18N = {
@@ -21,10 +21,18 @@
       m_pilots: 'Piloten',
       m_pilots_desc: 'Profile, Farben & Vergleich',
       pilots_hint: 'Piloten mit Name und Farbe anlegen. Die Farbe wird in Diagramm und Vergleichstabelle verwendet.',
-      pilots_active_hint: 'Tippe einen Piloten an, um ihn als aktiven Piloten zu wählen.',
+      pilots_active_hint: 'Tippe ein Profil an, um Statistik und Verwaltung zu öffnen. Mit ★ wählst du den aktiven Piloten.',
       export_pilots: 'Piloten exportieren (CSV)',
       pilot_delete: 'Pilot löschen',
       pilot_screen_empty: 'Noch keine Piloten angelegt.',
+      pilot_active: 'aktiv',
+      pilot_select: 'Als aktiven Piloten wählen',
+      pilot_manage: 'Profil verwalten',
+      pilot_rename: 'Umbenennen',
+      pilot_rename_taken: 'Der Name „{name}“ ist schon vergeben.',
+      pilot_stats_reset: 'Statistik zurücksetzen',
+      pilot_reset_confirm: 'Trick-Statistiken von „{name}“ wirklich zurücksetzen?',
+      pilot_delete_confirm: 'Profil „{name}“ mit seinen Trick-Statistiken wirklich löschen?',
       kwad_hint: 'Trick ansagen – wer ihn nicht schafft, bekommt einen Buchstaben. Wer zuerst K, W, A und D hat, verliert.',
       kwad_trick: 'Trick',
       kwad_new_trick: 'Neuer Trick',
@@ -73,7 +81,7 @@
       kwad_enabled: 'Aktiv',
       kwad_check: 'Prüfart',
       kwad_check_free: 'Freiflug',
-      kwad_check_gate: 'Tor / Gate',
+      kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Hindernis',
       kwad_obstacle_hint: 'Hindernis-Trick – die Gruppe bestimmt das Hindernis',
       kwad_obstacle_picker: 'Hindernisauswähler',
@@ -242,10 +250,18 @@
       m_pilots: 'Pilots',
       m_pilots_desc: 'Profiles, colours & comparison',
       pilots_hint: 'Create pilots with a name and colour. The colour is used in the chart and the comparison table.',
-      pilots_active_hint: 'Tap a pilot to make it the active pilot.',
+      pilots_active_hint: 'Tap a profile to open its statistics and management tools. Use ★ to pick the active pilot.',
       export_pilots: 'Export pilots (CSV)',
       pilot_delete: 'Delete pilot',
       pilot_screen_empty: 'No pilots yet.',
+      pilot_active: 'active',
+      pilot_select: 'Set as active pilot',
+      pilot_manage: 'Manage profile',
+      pilot_rename: 'Rename',
+      pilot_rename_taken: 'The name “{name}” is already taken.',
+      pilot_stats_reset: 'Reset statistics',
+      pilot_reset_confirm: 'Really reset the trick statistics of “{name}”?',
+      pilot_delete_confirm: 'Really delete the profile “{name}” together with its trick statistics?',
       kwad_hint: 'Call a trick – whoever cannot fly it collects a letter. The first to hold K, W, A and D loses.',
       kwad_trick: 'Trick',
       kwad_new_trick: 'New trick',
@@ -294,7 +310,7 @@
       kwad_enabled: 'Enabled',
       kwad_check: 'Check',
       kwad_check_free: 'Free flight',
-      kwad_check_gate: 'Gate',
+      kwad_check_gap: 'Gap',
       kwad_check_obstacle: 'Obstacle',
       kwad_obstacle_hint: 'Obstacle trick – the group decides the obstacle',
       kwad_obstacle_picker: 'Obstacle picker',
@@ -1565,6 +1581,7 @@
       applyAccent(state.accent, false);
       applyLanguage();
       renderPilots();
+      if (typeof renderPilotsScreen === 'function') renderPilotsScreen();
       renderLaps();
       renderSets();
       renderKwad();
@@ -2755,48 +2772,235 @@
       chip.addEventListener('click', () => { state.currentPilot = name; if (els.pilotName) els.pilotName.value = name; ensurePilotColorInput(); renderPilots(); saveSettings(); });
       els.pilots.appendChild(chip);
     });
-    renderPilotsScreen();
+    if (typeof renderPilotsScreen === 'function') renderPilotsScreen();
     renderSets();
   }
 
-  // Dedicated "Piloten" screen: full profile workflow (name + colour, select,
-  // delete) with the comparison table and a CSV export.
+  // Profiles that are open on the Piloten screen — remembered so a re-render
+  // (rename, new pilot, language change) does not collapse them again.
+  const pilotOpen = new Set();
+
+  // Headline numbers of one profile, shown in the collapsed profile row.
+  function pilotStatTotals(name) {
+    const bucket = kwadPlayerStats[name] || {};
+    const attempted = kwadTotalAttempts(bucket);
+    const succeeded = kwadTotalSucceeded(bucket);
+    return { attempted, succeeded, rate: kwadRate(succeeded, attempted) };
+  }
+
+  // Destructive actions only run after a real confirmation.
+  function askConfirm(message) {
+    try { return typeof confirm === 'function' ? confirm(message) === true : false; }
+    catch { return false; }
+  }
+
+  // Reflect a new active pilot without rebuilding the list: a full re-render
+  // would race against the open/closed state of the <details> profiles.
+  function syncPilotCards() {
+    const list = els.pilotsScreenList;
+    if (!list || !list.querySelectorAll) return;
+    Array.prototype.forEach.call(list.querySelectorAll('.pilot-profile'), card => {
+      const name = card.dataset ? card.dataset.name : '';
+      if (!name) return;
+      const active = state.currentPilot === name;
+      const col = pilotColor(name);
+      card.classList.toggle('is-active', active);
+      const chip = card.querySelector('.pilot-profile-chip');
+      if (chip) {
+        chip.classList.toggle('active', active);
+        chip.style.borderColor = col;
+        chip.style.color = active ? '#0b0f14' : col;
+        chip.style.background = active ? col : '';
+      }
+      const badge = card.querySelector('.pilot-badge');
+      if (badge) badge.hidden = !active;
+      const star = card.querySelector('.pilot-activate');
+      if (star) {
+        star.classList.toggle('on', active);
+        star.setAttribute('aria-pressed', active ? 'true' : 'false');
+      }
+    });
+  }
+
+  // Rename a profile. Everything that stores the name follows — colour, active
+  // pilot, open card and (via kwadRenameProfile) the statistics — so the K.W.A.D.
+  // history stays with the person behind the profile.
+  function renamePilot(oldName, newName) {
+    newName = (newName || '').trim();
+    if (!newName || newName === oldName) return false;
+    if (state.pilots.some(n => n.toLowerCase() === newName.toLowerCase())) return false;
+    const i = state.pilots.indexOf(oldName);
+    if (i === -1) return false;
+    state.pilots[i] = newName;
+    if (state.pilotColors) {
+      state.pilotColors[newName] = state.pilotColors[oldName] || pilotColor(oldName);
+      delete state.pilotColors[oldName];
+    }
+    if (state.currentPilot === oldName) state.currentPilot = newName;
+    if (pilotOpen.has(oldName)) { pilotOpen.delete(oldName); pilotOpen.add(newName); }
+    kwadRenameProfile(oldName, newName);
+    renderPilots();
+    saveSettings();
+    return true;
+  }
+
+  // Dedicated "Piloten" screen: every profile expands to show its K.W.A.D.
+  // statistics plus the tools to manage it (active pilot, rename, reset, delete),
+  // followed by the comparison table and a CSV export.
   function renderPilotsScreen() {
     if (!els.pilotsScreenList) return;
-    els.pilotsScreenList.innerHTML = '';
+    const list = els.pilotsScreenList;
+    list.innerHTML = '';
     if (!state.pilots.length) {
       const empty = document.createElement('div');
       empty.className = 'set-empty';
       empty.textContent = t('pilot_screen_empty');
-      els.pilotsScreenList.appendChild(empty);
+      list.appendChild(empty);
     }
     state.pilots.forEach(name => {
-      const chip = document.createElement('div');
       const active = state.currentPilot === name;
       const col = pilotColor(name);
-      chip.className = 'pilot-chip' + (active ? ' active' : '');
-      chip.textContent = name;
+      const totals = pilotStatTotals(name);
+
+      const card = document.createElement('details');
+      card.className = 'pilot-profile' + (active ? ' is-active' : '');
+      card.dataset.name = name;
+      card.open = pilotOpen.has(name);
+      card.addEventListener('toggle', () => {
+        // A detached card can still fire a queued toggle — ignore it.
+        if (card.isConnected === false) return;
+        if (card.open) pilotOpen.add(name); else pilotOpen.delete(name);
+      });
+
+      const sum = document.createElement('summary');
+      sum.className = 'pilot-profile-summary';
+
+      const chip = document.createElement('span');
+      chip.className = 'pilot-chip pilot-profile-chip' + (active ? ' active' : '');
       chip.style.borderColor = col;
       chip.style.color = active ? '#0b0f14' : col;
       if (active) chip.style.background = col;
-      chip.title = t('pilots_active_hint');
-      chip.addEventListener('click', () => {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      if (dot.style) dot.style.background = col;
+      const label = document.createElement('span');
+      label.className = 'pilot-profile-name';
+      label.textContent = name;
+      const badge = document.createElement('span');
+      badge.className = 'pilot-badge';
+      badge.textContent = t('pilot_active');
+      badge.hidden = !active;
+      chip.appendChild(dot);
+      chip.appendChild(label);
+      chip.appendChild(badge);
+      sum.appendChild(chip);
+
+      // "Versucht 12 · Quote 58 %" — the profile in one glance.
+      const meta = document.createElement('span');
+      meta.className = 'pilot-profile-meta' + (totals.attempted ? '' : ' is-empty');
+      meta.textContent = totals.attempted
+        ? t('kwad_stats_attempted') + ' ' + totals.attempted + ' · ' + t('kwad_stats_rate') + ' ' + totals.rate
+        : t('kwad_stats_empty');
+      sum.appendChild(meta);
+
+      const actions = document.createElement('span');
+      actions.className = 'pilot-profile-actions';
+
+      const star = document.createElement('button');
+      star.type = 'button';
+      star.className = 'pilot-activate' + (active ? ' on' : '');
+      star.textContent = '★';
+      star.title = t('pilot_select');
+      star.setAttribute('aria-label', t('pilot_select') + ': ' + name);
+      star.setAttribute('aria-pressed', active ? 'true' : 'false');
+      star.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (state.currentPilot === name) return;
         state.currentPilot = name;
         if (els.pilotName) els.pilotName.value = name;
         if (els.pilotScreenName) els.pilotScreenName.value = name;
         ensurePilotColorInput();
-        renderPilots();
         saveSettings();
+        syncPilotCards();
       });
+
       const rm = document.createElement('button');
       rm.type = 'button';
       rm.className = 'pilot-remove';
       rm.textContent = '✕';
       rm.title = t('pilot_delete');
       rm.setAttribute('aria-label', t('pilot_delete') + ': ' + name);
-      rm.addEventListener('click', e => { e.stopPropagation(); removePilot(name); });
-      chip.appendChild(rm);
-      els.pilotsScreenList.appendChild(chip);
+      rm.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!askConfirm(t('pilot_delete_confirm').replace('{name}', name))) return;
+        removePilot(name);
+      });
+
+      actions.appendChild(star);
+      actions.appendChild(rm);
+      sum.appendChild(actions);
+      card.appendChild(sum);
+
+      const body = document.createElement('div');
+      body.className = 'pilot-profile-body';
+
+      const stats = document.createElement('div');
+      stats.className = 'pilot-profile-stats';
+      stats.appendChild(kwadStatPanel(t('kwad_stats'), '', kwadPlayerStats[name] || {}));
+      body.appendChild(stats);
+
+      const tools = document.createElement('div');
+      tools.className = 'pilot-profile-tools';
+      const cap = document.createElement('div');
+      cap.className = 'small-label';
+      cap.textContent = t('pilot_manage');
+      tools.appendChild(cap);
+
+      const row = document.createElement('div');
+      row.className = 'pilot-rename-row';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'pilot-rename';
+      input.value = name;
+      input.placeholder = t('pilot_name');
+      input.setAttribute('aria-label', t('pilot_name') + ': ' + name);
+      const renameBtn = document.createElement('button');
+      renameBtn.type = 'button';
+      renameBtn.className = 'pilot-rename-btn';
+      renameBtn.textContent = t('pilot_rename');
+      const applyRename = () => {
+        const next = (input.value || '').trim();
+        if (!next || next.toLowerCase() === name.toLowerCase()) { input.value = name; return; }
+        if (!renamePilot(name, next)) {
+          input.value = name;
+          toast(t('pilot_rename_taken').replace('{name}', next), 2400);
+        }
+      };
+      renameBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); applyRename(); });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyRename(); } });
+      row.appendChild(input);
+      row.appendChild(renameBtn);
+      tools.appendChild(row);
+
+      const reset = document.createElement('button');
+      reset.type = 'button';
+      reset.className = 'pilot-stats-reset';
+      reset.textContent = t('pilot_stats_reset');
+      reset.disabled = !totals.attempted;
+      reset.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!askConfirm(t('pilot_reset_confirm').replace('{name}', name))) return;
+        kwadDropProfileStats(name);
+        renderPilots();
+      });
+      tools.appendChild(reset);
+      body.appendChild(tools);
+      card.appendChild(body);
+
+      list.appendChild(card);
     });
     if (els.pilotScreenColor) els.pilotScreenColor.value = nextPilotColor();
   }
@@ -2817,6 +3021,9 @@
     state.pilots.splice(idx, 1);
     if (state.pilotColors) delete state.pilotColors[name];
     if (state.currentPilot === name) state.currentPilot = state.pilots[0] || null;
+    // The profile takes its statistics with it — the caller confirms this.
+    kwadDropProfileStats(name);
+    pilotOpen.delete(name);
     renderPilots();
     saveSettings();
   }
@@ -2829,7 +3036,7 @@
     if (els.btnHome) els.btnHome.hidden = false;
     // The topbar gear is the app-settings gear for the home screen only.
     if (els.btnSettings) els.btnSettings.hidden = true;
-    renderPilotsScreen();
+    if (typeof renderPilotsScreen === 'function') renderPilotsScreen();
     els.pilotsScreen.scrollTop = 0;
   }
   if (els.tilePilots) els.tilePilots.addEventListener('click', openPilots);
@@ -3037,7 +3244,7 @@
   const KWAD_LETTERS = 'KWAD';
 
   // --- Trick Categories with difficulty (1-5), descriptions, and default enabled state ---
-  // `check` is the Prüfart: 'free' (Freiflug), 'gate' (Tor/Gate), 'obstacle' (Hindernis).
+  // `check` is the Prüfart: 'free' (Freiflug), 'gap' (Gap), 'obstacle' (Hindernis).
   // A trick marked 'obstacle' makes the game ask the group who picks the obstacle.
   const KWAD_CATEGORIES = {
     basics: {
@@ -3047,9 +3254,9 @@
       difficulty: 1,
       enabled: true,
       tricks: [
-        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gate' },
-        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gate' },
-        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gate' },
+        { name: 'Dive', desc: 'Steiler Sturzflug durch das Gap, dann Pull-up', check: 'gap' },
+        { name: 'Gap Roll', desc: 'Eine Rolle (Roll) genau im Gap', check: 'gap' },
+        { name: 'Straight Pass', desc: 'Sauberer Geradeaus-Flug durch das Gap', check: 'gap' },
         { name: 'Level Pass', desc: 'Höhe halten, ohne zu steigen oder zu fallen', check: 'free' },
       ]
     },
@@ -3060,7 +3267,7 @@
       difficulty: 2,
       enabled: true,
       tricks: [
-        { name: 'Power Loop', desc: 'Looping über das Tor (Rückwärts-Loop)', check: 'gate' },
+        { name: 'Power Loop', desc: 'Looping über das Gap (Rückwärts-Loop)', check: 'gap' },
         { name: 'Split-S', desc: 'Halber Loop nach unten, dann halber Roll', check: 'free' },
         { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis (Flagge, Tor, Baum)', check: 'obstacle' },
         { name: 'Yaw Spin', desc: 'Schnelle 360°-Drehung um die Yaw-Achse', check: 'free' },
@@ -3078,9 +3285,9 @@
         { name: 'Matty Flip', desc: 'Rückwärts-Flip mit 180° Yaw (Matty Stuntz Style)', check: 'free' },
         { name: 'Juicy Flick', desc: 'Schneller Pitch + Roll + Yaw Combo (Freestyle-Klassiker)', check: 'free' },
         { name: 'Trippy Spin', desc: 'Mehrfache Rotation um mehrere Achsen gleichzeitig', check: 'free' },
-        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Tor', check: 'gate' },
-        { name: 'Backwards Pass', desc: 'Rückwärts durch das Tor fliegen', check: 'gate' },
-        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Tor', check: 'gate' },
+        { name: 'Inverted Pass', desc: 'Auf dem Rücken (inverted) durch das Gap', check: 'gap' },
+        { name: 'Backwards Pass', desc: 'Rückwärts durch das Gap fliegen', check: 'gap' },
+        { name: 'Knife Edge', desc: 'Auf der Seite (90° Roll) durch das Gap', check: 'gap' },
       ]
     },
     pro: {
@@ -3108,9 +3315,12 @@
   };
 
   // Prüfart of a trick ('free' when an old/custom entry does not carry one yet).
+  // 'gate' was the value up to v0.19 — saves from back then still carry it, so
+  // it is mapped onto today's 'gap' instead of falling back to 'free'.
   function kwadCheck(trick) {
     const c = trick && trick.check;
-    return (c === 'gate' || c === 'obstacle') ? c : 'free';
+    if (c === 'gate') return 'gap';
+    return (c === 'gap' || c === 'obstacle') ? c : 'free';
   }
 
   // Difficulty 1-5 of a trick: its own value wins, otherwise the one of its
@@ -3614,6 +3824,58 @@
     toast(t('kwad_undone').replace('{letter}', letter || '').replace('{name}', p.name), 2000);
     renderKwad();
     renderKwadStats();
+  }
+
+  // Drop all per-player statistics of a profile. The global "Gesamt" aggregate
+  // loses exactly those attempts, so the panels keep adding up to the same number.
+  function kwadDropProfileStats(playerName) {
+    const bucket = playerName && kwadPlayerStats[playerName];
+    if (!bucket) return;
+    delete kwadPlayerStats[playerName];
+    Object.keys(bucket).forEach(trick => {
+      const total = kwadStats[trick];
+      const s = bucket[trick];
+      if (!total || !s) return;
+      total.attempted = Math.max(0, (total.attempted || 0) - (s.attempted || 0));
+      total.succeeded = Math.max(0, (total.succeeded || 0) - (s.succeeded || 0));
+      if (!total.attempted && !total.succeeded) delete kwadStats[trick];
+    });
+    kwadSaveStats();
+  }
+
+  // Rename a player's bucket when their profile is renamed. The trick keys stay
+  // intact, so the stats still match the drawn trick names.
+  function kwadRenameProfile(oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return;
+    if (kwadPlayerStats[oldName]) {
+      if (kwadPlayerStats[newName]) {
+        // Merge: add attempts/succeeded into the new bucket.
+        const src = kwadPlayerStats[oldName];
+        const dst = kwadPlayerStats[newName];
+        Object.keys(src).forEach(trk => {
+          if (!dst[trk]) dst[trk] = { attempted: src[trk].attempted || 0, succeeded: src[trk].succeeded || 0 };
+          else {
+            dst[trk].attempted = (dst[trk].attempted || 0) + (src[trk].attempted || 0);
+            dst[trk].succeeded = (dst[trk].succeeded || 0) + (src[trk].succeeded || 0);
+          }
+        });
+        delete kwadPlayerStats[oldName];
+      } else {
+        kwadPlayerStats[newName] = kwadPlayerStats[oldName];
+        delete kwadPlayerStats[oldName];
+      }
+      kwadSaveStats();
+    }
+    kwadPlayers.forEach(p => {
+      if (p.name === oldName) p.name = newName;
+    });
+    const tried = kwadTried.indexOf(oldName);
+    if (tried !== -1) kwadTried[tried] = newName;
+    if (kwadObstaclePicker === oldName) kwadObstaclePicker = newName;
+    kwadSave();
+    kwadSaveObstaclePicker();
+    renderKwadStats();
+    renderKwad();
   }
 
   // Record one judged attempt. It lands in the global aggregate (all players)

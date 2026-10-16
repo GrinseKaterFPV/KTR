@@ -13,16 +13,16 @@ const KWAD_CATEGORIES = {
   basics: {
     id: 'basics', label: 'Basics', emoji: '🟢', difficulty: 1, enabled: true,
     tricks: [
-      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gate' },
+      { name: 'Dive', desc: 'Steiler Sturzflug', check: 'gap' },
       { name: 'Punch Out', desc: 'Schneller Vorwärts-Schub', check: 'free' },
-      { name: 'Gate Roll', desc: 'Eine Rolle im Tor', check: 'gate' },
+      { name: 'Gap Roll', desc: 'Eine Rolle im Gap', check: 'gap' },
       { name: 'Orbit', desc: 'Kreisfahrt um ein Hindernis', check: 'obstacle' },
     ]
   },
   intermediate: {
     id: 'intermediate', label: 'Intermediate', emoji: '🟡', difficulty: 2, enabled: true,
     tricks: [
-      { name: 'Power Loop', desc: 'Looping über das Tor' },
+      { name: 'Power Loop', desc: 'Looping über das Gap' },
       { name: 'Split-S', desc: 'Halber Loop nach unten' },
     ]
   },
@@ -79,6 +79,9 @@ const body = [
   extract('kwadBuildTrickPool'),
   extract('kwadRecordStat'),
   extract('kwadSaveStats'),
+  extract('kwadSaveObstaclePicker'),
+  extract('kwadDropProfileStats'),
+  extract('kwadRenameProfile'),
   extract('kwadTotalAttempts'),
   extract('kwadTotalSucceeded'),
   extract('kwadRate'),
@@ -119,6 +122,8 @@ const body = [
     'apiObj.renderKwadStats = renderKwadStats;',
     'apiObj.kwadRecordStat = kwadRecordStat;',
     'apiObj.kwadSaveStats = kwadSaveStats;',
+    'apiObj.kwadDropProfileStats = kwadDropProfileStats;',
+    'apiObj.kwadRenameProfile = kwadRenameProfile;',
     'apiObj.renderKwad = renderKwad;',
     'apiObj.kwadRound = kwadRound;',
     'apiObj.kwadUndoPenalty = kwadUndoPenalty;',
@@ -309,7 +314,8 @@ check('U11: a finished game can still be undone', (function () {
 
 // --- Prüfart (check) + obstacle picker -------------------------------------
 check('C1: a trick without a check counts as free flight', api.kwadCheck({ name: 'X' }) === 'free');
-check('C2: a gate trick keeps its gate check', api.kwadCheck({ check: 'gate' }) === 'gate');
+check('C2: a gap trick keeps its gap check', api.kwadCheck({ check: 'gap' }) === 'gap');
+check('C2b: the legacy gate value from v0.19 is mapped onto gap', api.kwadCheck({ check: 'gate' }) === 'gap');
 check('C3: an obstacle trick is recognised', api.kwadCheck({ check: 'obstacle' }) === 'obstacle');
 check('C4: an unknown value falls back to free flight', api.kwadCheck({ check: 'nonsense' }) === 'free');
 check('C5: the drawn pool passes the Prüfart through',
@@ -400,12 +406,12 @@ check('P23: without any attempt the panels say so',
 
 // --- the drawn trick shows category, difficulty, Prüfart and description -----
 api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
-api.setTrick({ name: 'Dive', desc: 'Steiler Sturzflug', check: 'gate', category: 'basics' });
+api.setTrick({ name: 'Dive', desc: 'Steiler Sturzflug', check: 'gap', category: 'basics' });
 api.renderKwad();
 check('M1: the meta line is visible for a drawn trick', els.kwadTrickMeta.hidden === false);
 check('M2: it names the group', els.kwadTrickMeta.children[0].textContent === 'kwad_category_basics');
 check('M3: it shows the difficulty as stars', els.kwadTrickMeta.children[1].textContent === '★');
-check('M4: it shows the Prüfart', els.kwadTrickMeta.children[2].textContent === 'kwad_check_gate');
+check('M4: it shows the Prüfart', els.kwadTrickMeta.children[2].textContent === 'kwad_check_gap');
 check('M5: and the short description', els.kwadTrickMeta.children[3].textContent === 'Steiler Sturzflug');
 api.clearTrick();
 api.renderKwad();
@@ -425,7 +431,7 @@ check('T2: a row shows name, description, difficulty and Prüfart',
   diveRow.children[1].children[0].textContent === 'Dive'
   && diveRow.children[1].children[1].textContent === 'Steiler Sturzflug'
   && diveRow.children[2].textContent === '★'
-  && diveRow.children[3].textContent === 'kwad_check_gate');
+  && diveRow.children[3].textContent === 'kwad_check_gap');
 check('T3: every trick starts checked',
   tl.children[1].children[0].checked === true && tl.children[0].children[1].textContent === '5/5 kwad_tricks');
 api.setPool('basics', { name: 'Dive' }, false);
@@ -454,6 +460,41 @@ check('T9: the category grid shows one row per built-in group with its pool coun
   && api.categoryGrid().children[0].innerHTML.indexOf('5/5 kwad_tricks') !== -1);
 check('T10: the grid row still carries the category switch',
   api.categoryGrid().children[0].innerHTML.indexOf('data-cat="basics"') !== -1);
+
+// --- profile statistics: rename a profile, drop its statistics -------------
+api.setGame([{ name: 'Max', letters: '' }, { name: 'Lea', letters: '' }], 0);
+api.setTrick({ name: 'Dive' });
+api.setObstaclePicker('Max');
+api.kwadRound(false);                                   // Max fails -> bucket Max/Dive
+api.kwadRecordStat('Ghost', 'Orbit', true);             // a bucket that is not in the game
+check('R1: the failing profile owns its attempt', api.kwadPlayerStats()['Max']['Dive'].attempted === 1);
+check('R2: the global total counts it too', api.stats()['Dive'].attempted === 1 && api.stats()['Dive'].succeeded === 0);
+
+api.kwadRenameProfile('Max', 'Maxi');
+check('R3: the bucket moves to the new profile name',
+  !api.kwadPlayerStats()['Max'] && api.kwadPlayerStats()['Maxi']['Dive'].attempted === 1);
+check('R4: the running game carries the new name', api.players()[0].name === 'Maxi');
+check('R5: the tried list carries the new name', api.tried()[0] === 'Maxi');
+check('R6: the obstacle picker carries the new name', api.obstaclePicker() === 'Maxi');
+check('R7: the global total survives a rename',
+  api.stats()['Dive'].attempted === 1 && api.stats()['Dive'].succeeded === 0);
+
+api.kwadRenameProfile('Maxi', 'Maxi');
+check('R8: renaming to the same name is a no-op',
+  api.players()[0].name === 'Maxi' && api.kwadPlayerStats()['Maxi']['Dive'].attempted === 1);
+
+api.kwadRenameProfile('Maxi', 'Ghost');
+check('R9: renaming onto an existing bucket merges both',
+  !api.kwadPlayerStats()['Maxi']
+  && api.kwadPlayerStats()['Ghost']['Dive'].attempted === 1
+  && api.kwadPlayerStats()['Ghost']['Orbit'].succeeded === 1);
+
+api.kwadDropProfileStats('Ghost');
+check('R10: dropping a profile empties its bucket', !api.kwadPlayerStats()['Ghost']);
+check('R11: ... and takes its attempts out of the global total',
+  !api.stats()['Dive'] && !api.stats()['Orbit']);
+api.kwadDropProfileStats('nobody');
+check('R12: dropping an unknown profile is a harmless no-op', !api.kwadPlayerStats()['nobody']);
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
 process.exit(fail === 0 ? 0 : 1);

@@ -118,8 +118,12 @@ Jeder Trick trägt neben `name`, `desc` (Ansagetext) und der Kategorie-Schwierig
 | Prüfart | Schlüssel | Bedeutung |
 | --- | --- | --- |
 | **Freiflug** | `free` | Der Trick braucht kein Tor und kein Hindernis (z. B. Yaw Spin, Split-S) |
-| **Tor / Gate** | `gate` | Der Trick wird am/vor dem Tor geflogen (z. B. Dive, Gap Roll, Power Loop) |
+| **Gap** | `gap` | Der Trick wird durch/am Gap geflogen (z. B. Dive, Gap Roll, Power Loop) |
 | **Hindernis** | `obstacle` | Der Trick bezieht ein Hindernis ein (z. B. Orbit um eine Flagge, Wall Scrape entlang einer Wand) |
+
+> Bis v0.19 hieß der Schlüssel `gate` („Tor / Gate"). Weil Freestyle meist an **Gaps** statt an
+> Toren fliegt, heißt die Rubrik seit v0.20 **Gap**; `kwadCheck()` bildet den alten Wert `gate`
+> weiterhin auf `gap` ab, damit gespeicherte eigene Tricks ihre Prüfart behalten.
 
 Regeln dazu (bewusst **manuell**, keine automatische Prüfung):
 
@@ -127,7 +131,7 @@ Regeln dazu (bewusst **manuell**, keine automatische Prüfung):
   Vorgabe mit; bei **eigenen Tricks** wird sie im KWAD-Einstellungs-Overlay (Feld „Prüfart")
   mit angelegt und im Spiel als kleines Etikett angezeigt.
 - Alte/fehlende Werte fallen automatisch auf **Freiflug** zurück (`kwadCheck()`), damit früher
-  gespeicherte eigene Tricks weiter funktionieren.
+  gespeicherte eigene Tricks weiter funktionieren; der Alt-Wert `gate` wird als `gap` geführt.
 - Ist der gezogene Trick ein **Hindernis-Trick**, blendet der Spiel-Screen eine eigene Karte ein:
   „**Hindernis-Trick – die Gruppe bestimmt das Hindernis**" und darunter die Auswahl
   **„Hindernisauswähler"** — eine Liste der **noch aktiven Spieler**. Wer ausgewählt ist, legt das

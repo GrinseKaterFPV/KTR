@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-16
+### Added
+- Piloten: **jedes Profil ist eine aufklappbare Karte** — in der eingeklappten Zeile stehen bereits Versuche und Quote, ausgeklappt zeigt die Karte die kompletten Trick-Statistiken dieses Spielers (Versucht / Geschafft / Quote plus eine Zeile pro Trick)
+- Piloten: **Profilverwaltung direkt in der Karte** — aktiven Piloten wählen (★), Profil umbenennen, dessen Trick-Statistiken zurücksetzen oder das Profil löschen (die beiden letzten Aktionen fragen vorher nach)
+
+### Changed
+- Game of K.W.A.D: die Prüfart **„Tor / Gate" heißt jetzt „Gap"** (`gap`), weil beim Freestyle meist Gaps statt Tore fliegen; der alte Schlüssel `gate` in bestehenden Spielständen wird automatisch auf `gap` abgebildet, eigene Tricks behalten also ihre Prüfart
+- Piloten: Löschen eines Profils entfernt auch dessen Statistiken und fragt vorher nach; die „Gesamt"-Summe verliert genau diese Versuche, damit die Panels weiter aufgehen
+- Piloten: Umbenennen zieht alles mit — Farbe, aktiver Pilot, offene Profilkarte, Statistiken und ein laufendes K.W.A.D.-Spiel (Spieler, „schon versucht"-Liste, Hindernisauswähler)
+
 ## [0.19.0] - 2026-10-16
 ### Added
 - Game of K.W.A.D: **Trickliste & Pool** in the settings — every trick of every group with its short description, difficulty (★), Prüfart and a switch that keeps it in (or out of) the draw pool (`localStorage: kwad_trick_pool`). Unchecked tricks stay listed but are never drawn; a trick of a switched-off category is dimmed

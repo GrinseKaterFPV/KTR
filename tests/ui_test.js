@@ -2,8 +2,8 @@
 // the dedicated Piloten screen, the unified home-tile icons and the K.W.A.D
 // 2x2 letter-grid logo. Structure is checked
 // against the real index.html / styles.css / sw.js / manifest, and the pilot
-// profile helpers (addPilot / removePilot) are extracted from app.js and driven
-// against stubs, so we test the shipped logic, not a copy.
+// profile helpers (addPilot / removePilot / renamePilot) are extracted from
+// app.js and driven against stubs, so we test the shipped logic, not a copy.
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
@@ -96,6 +96,28 @@ check('P6: the comparison table is shared with the sets card',
   /function pilotCompareHTML\(\)/.test(app) && /els\.pilotsScreenCompare\.innerHTML = html/.test(app));
 check('P7: openHome / closeHome hide the Piloten screen',
   (app.match(/els\.pilotsScreen\) els\.pilotsScreen\.hidden = true/g) || []).length >= 3);
+
+// --- 4b) profile cards: statistics + management -----------------------------
+check('P8: every profile is a collapsible card with a leading summary',
+  /createElement\('details'\)/.test(app)
+  && /'pilot-profile' \+ \(active \? ' is-active' : ''\)/.test(app)
+  && /'pilot-profile-summary'/.test(app));
+check('P9: an open profile shows the statistics of that player',
+  /'pilot-profile-stats'/.test(app)
+  && /kwadStatPanel\(t\('kwad_stats'\)/.test(app)
+  && /kwadPlayerStats\[name\] \|\| \{\}/.test(app));
+check('P10: the collapsed row shows attempts and rate at a glance',
+  /'pilot-profile-meta'/.test(app)
+  && /t\('kwad_stats_attempted'\) \+ ' ' \+ totals\.attempted/.test(app));
+check('P11: a profile can be renamed and its statistics follow',
+  /function renamePilot\(/.test(app) && /kwadRenameProfile\(oldName, newName\)/.test(app));
+check('P12: deleting a profile asks first and takes its statistics with it',
+  /askConfirm\(t\('pilot_delete_confirm'\)/.test(app)
+  && /kwadDropProfileStats\(name\)/.test(app));
+check('P13: the statistics can be reset from inside the profile',
+  /'pilot-stats-reset'/.test(app) && /askConfirm\(t\('pilot_reset_confirm'\)/.test(app));
+check('P14: the active star picks the pilot without rebuilding the list',
+  /'pilot-activate'/.test(app) && /syncPilotCards\(\)/.test(app));
 
 // --- 5) K.W.A.D 2x2 letter-grid logo ------------------------------------------
 const iconKwadPath = path.join(root, 'icon-kwad.svg');
@@ -256,14 +278,15 @@ check('S4: the picker choice is persisted under its own key',
   && /localStorage\.getItem\('kwad_obstacle_picker'/.test(app));
 check('S5: the custom-trick form lets you choose the Prüfart',
   /<select id="kwadCustomCheck">/.test(html)
-  && (html.match(/data-i18n="kwad_check_(free|gate|obstacle)"/g) || []).length === 3);
+  && (html.match(/data-i18n="kwad_check_(free|gap|obstacle)"/g) || []).length === 3);
 check('S6: every built-in trick carries a Prüfart',
-  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gate|obstacle)' \}/g) || []).length >= 18);
+  (app.match(/\{ name: '[^']+', desc: '[^']*', check: '(free|gap|obstacle)' \}/g) || []).length >= 18);
 check('S7: at least one built-in trick is an obstacle trick',
   /check: 'obstacle'/.test(app));
-check('S8: an old/custom trick without a field counts as free flight',
+check('S8: an old/custom trick without a field counts as free flight, and v0.19 saves still say Gap',
   /function kwadCheck\(trick\)/.test(app)
-  && /return \(c === 'gate' \|\| c === 'obstacle'\) \? c : 'free';/.test(app));
+  && /if \(c === 'gate'\) return 'gap';/.test(app)
+  && /return \(c === 'gap' \|\| c === 'obstacle'\) \? c : 'free';/.test(app));
 check('S9: the obstacle banner and picker label are translated',
   /kwad_check: 'Prüfart'/.test(app) && /kwad_check: 'Check'/.test(app)
   && /kwad_obstacle_picker: 'Hindernisauswähler'/.test(app)
@@ -318,19 +341,29 @@ check('S22: the trick list style rules exist',
   && /\.kwad-trick-meta\s*\{/.test(css));
 
 // --- cache / version bookkeeping ---------------------------------------------
-check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v51'/.test(sw));
-check('V2: app version was bumped', /APP_VERSION = '0\.19\.0'/.test(app));
+check('V1: the service-worker cache was bumped', /const CACHE = 'fpv-timer-v52'/.test(sw));
+check('V2: app version was bumped', /APP_VERSION = '0\.20\.0'/.test(app));
 check('V3: package.json carries the same version',
-  /"version": "0\.19\.0"/.test(pkg));
+  /"version": "0\.20\.0"/.test(pkg));
 
 // --- pilot profile logic (extracted from app.js) -----------------------------
 function makePilotApi() {
   const state = { pilots: [], currentPilot: null, pilotColors: {} };
+  const pilotOpen = new Set();
+  const calls = { dropped: [], renamed: [] };
   const factory = new Function(
-    'state', 'renderPilots', 'saveSettings', 'pilotColorStub',
-    extract('addPilot') + '\n' + extract('removePilot') + '\nreturn { addPilot, removePilot };'
+    'state', 'pilotOpen', 'pilotColor', 'renderPilots', 'saveSettings',
+    'kwadDropProfileStats', 'kwadRenameProfile',
+    extract('addPilot') + '\n' + extract('removePilot') + '\n' + extract('renamePilot')
+      + '\nreturn { addPilot, removePilot, renamePilot };'
   );
-  return { state, api: factory(state, () => {}, () => {}, () => '#000') };
+  const api = factory(
+    state, pilotOpen,
+    () => '#000', () => {}, () => {},
+    name => calls.dropped.push(name),
+    (from, to) => calls.renamed.push([from, to])
+  );
+  return { state, pilotOpen, calls, api };
 }
 {
   const { state, api } = makePilotApi();
@@ -346,6 +379,29 @@ function makePilotApi() {
   check('L6: removePilot drops the pilot', !state.pilots.includes('Max'));
   check('L7: removePilot drops its colour', !('Max' in state.pilotColors));
   check('L8: the active pilot falls back to the next one', state.currentPilot === 'Lea');
+}
+{
+  const { state, pilotOpen, calls, api } = makePilotApi();
+  api.addPilot('Lea', '#222');
+  api.addPilot('Max', '#111');                 // also selects Max
+  pilotOpen.add('Max');
+  check('L9: renamePilot moves the name in place',
+    api.renamePilot('Max', 'Maxi') === true && state.pilots.includes('Maxi') && !state.pilots.includes('Max'));
+  check('L10: the colour follows the profile',
+    state.pilotColors['Maxi'] === '#111' && !('Max' in state.pilotColors));
+  check('L11: the active pilot follows the rename', state.currentPilot === 'Maxi');
+  check('L12: the open profile card follows the rename',
+    pilotOpen.has('Maxi') && !pilotOpen.has('Max'));
+  check('L13: the statistics are handed over to the new name',
+    calls.renamed.length === 1 && calls.renamed[0][0] === 'Max' && calls.renamed[0][1] === 'Maxi');
+  check('L14: a name that another profile uses is rejected',
+    api.renamePilot('Maxi', 'lea') === false && state.pilots.includes('Maxi'));
+  check('L15: an empty name is rejected', api.renamePilot('Maxi', '   ') === false);
+  check('L16: an unknown profile cannot be renamed', api.renamePilot('Nobody', 'X') === false);
+  api.removePilot('Maxi');
+  check('L17: deleting a profile drops its statistics',
+    calls.dropped.length === 1 && calls.dropped[0] === 'Maxi');
+  check('L18: the open card is forgotten too', !pilotOpen.has('Maxi'));
 }
 
 console.log('\n' + (fail === 0 ? 'ALL_OK true' : 'ALL_OK false') + '  pass=' + pass + ' fail=' + fail);
